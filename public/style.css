@@ -36,7 +36,7 @@ nav {
 }
 
 nav h1 {
-  background: linear-gradient(140deg, #69cda3, #139e8c);
+  background: linear-gradient(140deg, #fc8080, #fbb800);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }

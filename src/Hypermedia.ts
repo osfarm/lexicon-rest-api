@@ -189,7 +189,7 @@ export function hypermedia2json(
 
 type TableCompatible = {
   fields: Record<string, string>
-  items: Record<string, HypermediaType["any"]>[]
+  items: Record<string, HypermediaType["any"] | undefined>[]
 }
 
 export function hypermedia2csv(obj: TableCompatible | Error) {
@@ -202,7 +202,13 @@ export function hypermedia2csv(obj: TableCompatible | Error) {
     Object.values(obj.fields).join(","),
     ...obj.items.map((item) =>
       Object.values(item)
-        .map((col) => ("value" in col ? `"${col.value}"` : ""))
+        .map((col) => {
+          if (isObject(col) && "value" in col) {
+            return `"${col.value}"`
+          } else {
+            return ""
+          }
+        })
         .join(",")
     ),
   ].join("\n")

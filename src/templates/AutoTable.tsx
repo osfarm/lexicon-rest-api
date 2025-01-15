@@ -50,5 +50,6 @@ const parseHypermedia = (item: HypermediaType["any"]) =>
       item.values
         .map((val) => (isObject(val) && "value" in val ? val.value : val))
         .join(", "),
-    _otherwise: () => item.value,
+    _otherwise: () =>
+      isObject(item) && "value" in item ? item.value : "Error!",
   })

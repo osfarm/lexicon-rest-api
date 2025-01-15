@@ -7,11 +7,17 @@ import { Credits } from "./templates/Credits"
 import { useTranslator } from "./Translator"
 import { staticPlugin } from "@elysiajs/static"
 import postgres from "postgres"
-import { Hypermedia, HypermediaList } from "./Hypermedia"
+import {
+  Hypermedia,
+  hypermedia2csv,
+  hypermedia2json,
+  HypermediaList,
+} from "./Hypermedia"
 import { AutoTable } from "./templates/AutoTable"
+import { match } from "shulk"
 
 const DB_HOST = import.meta.env.DB_HOST
-const DB_PORT = import.meta.env.DB_PORT
+const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
 const DB_USER = import.meta.env.DB_USER
 const DB_PASSWORD = import.meta.env.DB_PASSWORD
 const DB_NAME = import.meta.env.DB_NAME
@@ -28,6 +34,8 @@ const sql = postgres({
 const PORT = 3000
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 
+type OutputFormat = "html" | "json" | "csv"
+
 new Elysia()
   .use(staticPlugin())
   .use(
@@ -42,7 +50,7 @@ new Elysia()
     })
   )
   .use(html())
-  .derive(({ headers }) => {
+  .derive(({ headers, path }) => {
     const clientDesiredLanguage =
       headers["Accept-Language"]?.split(",")[0]?.split("-")[0] || ""
 
@@ -50,13 +58,21 @@ new Elysia()
       ? (clientDesiredLanguage as string)
       : "fr"
 
+    let output: OutputFormat = "html"
+    if (path.endsWith(".json")) {
+      output = "json"
+    } else if (path.endsWith(".csv")) {
+      output = "csv"
+    }
+
     return {
+      output,
       language: serverLanguage,
       t: useTranslator(serverLanguage),
     }
   })
   .get("/", () => Home())
-  .get("/viticulture/vine-varieties", async ({ t }) => {
+  .get("/viticulture/vine-varieties*", async ({ request, output, t }) => {
     const result =
       await sql`SELECT * FROM "lexicon__6_0_0-ekyviti".registered_vine_varieties ORDER BY short_name ASC;`
 
@@ -96,7 +112,7 @@ new Elysia()
         utilities: item.utilities
           ? HypermediaList({
               label: t("viticulture_vine_variety_utilities"),
-              values: item.utilities.map((utility) =>
+              values: item.utilities.map((utility: string) =>
                 Hypermedia.Text({
                   label: t("viticulture_vine_variety_utilities"),
                   value: t("viticulture_vine_variety_utility_" + utility),
@@ -107,7 +123,13 @@ new Elysia()
       })),
     }
 
-    return AutoTable({ ...page, t })
+    return match(output)
+      .returnType<string | object>()
+      .case({
+        html: () => AutoTable({ ...page, t }),
+        json: () => hypermedia2json(request, page),
+        csv: () => hypermedia2csv(page),
+      })
   })
   .get("/credits", ({ t }) => Credits({ t }))
   .listen(PORT)

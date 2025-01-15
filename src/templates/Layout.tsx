@@ -29,6 +29,8 @@ export function Layout(props: Props) {
           </header>
         </nav>
 
+        <br />
+
         <main
           class="container"
           style={{
@@ -39,6 +41,9 @@ export function Layout(props: Props) {
           }}
         >
           <Breadcrumbs pageTitle={props.title} links={props.breadcrumbs} />
+
+          <h1>{props.title}</h1>
+
           <div
             class="segment"
             style={{
