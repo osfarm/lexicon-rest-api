@@ -1,0 +1,41 @@
+key,fr,en
+common_undefined,Non renseigné,Not defined
+common_fields_name,Nom,Name
+common_fields_description,Description,Description
+common_fields_color,Couleur,Color
+common_fields_category,Catégorie,Category
+
+home_title,Accueil,Home
+
+phytosanitary_title,Phytosanitaire,Phytosanitary
+
+phytosanitary_symbol_title,Symboles,Symbols
+phytosanitary_symbol_mention,Mention danger,Danger mention
+phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
+
+viticulture_title,Viticulture,Viticulture
+
+viticulture_phenological_stage_title,Stades phénologiques,Phenological stages
+viticulture_phenological_stage_bbch,BBCH,BBCH
+viticulture_phenological_stage_biaggiolini,Échelle de Biaggiolini,Biaggiolini scale
+viticulture_phenological_stage_eicchorn_lorenz,Échelle de Eichhorn et Lorenz,Eichhorn and Lorenz scale 
+
+viticulture_vine_variety_title,Variétés de vignes,Vine varieties
+viticulture_vine_variety_color_black,Noire,Black
+viticulture_vine_variety_color_white,Blanche,White
+viticulture_vine_variety_color_grey,Grise,Grey
+viticulture_vine_variety_color_red,Rouge,Red
+viticulture_vine_variety_color_pink,Rose,Pink
+viticulture_vine_variety_category_variety,Variété,Variety
+viticulture_vine_variety_category_rootstock,Porte-greffe,Rootstock
+viticulture_vine_variety_category_hybrid,Hybride,Hybrid
+viticulture_vine_variety_utilities,Usages,Utilities
+viticulture_vine_variety_utility_wine,Vin,Wine
+viticulture_vine_variety_utility_juice,Jus,Juice
+viticulture_vine_variety_utility_table,Table,Table
+viticulture_vine_variety_utility_certified,Certifié,Certified
+
+credits_title,Crédits,Credits
+credits_production,Production,Production
+credits_data_providers,Fournisseurs de données,Data providers
+credits_open_source_softwares,Logiciels open-source,Open source softwares

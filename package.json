@@ -1,0 +1,24 @@
+{
+  "name": "rest-api",
+  "version": "1.0.0",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun --hot run ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@elysiajs/html": "^1.2.0",
+    "@elysiajs/static": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.0",
+    "csv-parse": "^5.6.0",
+    "elysia": "^1.2.10",
+    "postgres": "^3.4.5",
+    "shulk": "^0.15.0"
+  }
+}
