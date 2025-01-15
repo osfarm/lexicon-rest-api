@@ -1,15 +1,41 @@
-# rest-api
+# Lexicon REST API
 
-To install dependencies:
+_Note: this project is a web interface for [Lexicon](https://github.com/osfarm/lexicon). Please consult it if you wish to contribute to the database._
 
-```bash
-bun install
+## Get started
+
+### 1. Clone the repo
+
+```sh
+$ git clone https://github.com/osfarm/lexicon-rest-api.git
 ```
 
-To run:
+### 2. Fill the environment file with your credentials
 
-```bash
-bun run src/index.ts
+```sh
+$ cd ./lexicon-rest-api
+$ nano .env
 ```
 
-This project was created using `bun init` in bun v1.1.43. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+.env file structure:
+
+```env
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+DB_SCHEMA=
+```
+
+### 3. Install the dependencies
+
+```sh
+$ bun
+```
+
+### 4. Start the server
+
+```sh
+$ bun start
+```
