@@ -5,6 +5,11 @@ common_fields_description,Description,Description
 common_fields_color,Couleur,Color
 common_fields_category,Catégorie,Category
 
+navigation_first_page,Première page,First page
+navigation_last_page,Dernière page,Last page
+navigation_previous_page,Page précédente,Previous page
+navigation_next_page,Page suivante,Next page
+
 home_title,Accueil,Home
 
 phytosanitary_title,Phytosanitaire,Phytosanitary

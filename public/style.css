@@ -87,3 +87,108 @@ tr {
 tr:hover {
   background-color: #f4f4f5;
 }
+
+.card {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  border-radius: 15px;
+  overflow: hidden;
+  flex-direction: column;
+  display: flex;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.card.default {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.card.error {
+  color: #c2174c;
+  background-color: rgb(254 231 239);
+  box-shadow: rgba(254 231 239, 0.6) 0px 3px 8px;
+}
+
+.card .content {
+  -webkit-font-smoothing: auto;
+  text-align: left;
+  padding: 0.75rem;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  display: flex;
+  position: relative;
+}
+
+.button {
+  font-family: system-ui, sans-serif;
+  font-size: medium;
+  text-decoration: none;
+  border: none;
+  transition-property: transform, color, background, background-color,
+    border-color, text-decoration-color, fill, stroke, opacity;
+  transition-timing-function: ease;
+  transition-duration: 0.25s;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  font-weight: 400;
+  border-radius: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  white-space: nowrap;
+  justify-content: center;
+  align-items: center;
+  min-width: 80px;
+  height: 40px;
+  box-sizing: border-box;
+  display: inline-flex;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button:hover {
+  opacity: 80%;
+}
+
+.button > .label-left {
+  margin-right: 15px;
+  box-sizing: border-box;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.is-loading {
+  opacity: 60% !important;
+  cursor: wait;
+}
+
+.default {
+  background-color: rgb(212, 212, 216);
+  color: black;
+}
+
+.default.shadow {
+  box-shadow: rgba(212, 212, 216, 0.35) 0px 5px 15px;
+}
+
+.button .primary {
+  background-color: rgb(1, 112, 240);
+  color: white;
+}
+
+.button.primary.shadow {
+  box-shadow: rgba(1, 112, 240, 0.35) 0px 5px 15px;
+}
+
+.button.success {
+  background-color: #3dc798;
+  color: white;
+}
+
+.button.success.shadow {
+  box-shadow: rgba(61, 199, 152, 0.35) 0px 5px 15px;
+}

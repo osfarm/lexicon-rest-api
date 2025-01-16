@@ -1,10 +1,10 @@
-import { Elysia, file } from "elysia"
+import { Elysia, file, t } from "elysia"
 import { swagger } from "@elysiajs/swagger"
 import { html, Html } from "@elysiajs/html"
 import { Home } from "./templates/Home"
 import packageJson from "../package.json"
 import { Credits } from "./templates/Credits"
-import { useTranslator } from "./Translator"
+import { useTranslator, type Translator } from "./Translator"
 import { staticPlugin } from "@elysiajs/static"
 import postgres from "postgres"
 import {
@@ -12,9 +12,11 @@ import {
   hypermedia2csv,
   hypermedia2json,
   HypermediaList,
+  type HypermediaType,
 } from "./Hypermedia"
 import { AutoTable } from "./templates/AutoTable"
-import { match } from "shulk"
+import { Concurrently, match } from "shulk"
+import { Table } from "./Database"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -35,6 +37,56 @@ const PORT = 3000
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 
 type OutputFormat = "html" | "json" | "csv"
+
+function generateTablePage<T, F extends string>(
+  params: {
+    title: string
+    breadcrumbs: HypermediaType["Link"][]
+    page: number
+    totalItems: number
+    path: string
+    items: T[]
+    columns: Record<F, string>
+    handler: (obj: T) => Record<F, HypermediaType["any"] | undefined>
+  },
+  t: Translator
+) {
+  const PER_PAGE = 50
+
+  const totalPages = Math.ceil(params.totalItems / PER_PAGE)
+
+  return {
+    title: params.title,
+    breadcrumbs: params.breadcrumbs,
+    table: {
+      columns: params.columns,
+      rows: params.items.map(params.handler),
+    },
+    "items-per-page": PER_PAGE,
+    "items-count": params.items.length,
+    "items-total": params.totalItems,
+    page: params.page,
+    "total-pages": totalPages,
+    navigation: {
+      "previous-page":
+        params.page > 1
+          ? Hypermedia.Link({
+              value: t("navigation_previous_page"),
+              method: "GET",
+              href: params.path + `?page=${params.page - 1}`,
+            })
+          : undefined,
+      "next-page":
+        params.page < totalPages
+          ? Hypermedia.Link({
+              value: t("navigation_next_page"),
+              method: "GET",
+              href: params.path + `?page=${params.page + 1}`,
+            })
+          : undefined,
+    },
+  }
+}
 
 new Elysia()
   .use(staticPlugin())
@@ -72,65 +124,117 @@ new Elysia()
     }
   })
   .get("/", () => Home())
-  .get("/viticulture/vine-varieties*", async ({ request, output, t }) => {
-    const result =
-      await sql`SELECT * FROM "lexicon__6_0_0-ekyviti".registered_vine_varieties ORDER BY short_name ASC;`
+  .get(
+    "/viticulture/vine-varieties*",
+    async ({ request, path, query, output, t }) => {
+      type VineVariety = {
+        id: string
+        shortName: string
+        longName?: string
+        category: string
+        color?: string
+        utilities?: string[]
+      }
 
-    console.log(result[0])
-
-    const page = {
-      title: t("viticulture_vine_variety_title"),
-      breadcrumbs: [
-        Hypermedia.Link({ value: t("home_title"), method: "GET", href: "/" }),
-        Hypermedia.Link({
-          value: t("viticulture_title"),
-          method: "GET",
-          href: "/viticulture/",
-        }),
-      ],
-      fields: {
-        name: t("common_fields_name"),
-        category: t("common_fields_category"),
-        color: t("common_fields_color"),
-        utilities: t("viticulture_vine_variety_utilities"),
-      },
-      items: result.map((item) => ({
-        name: Hypermedia.Text({
-          label: t("common_fields_name"),
-          value: item.long_name ? item.long_name : item.short_name,
-        }),
-        category: Hypermedia.Text({
-          label: t("common_fields_category"),
-          value: t("viticulture_vine_variety_category_" + item.category),
-        }),
-        color: item.color
-          ? Hypermedia.Text({
-              label: t("common_fields_color"),
-              value: t("viticulture_vine_variety_color_" + item.color),
-            })
-          : undefined,
-        utilities: item.utilities
-          ? HypermediaList({
-              label: t("viticulture_vine_variety_utilities"),
-              values: item.utilities.map((utility: string) =>
-                Hypermedia.Text({
-                  label: t("viticulture_vine_variety_utilities"),
-                  value: t("viticulture_vine_variety_utility_" + utility),
-                })
-              ),
-            })
-          : undefined,
-      })),
-    }
-
-    return match(output)
-      .returnType<string | object>()
-      .case({
-        html: () => AutoTable({ ...page, t }),
-        json: () => hypermedia2json(request, page),
-        csv: () => hypermedia2csv(page),
+      const VineVarietyTable = Table<VineVariety>({
+        table: "registered_vine_varieties",
+        primaryKey: "id",
+        map: {
+          id: "id",
+          shortName: "short_name",
+          longName: "long_name",
+          color: "color",
+          category: "category",
+          utilities: "utilities",
+        },
       })
-  })
+
+      const { page } = query
+
+      const q = VineVarietyTable(sql)
+        .select()
+        .orderBy("shortName", "ASC")
+        .limit(50)
+        .offset((page - 1) * 50)
+
+      // prettier-ignore
+      const result = await Concurrently
+        .run(() => q.run())
+        .and(() => q.count())
+        .done()
+
+      const pageData = result.map(([items, total]) =>
+        generateTablePage(
+          {
+            title: t("viticulture_vine_variety_title"),
+            breadcrumbs: [
+              Hypermedia.Link({
+                value: t("home_title"),
+                method: "GET",
+                href: "/",
+              }),
+              Hypermedia.Link({
+                value: t("viticulture_title"),
+                method: "GET",
+                href: "/viticulture/",
+              }),
+            ],
+            page,
+            path: path,
+            totalItems: total,
+            items: items,
+            columns: {
+              name: t("common_fields_name"),
+              category: t("common_fields_category"),
+              color: t("common_fields_color"),
+              utilities: t("viticulture_vine_variety_utilities"),
+            },
+            handler: (item) => ({
+              name: Hypermedia.Text({
+                label: t("common_fields_name"),
+                value: item.longName ? item.longName : item.shortName,
+              }),
+              category: Hypermedia.Text({
+                label: t("common_fields_category"),
+                value: t("viticulture_vine_variety_category_" + item.category),
+              }),
+              color: item.color
+                ? Hypermedia.Text({
+                    label: t("common_fields_color"),
+                    value: t("viticulture_vine_variety_color_" + item.color),
+                  })
+                : undefined,
+              utilities: item.utilities
+                ? HypermediaList({
+                    label: t("viticulture_vine_variety_utilities"),
+                    values: item.utilities.map((utility: string) =>
+                      Hypermedia.Text({
+                        label: t("viticulture_vine_variety_utilities"),
+                        value: t("viticulture_vine_variety_utility_" + utility),
+                      })
+                    ),
+                  })
+                : undefined,
+            }),
+          },
+          t
+        )
+      )
+
+      return match(output)
+        .returnType<string | object>()
+        .case({
+          html: () => AutoTable({ page: pageData, t }),
+          json: () => hypermedia2json(request, pageData.val),
+          csv: () => hypermedia2csv(pageData.val),
+        })
+    },
+    {
+      query: t.Object({
+        page: t.Number({ minimum: 1, default: 1 }),
+      }),
+    }
+  )
   .get("/credits", ({ t }) => Credits({ t }))
   .listen(PORT)
 

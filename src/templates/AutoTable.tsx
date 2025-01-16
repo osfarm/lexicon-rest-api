@@ -1,47 +1,84 @@
 import { html, Html } from "@elysiajs/html"
 import type { HypermediaType } from "../Hypermedia"
 import { Layout } from "./Layout"
-import { isObject, match } from "shulk"
+import { isObject, match, type Result } from "shulk"
 import type { Translator } from "../Translator"
+import { Error } from "./components/Error"
 
 interface PageData {
-  title: string
-  breadcrumbs: HypermediaType["Link"][]
-  fields: Record<string, string>
-  items: Record<string, HypermediaType["any"] | undefined>[]
+  page: Result<
+    Error,
+    {
+      title: string
+      breadcrumbs: HypermediaType["Link"][]
+      table: {
+        columns: Record<string, string>
+        rows: Record<string, HypermediaType["any"] | undefined>[]
+      }
+      page: number
+      "total-pages": number
+      navigation: {
+        "previous-page": HypermediaType["Link"] | undefined
+        "next-page": HypermediaType["Link"] | undefined
+      }
+    }
+  >
   t: Translator
 }
 
-export function AutoTable(page: PageData) {
-  return (
-    <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
-      <table>
-        <thead>
-          <tr>
-            {Object.values(page.fields).map((field) => (
-              <th>{field}</th>
-            ))}
-          </tr>
-        </thead>
+export function AutoTable(props: PageData) {
+  const { page, t } = props
 
-        <tbody>
-          {page.items.map((item) => (
+  return match(page).case({
+    Err: ({ val: error }) => <Error error={error} />,
+    Ok: ({ val: page }) => (
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+        <table>
+          <thead>
             <tr>
-              {Object.keys(page.fields).map((field) => (
-                <td>
-                  {item[field] === undefined ? (
-                    <i>{page.t("common_undefined")}</i>
-                  ) : (
-                    parseHypermedia(item[field])
-                  )}
-                </td>
+              {Object.values(page.table.columns).map((field) => (
+                <th>{field}</th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </Layout>
-  )
+          </thead>
+
+          <tbody>
+            {page.table.rows.map((item) => (
+              <tr>
+                {Object.keys(page.table.columns).map((field) => (
+                  <td>
+                    {item[field] === undefined ? (
+                      <i>{props.t("common_undefined")}</i>
+                    ) : (
+                      parseHypermedia(item[field])
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <br />
+
+        <div style={{ textAlign: "center" }}>
+          {page.navigation["previous-page"] ? (
+            <a href={page.navigation["previous-page"].href} class="button">
+              {"< " + page.navigation["previous-page"].value}
+            </a>
+          ) : undefined}
+
+          {` ${page.page} / ${page["total-pages"]} `}
+
+          {page.navigation["next-page"] ? (
+            <a href={page.navigation["next-page"].href} class="button">
+              {page.navigation["next-page"].value + " >"}
+            </a>
+          ) : undefined}
+        </div>
+      </Layout>
+    ),
+  })
 }
 
 const parseHypermedia = (item: HypermediaType["any"]) =>

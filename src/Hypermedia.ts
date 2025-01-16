@@ -188,8 +188,10 @@ export function hypermedia2json(
 }
 
 type TableCompatible = {
-  fields: Record<string, string>
-  items: Record<string, HypermediaType["any"] | undefined>[]
+  table: {
+    columns: Record<string, string>
+    rows: Record<string, HypermediaType["any"] | undefined>[]
+  }
 }
 
 export function hypermedia2csv(obj: TableCompatible | Error) {
@@ -199,8 +201,8 @@ export function hypermedia2csv(obj: TableCompatible | Error) {
   }
 
   const csv = [
-    Object.values(obj.fields).join(","),
-    ...obj.items.map((item) =>
+    Object.values(obj.table.columns).join(","),
+    ...obj.table.rows.map((item) =>
       Object.values(item)
         .map((col) => {
           if (isObject(col) && "value" in col) {
