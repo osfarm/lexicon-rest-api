@@ -4,13 +4,20 @@ import { Layout } from "./Layout"
 import { isObject, match, type Result } from "shulk"
 import type { Translator } from "../Translator"
 import { Error } from "./components/Error"
+import { Form, type FieldType } from "./components/Form"
 
 interface PageData {
   page: Result<
-    Error,
     {
       title: string
       breadcrumbs: HypermediaType["Link"][]
+      form: Record<string, FieldType["any"]>
+      error: Error
+    },
+    {
+      title: string
+      breadcrumbs: HypermediaType["Link"][]
+      form: Record<string, FieldType["any"]>
       table: {
         columns: Record<string, string>
         rows: Record<string, HypermediaType["any"] | undefined>[]
@@ -30,9 +37,21 @@ export function AutoTable(props: PageData) {
   const { page, t } = props
 
   return match(page).case({
-    Err: ({ val: error }) => <Error error={error} />,
+    Err: ({ val: page }) => (
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+        <Form method={"GET"} definition={page.form} />
+
+        <br />
+
+        <Error error={page.error} />
+      </Layout>
+    ),
     Ok: ({ val: page }) => (
       <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+        <Form method={"GET"} definition={page.form} />
+
+        <br />
+
         <table>
           <thead>
             <tr>

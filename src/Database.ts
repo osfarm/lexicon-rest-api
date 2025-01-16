@@ -1,5 +1,7 @@
-import type postgres from "postgres"
+import type { Client } from "pg"
 import { Err, Ok, type AsyncResult } from "shulk"
+
+const DB_SCHEMA = import.meta.env.DB_SCHEMA
 
 type TableDefinition<T extends object> = {
   table: string
@@ -8,7 +10,7 @@ type TableDefinition<T extends object> = {
 }
 
 export function Table<T extends object>(definition: TableDefinition<T>) {
-  return (db: postgres.Sql<{}>) => ({
+  return (db: Client) => ({
     select: () => new Select(db, definition),
   })
 }
@@ -19,10 +21,7 @@ class Select<T extends object> {
   protected limitValue?: number
   protected offsetValue: number = 0
 
-  constructor(
-    protected db: postgres.Sql<{}>,
-    protected def: TableDefinition<T>
-  ) {
+  constructor(protected db: Client, protected def: TableDefinition<T>) {
     this.conditions = []
   }
 
@@ -46,37 +45,36 @@ class Select<T extends object> {
     return this
   }
 
-  async run(): AsyncResult<Error, T[]> {
-    const sql = this.db
-
-    const conditionsQuery =
+  protected prepareConditionsAndParams() {
+    const conditions =
       this.conditions.length > 0
         ? `WHERE ${this.conditions
-            .map((_, i) => "?" + (i + 1) + "=?" + (i + 2))
+            .map((condition, i) => condition.field + "=$" + (i + 1))
             .join(" AND ")}`
         : ""
 
+    const params = this.conditions.flatMap((condition) => [condition.value])
+
+    return { conditions, params }
+  }
+
+  async run(): AsyncResult<Error, T[]> {
+    const db = this.db
+
+    const { conditions, params } = this.prepareConditionsAndParams()
+
     try {
-      //   const fields = sql`${Object.entries(this.def.map)
-      //     .map(([field, tableProp]) => `${tableProp} AS ${field}`)
-      //     .join(", ")}`
-
-      //console.log(orders)
-
-      const response = await sql`SELECT * FROM ${sql(
-        "lexicon__6_0_0-ekyviti"
-      )}.${sql(this.def.table)} ${sql`ORDER BY ${this.orders.map(
-        (order) =>
-          sql`${sql(this.def.map[order.field])} ${
-            order.sort === "ASC" ? sql`ASC` : sql`DESC`
-          }`
+      const q = `SELECT * FROM "${DB_SCHEMA}".${
+        this.def.table
+      } ${conditions} ${`ORDER BY ${this.orders.map(
+        (order) => `${this.def.map[order.field]} ${order.sort}`
       )}`} ${
-        this.limitValue ? sql`LIMIT ${this.limitValue}` : sql``
-      } ${sql`OFFSET ${this.offsetValue}`};`
+        this.limitValue ? `LIMIT ${this.limitValue}` : ``
+      } ${`OFFSET ${this.offsetValue}`};`
 
-      console.log(response.statement)
+      const response = await db.query(q, params)
 
-      const parsedResponse = response.map((row) =>
+      const parsedResponse = response.rows.map((row) =>
         Object.fromEntries(
           Object.entries(this.def.map).map(([field, column]) => [
             field,
@@ -93,21 +91,17 @@ class Select<T extends object> {
   }
 
   async count(): AsyncResult<Error, number> {
-    const sql = this.db
+    const db = this.db
 
-    const conditionsQuery =
-      this.conditions.length > 0
-        ? `WHERE ${this.conditions
-            .map((_, i) => "?" + (i + 1) + "=?" + (i + 2))
-            .join(" AND ")}`
-        : ""
+    const { conditions, params } = this.prepareConditionsAndParams()
 
     try {
-      const response = await sql`SELECT COUNT(*) FROM ${sql(
-        "lexicon__6_0_0-ekyviti"
-      )}.${sql(this.def.table)};`
+      const response = await db.query(
+        `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`,
+        params
+      )
 
-      return Ok(parseInt(response[0].count))
+      return Ok(parseInt(response.rows[0].count))
     } catch (e) {
       return Err(e as Error)
     }
