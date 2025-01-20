@@ -49,7 +49,7 @@ class Select<T extends object> {
     const conditions =
       this.conditions.length > 0
         ? `WHERE ${this.conditions
-            .map((condition, i) => condition.field + "=$" + (i + 1))
+            .map((condition, i) => (condition.field as string) + "=$" + (i + 1))
             .join(" AND ")}`
         : ""
 
@@ -78,7 +78,7 @@ class Select<T extends object> {
         Object.fromEntries(
           Object.entries(this.def.map).map(([field, column]) => [
             field,
-            row[column],
+            row[column as string],
           ])
         )
       )
@@ -107,3 +107,5 @@ class Select<T extends object> {
     }
   }
 }
+
+export type t_Select<T extends object> = Select<T>

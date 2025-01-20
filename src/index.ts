@@ -15,9 +15,9 @@ import {
 } from "./Hypermedia"
 import { AutoTable } from "./templates/AutoTable"
 import { Concurrently, match } from "shulk"
-import { Table } from "./Database"
+import { Table, type t_Select } from "./Database"
 import { Field, type FieldType } from "./templates/components/Form"
-import { Client, Pool } from "pg"
+import { Client } from "pg"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -39,7 +39,10 @@ const AVAILABLE_LANGUAGES = ["fr", "en"]
 
 type OutputFormat = "html" | "json" | "csv"
 
-function createHref(basePath: string, query: Record<string, string>) {
+function createHref(
+  basePath: string,
+  query: { page?: number; [key: string]: unknown }
+) {
   const queryString = Object.entries(query)
     .map(([key, value]) => `${key}=${value}`)
     .join("&")
@@ -47,63 +50,158 @@ function createHref(basePath: string, query: Record<string, string>) {
   return basePath + "?" + queryString
 }
 
-function generateTablePage<T, F extends string>(
-  params: {
-    title: string
-    breadcrumbs: HypermediaType["Link"][]
-    form: Record<string, FieldType["any"]>
-    page: number
-    totalItems: number
-    path: string
-    query: object
-    items: T[]
-    columns: Record<F, string>
-    handler: (obj: T) => Record<F, HypermediaType["any"] | undefined>
+type VineVariety = {
+  id: string
+  shortName: string
+  longName?: string
+  category: VineCategory
+  color?: VineColor
+  utilities?: string[]
+}
+
+enum VineColor {
+  BLACK = "black",
+  WHITE = "white",
+  GREY = "grey",
+}
+
+enum VineCategory {
+  VARIETY = "variety",
+  HYBRID = "hybrid",
+  ROOTSTOCK = "rootstock",
+}
+
+const VineVarietyTable = Table<VineVariety>({
+  table: "registered_vine_varieties",
+  primaryKey: "id",
+  map: {
+    id: "id",
+    shortName: "short_name",
+    longName: "long_name",
+    color: "color",
+    category: "category",
+    utilities: "utilities",
   },
+})
+
+function ObjectMap<T extends object, P>(
+  obj: T,
+  fn: (key: keyof T, value: T[keyof T]) => P
+): Record<keyof T, P> {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      fn(key as keyof T, value as any),
+    ])
+  ) as Record<keyof T, P>
+}
+
+interface Context {
+  path: string
+  request: Request
+  query: Record<string, string | number>
   t: Translator
+  output: OutputFormat
+}
+
+interface AutoTableParams<T extends object, F extends string> {
+  title: string
+  breadcrumbs: HypermediaType["Link"][]
+  form: Record<string, FieldType["any"]>
+  query: t_Select<T>
+  columns: Record<F, string>
+  handler: (obj: T) => Record<F, HypermediaType["any"] | undefined>
+}
+
+async function generateTablePage<T extends object, F extends string>(
+  context: Context,
+  params: AutoTableParams<T, F>
 ) {
   const PER_PAGE = 50
 
-  const totalPages = Math.ceil(params.totalItems / PER_PAGE)
+  const { path, request, query: queryParams, t, output } = context
 
-  return {
-    title: params.title,
-    breadcrumbs: params.breadcrumbs,
-    form: params.form,
-    table: {
-      columns: params.columns,
-      rows: params.items.map(params.handler),
-    },
-    "items-per-page": PER_PAGE,
-    "items-count": params.items.length,
-    "items-total": params.totalItems,
-    page: params.page,
-    "total-pages": totalPages,
-    navigation: {
-      "previous-page":
-        params.page > 1
-          ? Hypermedia.Link({
-              value: t("navigation_previous_page"),
-              method: "GET",
-              href: createHref(params.path, {
-                ...params.query,
-                page: params.page - 1,
-              }),
-            })
-          : undefined,
-      "next-page":
-        params.page < totalPages
-          ? Hypermedia.Link({
-              value: t("navigation_next_page"),
-              method: "GET",
-              href: createHref(params.path, {
-                ...params.query,
-                page: params.page + 1,
-              }),
-            })
-          : undefined,
-    },
+  const { page } = queryParams
+
+  if (typeof page !== "number") {
+    return
   }
+
+  const enhancedQuery = params.query
+    .limit(PER_PAGE)
+    .offset((page - 1) * PER_PAGE)
+
+  Object.entries(queryParams)
+    .filter(([key]) => key !== "page")
+    .filter(([, value]) => value !== undefined)
+    .filter(([, value]) => value !== "")
+    .map(([key, value]) => enhancedQuery.where(key as keyof T, "=", value))
+
+  // prettier-ignore
+  const result = await Concurrently
+    .run(() => enhancedQuery.run())
+    .and(() => params.query.count())
+    .done()
+
+  const pageData = result
+    .map(
+      ([items, count]) => [items, count, Math.ceil(count / PER_PAGE)] as const
+    )
+    .map(([items, count, totalPages]) => ({
+      title: params.title,
+      breadcrumbs: params.breadcrumbs,
+      form: ObjectMap(params.form, (key, field) => ({
+        ...field,
+        defaultValue: queryParams[key] as string,
+      })),
+      table: {
+        columns: params.columns,
+        rows: items.map(params.handler),
+      },
+      "items-per-page": PER_PAGE,
+      "items-count": items.length,
+      "items-total": count,
+      page: page,
+      "total-pages": totalPages,
+      navigation: {
+        "previous-page":
+          page > 1
+            ? Hypermedia.Link({
+                value: t("navigation_previous_page"),
+                method: "GET",
+                href: createHref(path, {
+                  ...params.query,
+                  page: page - 1,
+                }),
+              })
+            : undefined,
+        "next-page":
+          page < totalPages
+            ? Hypermedia.Link({
+                value: t("navigation_next_page"),
+                method: "GET",
+                href: createHref(path, {
+                  ...params.query,
+                  page: page + 1,
+                }),
+              })
+            : undefined,
+      },
+    }))
+    .mapErr((error) => ({
+      title: params.title,
+      breadcrumbs: params.breadcrumbs,
+      form: params.form,
+      error: error,
+    }))
+
+  return match(output)
+    .returnType<string | object>()
+    .case({
+      html: () => AutoTable({ page: pageData, t }),
+      json: () => hypermedia2json(request, pageData.val),
+      csv: () => hypermedia2csv(pageData.val),
+    })
 }
 
 new Elysia()
@@ -144,165 +242,84 @@ new Elysia()
   .get("/", () => Home())
   .get(
     "/viticulture/vine-varieties*",
-    async ({ request, path, query, output, t }) => {
-      type VineVariety = {
-        id: string
-        shortName: string
-        longName?: string
-        category: VineCategory
-        color?: VineColor
-        utilities?: string[]
-      }
-
-      enum VineColor {
-        BLACK = "black",
-        WHITE = "white",
-        GREY = "grey",
-      }
-
-      enum VineCategory {
-        VARIETY = "variety",
-        HYBRID = "hybrid",
-        ROOTSTOCK = "rootstock",
-      }
-
-      const VineVarietyTable = Table<VineVariety>({
-        table: "registered_vine_varieties",
-        primaryKey: "id",
-        map: {
-          id: "id",
-          shortName: "short_name",
-          longName: "long_name",
-          color: "color",
-          category: "category",
-          utilities: "utilities",
-        },
-      })
-
-      const { page, category, color } = query
-
-      const q = VineVarietyTable(sql)
-        .select()
-        .orderBy("shortName", "ASC")
-        .limit(50)
-        .offset((page - 1) * 50)
-
-      if (category) {
-        q.where("category", "=", category)
-      }
-
-      if (color) {
-        q.where("color", "=", color)
-      }
-
-      // prettier-ignore
-      const result = await Concurrently
-        .run(() => q.run())
-        .and(() => q.count())
-        .done()
-
-      const meta = {
-        title: t("viticulture_vine_variety_title"),
+    (context) =>
+      generateTablePage(context, {
+        title: context.t("viticulture_vine_variety_title"),
         breadcrumbs: [
           Hypermedia.Link({
-            value: t("home_title"),
+            value: context.t("home_title"),
             method: "GET",
             href: "/",
           }),
           Hypermedia.Link({
-            value: t("viticulture_title"),
+            value: context.t("viticulture_title"),
             method: "GET",
             href: "/viticulture/",
           }),
         ],
         form: {
           category: Field.Select({
-            label: t("common_fields_category"),
+            label: context.t("common_fields_category"),
             options: Object.fromEntries(
               Object.values(VineCategory).map((category) => [
                 category,
-                t("viticulture_vine_variety_category_" + category),
+                context.t("viticulture_vine_variety_category_" + category),
               ])
             ),
-            defaultValue: category,
             required: false,
           }),
           color: Field.Select({
-            label: t("common_fields_color"),
+            label: context.t("common_fields_color"),
             options: Object.fromEntries(
               Object.values(VineColor).map((category) => [
                 category,
-                t("viticulture_vine_variety_color_" + category),
+                context.t("viticulture_vine_variety_color_" + category),
               ])
             ),
-            defaultValue: color,
             required: false,
           }),
         },
-      }
-
-      const pageData = result
-        .map(([items, total]) =>
-          generateTablePage(
-            {
-              ...meta,
-              page,
-              path: path,
-              query,
-              totalItems: total,
-              items: items,
-
-              columns: {
-                name: t("common_fields_name"),
-                category: t("common_fields_category"),
-                color: t("common_fields_color"),
-                utilities: t("viticulture_vine_variety_utilities"),
-              },
-              handler: (item) => ({
-                name: Hypermedia.Text({
-                  label: t("common_fields_name"),
-                  value: item.longName ? item.longName : item.shortName,
-                }),
-                category: Hypermedia.Text({
-                  label: t("common_fields_category"),
-                  value: t(
-                    "viticulture_vine_variety_category_" + item.category
-                  ),
-                }),
-                color: item.color
-                  ? Hypermedia.Text({
-                      label: t("common_fields_color"),
-                      value: t("viticulture_vine_variety_color_" + item.color),
-                    })
-                  : undefined,
-                utilities: item.utilities
-                  ? HypermediaList({
-                      label: t("viticulture_vine_variety_utilities"),
-                      values: item.utilities.map((utility: string) =>
-                        Hypermedia.Text({
-                          label: t("viticulture_vine_variety_utilities"),
-                          value: t(
-                            "viticulture_vine_variety_utility_" + utility
-                          ),
-                        })
-                      ),
-                    })
-                  : undefined,
-              }),
-            },
-            t
-          )
-        )
-        .mapErr((error) => ({ ...meta, error }))
-
-      return match(output)
-        .returnType<string | object>()
-        .case({
-          html: () => AutoTable({ page: pageData, t }),
-          json: () => hypermedia2json(request, pageData.val),
-          csv: () => hypermedia2csv(pageData.val),
-        })
-    },
+        query: VineVarietyTable(sql).select().orderBy("shortName", "ASC"),
+        columns: {
+          name: context.t("common_fields_name"),
+          category: context.t("common_fields_category"),
+          color: context.t("common_fields_color"),
+          utilities: context.t("viticulture_vine_variety_utilities"),
+        },
+        handler: (item) => ({
+          name: Hypermedia.Text({
+            label: context.t("common_fields_name"),
+            value: item.longName ? item.longName : item.shortName,
+          }),
+          category: Hypermedia.Text({
+            label: context.t("common_fields_category"),
+            value: context.t(
+              "viticulture_vine_variety_category_" + item.category
+            ),
+          }),
+          color: item.color
+            ? Hypermedia.Text({
+                label: context.t("common_fields_color"),
+                value: context.t(
+                  "viticulture_vine_variety_color_" + item.color
+                ),
+              })
+            : undefined,
+          utilities: item.utilities
+            ? HypermediaList({
+                label: context.t("viticulture_vine_variety_utilities"),
+                values: item.utilities.map((utility: string) =>
+                  Hypermedia.Text({
+                    label: context.t("viticulture_vine_variety_utilities"),
+                    value: context.t(
+                      "viticulture_vine_variety_utility_" + utility
+                    ),
+                  })
+                ),
+              })
+            : undefined,
+        }),
+      }),
     {
       query: t.Object({
         page: t.Number({ minimum: 1, default: 1 }),

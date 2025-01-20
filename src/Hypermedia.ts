@@ -187,17 +187,19 @@ export function hypermedia2json(
   }
 }
 
-type TableCompatible = {
-  table: {
-    columns: Record<string, string>
-    rows: Record<string, HypermediaType["any"] | undefined>[]
-  }
-}
+type TableCompatible =
+  | {
+      table: {
+        columns: Record<string, string>
+        rows: Record<string, HypermediaType["any"] | undefined>[]
+      }
+    }
+  | { error: Error }
 
-export function hypermedia2csv(obj: TableCompatible | Error) {
-  if (obj instanceof Error) {
+export function hypermedia2csv(obj: TableCompatible) {
+  if ("error" in obj) {
     console.error(obj)
-    return new Response(obj.message)
+    return new Response(obj.error.message)
   }
 
   const csv = [

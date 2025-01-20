@@ -30,12 +30,7 @@ export function Form(props: Props) {
                 <div class="field">
                   <label for={name}>{field.label}</label>
                   <br />
-                  <select
-                    name={name}
-                    id={name}
-                    required={field.required}
-                    value={field.defaultValue}
-                  >
+                  <select name={name} id={name} required={field.required}>
                     <option value="">{"---"}</option>
                     {Object.entries(field.options).map(([key, txt]) => (
                       <option value={key} selected={field.defaultValue === key}>
