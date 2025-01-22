@@ -1,6 +1,8 @@
 key,fr,en
 common_undefined,Non renseigné,Not defined
 common_fields_name,Nom,Name
+common_fields_state,État,State
+common_fields_type,Type,Type
 common_fields_description,Description,Description
 common_fields_color,Couleur,Color
 common_fields_category,Catégorie,Category
@@ -14,7 +16,18 @@ home_title,Accueil,Home
 
 phytosanitary_title,Phytosanitaire,Phytosanitary
 
+phytosanitary_cropset_title,Ensembles de cultures,Crop sets
+phytosanitary_cropset_crops,Cultures,Crops
+
+phytosanitary_product_title,Produits,Products
+pytosanitary_product_firm,Firme,firm
+phytosanitary_product_active_compounds,Principes actifs,Active compounds
+pytosanitary_product_state_inherited,Hérité,Inherited
+pytosanitary_product_state_withdrawn,Retiré,Withdrawn
+pytosanitary_product_state_authorized,Autorisé,Authorized
+
 phytosanitary_symbol_title,Symboles,Symbols
+pytosanitary_symbol_code,Code,Code
 phytosanitary_symbol_mention,Mention danger,Danger mention
 phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
 

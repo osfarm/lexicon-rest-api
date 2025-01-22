@@ -4,20 +4,15 @@ import { html, Html } from "@elysiajs/html"
 import { Home } from "./templates/Home"
 import packageJson from "../package.json"
 import { Credits } from "./templates/Credits"
-import { useTranslator, type Translator } from "./Translator"
+import { useTranslator } from "./Translator"
 import { staticPlugin } from "@elysiajs/static"
-import {
-  Hypermedia,
-  hypermedia2csv,
-  hypermedia2json,
-  HypermediaList,
-  type HypermediaType,
-} from "./Hypermedia"
-import { AutoTable } from "./templates/AutoTable"
-import { Concurrently, match } from "shulk"
-import { Table, type t_Select } from "./Database"
-import { Field, type FieldType } from "./templates/components/Form"
+import { Hypermedia, HypermediaList, type HypermediaType } from "./Hypermedia"
+import { Table } from "./Database"
+import { Field } from "./templates/components/Form"
 import { Client } from "pg"
+import type { OutputFormat } from "./utils"
+import { generateTablePage } from "./generateTablePage"
+import { Phytosanitary } from "./namespaces/Phytosanitary"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -25,35 +20,22 @@ const DB_USER = import.meta.env.DB_USER
 const DB_PASSWORD = import.meta.env.DB_PASSWORD
 const DB_NAME = import.meta.env.DB_NAME
 
-const sql = new Client({
+const db = new Client({
   host: DB_HOST,
   port: DB_PORT,
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
 })
-await sql.connect()
+await db.connect()
 
 const PORT = 3000
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 
-type OutputFormat = "html" | "json" | "csv"
-
-function createHref(
-  basePath: string,
-  query: { page?: number; [key: string]: unknown }
-) {
-  const queryString = Object.entries(query)
-    .map(([key, value]) => `${key}=${value}`)
-    .join("&")
-
-  return basePath + "?" + queryString
-}
-
 type VineVariety = {
   id: string
-  shortName: string
-  longName?: string
+  short_name: string
+  long_name?: string
   category: VineCategory
   color?: VineColor
   utilities?: string[]
@@ -74,135 +56,15 @@ enum VineCategory {
 const VineVarietyTable = Table<VineVariety>({
   table: "registered_vine_varieties",
   primaryKey: "id",
-  map: {
-    id: "id",
-    shortName: "short_name",
-    longName: "long_name",
-    color: "color",
-    category: "category",
-    utilities: "utilities",
-  },
+  // map: {
+  //   id: "id",
+  //   shortName: "short_name",
+  //   longName: "long_name",
+  //   color: "color",
+  //   category: "category",
+  //   utilities: "utilities",
+  // },
 })
-
-function ObjectMap<T extends object, P>(
-  obj: T,
-  fn: (key: keyof T, value: T[keyof T]) => P
-): Record<keyof T, P> {
-  return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [
-      key,
-      fn(key as keyof T, value as any),
-    ])
-  ) as Record<keyof T, P>
-}
-
-interface Context {
-  path: string
-  request: Request
-  query: Record<string, string | number>
-  t: Translator
-  output: OutputFormat
-}
-
-interface AutoTableParams<T extends object, F extends string> {
-  title: string
-  breadcrumbs: HypermediaType["Link"][]
-  form: Record<string, FieldType["any"]>
-  query: t_Select<T>
-  columns: Record<F, string>
-  handler: (obj: T) => Record<F, HypermediaType["any"] | undefined>
-}
-
-async function generateTablePage<T extends object, F extends string>(
-  context: Context,
-  params: AutoTableParams<T, F>
-) {
-  const PER_PAGE = 50
-
-  const { path, request, query: queryParams, t, output } = context
-
-  const { page } = queryParams
-
-  if (typeof page !== "number") {
-    return
-  }
-
-  const enhancedQuery = params.query
-    .limit(PER_PAGE)
-    .offset((page - 1) * PER_PAGE)
-
-  Object.entries(queryParams)
-    .filter(([key]) => key !== "page")
-    .filter(([, value]) => value !== undefined)
-    .filter(([, value]) => value !== "")
-    .map(([key, value]) => enhancedQuery.where(key as keyof T, "=", value))
-
-  // prettier-ignore
-  const result = await Concurrently
-    .run(() => enhancedQuery.run())
-    .and(() => params.query.count())
-    .done()
-
-  const pageData = result
-    .map(
-      ([items, count]) => [items, count, Math.ceil(count / PER_PAGE)] as const
-    )
-    .map(([items, count, totalPages]) => ({
-      title: params.title,
-      breadcrumbs: params.breadcrumbs,
-      form: ObjectMap(params.form, (key, field) => ({
-        ...field,
-        defaultValue: queryParams[key] as string,
-      })),
-      table: {
-        columns: params.columns,
-        rows: items.map(params.handler),
-      },
-      "items-per-page": PER_PAGE,
-      "items-count": items.length,
-      "items-total": count,
-      page: page,
-      "total-pages": totalPages,
-      navigation: {
-        "previous-page":
-          page > 1
-            ? Hypermedia.Link({
-                value: t("navigation_previous_page"),
-                method: "GET",
-                href: createHref(path, {
-                  ...params.query,
-                  page: page - 1,
-                }),
-              })
-            : undefined,
-        "next-page":
-          page < totalPages
-            ? Hypermedia.Link({
-                value: t("navigation_next_page"),
-                method: "GET",
-                href: createHref(path, {
-                  ...params.query,
-                  page: page + 1,
-                }),
-              })
-            : undefined,
-      },
-    }))
-    .mapErr((error) => ({
-      title: params.title,
-      breadcrumbs: params.breadcrumbs,
-      form: params.form,
-      error: error,
-    }))
-
-  return match(output)
-    .returnType<string | object>()
-    .case({
-      html: () => AutoTable({ page: pageData, t }),
-      json: () => hypermedia2json(request, pageData.val),
-      csv: () => hypermedia2csv(pageData.val),
-    })
-}
 
 new Elysia()
   .use(staticPlugin())
@@ -218,7 +80,7 @@ new Elysia()
     })
   )
   .use(html())
-  .derive(({ headers, path }) => {
+  .derive({ as: "global" }, ({ headers, path }) => {
     const clientDesiredLanguage =
       headers["Accept-Language"]?.split(",")[0]?.split("-")[0] || ""
 
@@ -237,9 +99,18 @@ new Elysia()
       output,
       language: serverLanguage,
       t: useTranslator(serverLanguage),
+      BREADCRUMBS: [] as HypermediaType["Link"][],
+      db,
     }
   })
   .get("/", () => Home())
+  .group(
+    "",
+    {
+      query: t.Object({ page: t.Number({ default: 1 }) }),
+    },
+    (app) => app.use(Phytosanitary)
+  )
   .get(
     "/viticulture/vine-varieties*",
     (context) =>
@@ -279,7 +150,7 @@ new Elysia()
             required: false,
           }),
         },
-        query: VineVarietyTable(sql).select().orderBy("shortName", "ASC"),
+        query: VineVarietyTable(db).select().orderBy("short_name", "ASC"),
         columns: {
           name: context.t("common_fields_name"),
           category: context.t("common_fields_category"),
@@ -289,7 +160,7 @@ new Elysia()
         handler: (item) => ({
           name: Hypermedia.Text({
             label: context.t("common_fields_name"),
-            value: item.longName ? item.longName : item.shortName,
+            value: item.long_name ? item.long_name : item.short_name,
           }),
           category: Hypermedia.Text({
             label: context.t("common_fields_category"),

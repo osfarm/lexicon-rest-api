@@ -11,13 +11,13 @@ interface PageData {
     {
       title: string
       breadcrumbs: HypermediaType["Link"][]
-      form: Record<string, FieldType["any"]>
+      form?: Record<string, FieldType["any"]>
       error: Error
     },
     {
       title: string
       breadcrumbs: HypermediaType["Link"][]
-      form: Record<string, FieldType["any"]>
+      form?: Record<string, FieldType["any"]>
       table: {
         columns: Record<string, string>
         rows: Record<string, HypermediaType["any"] | undefined>[]
@@ -39,7 +39,7 @@ export function AutoTable(props: PageData) {
   return match(page).case({
     Err: ({ val: page }) => (
       <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
-        <Form method={"GET"} definition={page.form} />
+        {page.form && <Form method={"GET"} definition={page.form} />}
 
         <br />
 
@@ -48,7 +48,7 @@ export function AutoTable(props: PageData) {
     ),
     Ok: ({ val: page }) => (
       <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
-        <Form method={"GET"} definition={page.form} />
+        {page.form && <Form method={"GET"} definition={page.form} />}
 
         <br />
 

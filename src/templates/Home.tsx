@@ -4,7 +4,14 @@ import { html, Html } from "@elysiajs/html"
 export function Home() {
   return (
     <Layout title="Accueil" breadcrumbs={[]}>
-      <p>Hello, world!</p>
+      <ul>
+        <li>
+          <a href="/phytosanitary">Phytosanitaire</a>
+        </li>
+        <li>
+          <a href="/viticulture">Viticulture</a>
+        </li>
+      </ul>
     </Layout>
   )
 }

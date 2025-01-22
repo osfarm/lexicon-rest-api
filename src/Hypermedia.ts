@@ -64,10 +64,7 @@ export const Hypermedia = union<{
 export type Hypermedia = InferUnion<typeof Hypermedia>["any"]
 export type HypermediaType = InferUnion<typeof Hypermedia>
 
-export const HypermediaList = <T extends Hypermedia>(list: {
-  label: string
-  values: T[]
-}) => {
+export const HypermediaList = <T>(list: { label: string; values: T[] }) => {
   return { _state: "List" as "List", ...list }
 }
 
