@@ -2,8 +2,12 @@ export type OutputFormat = "html" | "json" | "csv"
 
 export function createHref(
   basePath: string,
-  query: { page?: number; [key: string]: unknown }
+  query?: { page?: number; [key: string]: unknown }
 ) {
+  if (!query || Object.keys(query).length === 0) {
+    return basePath
+  }
+
   const queryString = Object.entries(query)
     .map(([key, value]) => `${key}=${value}`)
     .join("&")

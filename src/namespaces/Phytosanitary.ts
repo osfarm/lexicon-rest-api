@@ -196,12 +196,12 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
       breadcrumbs: cxt.BREADCRUMBS,
       query: SymbolTable(cxt.db).select().orderBy("id", "ASC"),
       columns: {
-        code: cxt.t("pytosanitary_symbol_code"),
+        code: cxt.t("phytosanitary_symbol_code"),
         name: cxt.t("common_fields_name"),
       },
       handler: (symbol) => ({
         code: Hypermedia.Text({
-          label: cxt.t("pytosanitary_symbol_code"),
+          label: cxt.t("phytosanitary_symbol_code"),
           value: symbol.id,
         }),
         name: symbol.symbol_name

@@ -36,9 +36,10 @@ nav {
 }
 
 nav h1 {
-  background: linear-gradient(140deg, #fc8080, #fbb800);
+  /* background: linear-gradient(140deg, #fc8080, #fbb800); */
+  color: rgb(17, 17, 17);
   background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* -webkit-text-fill-color: transparent; */
 }
 
 header {

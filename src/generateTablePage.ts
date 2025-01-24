@@ -45,6 +45,8 @@ export async function generateTablePage<T extends object, F extends string>(
     return new Response("Missing page parameter")
   }
 
+  const basePath = path.split("?")[0].split(".")[0]
+
   const enhancedQuery = params.query
     .limit(PER_PAGE)
     .offset((page - 1) * PER_PAGE)
@@ -106,6 +108,23 @@ export async function generateTablePage<T extends object, F extends string>(
                 }),
               })
             : undefined,
+      },
+      formats: {
+        html: Hypermedia.Link({
+          value: "HTML",
+          method: "GET",
+          href: createHref(basePath, context.query),
+        }),
+        json: Hypermedia.Link({
+          value: "JSON",
+          method: "GET",
+          href: createHref(basePath + ".json", context.query),
+        }),
+        csv: Hypermedia.Link({
+          value: "CSV",
+          method: "GET",
+          href: createHref(basePath + ".csv", context.query),
+        }),
       },
     }))
     .mapErr((error) => ({

@@ -28,6 +28,7 @@ interface PageData {
         "previous-page": HypermediaType["Link"] | undefined
         "next-page": HypermediaType["Link"] | undefined
       }
+      formats: Record<string, HypermediaType["Link"]>
     }
   >
   t: Translator
@@ -95,6 +96,12 @@ export function AutoTable(props: PageData) {
             </a>
           ) : undefined}
         </div>
+
+        <footer style={{ textAlign: "center", marginTop: "25px" }}>
+          <a href={page.formats.json.href}>{page.formats.json.value}</a>
+          {" • "}
+          <a href={page.formats.csv.href}>{page.formats.csv.value}</a>
+        </footer>
       </Layout>
     ),
   })

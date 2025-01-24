@@ -6,6 +6,9 @@ export function Home() {
     <Layout title="Accueil" breadcrumbs={[]}>
       <ul>
         <li>
+          <a href="/geographical-references">Références géographiques</a>
+        </li>
+        <li>
           <a href="/phytosanitary">Phytosanitaire</a>
         </li>
         <li>

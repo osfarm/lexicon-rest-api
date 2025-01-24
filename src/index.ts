@@ -13,6 +13,8 @@ import { Client } from "pg"
 import type { OutputFormat } from "./utils"
 import { generateTablePage } from "./generateTablePage"
 import { Phytosanitary } from "./namespaces/Phytosanitary"
+import { GeographicalReferences } from "./namespaces/GeographicalReferences"
+import { AutoList } from "./templates/AutoList"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -80,9 +82,9 @@ new Elysia()
     })
   )
   .use(html())
-  .derive({ as: "global" }, ({ headers, path }) => {
+  .derive(({ headers, path }) => {
     const clientDesiredLanguage =
-      headers["Accept-Language"]?.split(",")[0]?.split("-")[0] || ""
+      headers["accept-language"]?.split(",")[0]?.split("-")[0] || ""
 
     const serverLanguage = AVAILABLE_LANGUAGES.includes(clientDesiredLanguage)
       ? (clientDesiredLanguage as string)
@@ -109,7 +111,28 @@ new Elysia()
     {
       query: t.Object({ page: t.Number({ default: 1 }) }),
     },
-    (app) => app.use(Phytosanitary)
+    (app) => app.use(GeographicalReferences).use(Phytosanitary)
+  )
+  .get("/viticulture", ({ t }) =>
+    AutoList({
+      page: {
+        title: t("viticulture_title"),
+        breadcrumbs: [
+          Hypermedia.Link({
+            value: t("home_title"),
+            method: "GET",
+            href: "/",
+          }),
+        ],
+        links: [
+          Hypermedia.Link({
+            value: t("viticulture_vine_variety_title"),
+            method: "GET",
+            href: "/viticulture/vine-varieties",
+          }),
+        ],
+      },
+    })
   )
   .get(
     "/viticulture/vine-varieties*",
