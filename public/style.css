@@ -9,6 +9,10 @@ body {
   padding: 0;
 }
 
+p {
+  margin: 0;
+}
+
 a:link {
   text-decoration: none;
   color: rgb(65, 96, 253) !important;
@@ -104,6 +108,10 @@ tr:hover {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
+.card.info {
+  background-color: #fbdaa1;
+}
+
 .card.error {
   color: #c2174c;
   background-color: rgb(254 231 239);
@@ -122,6 +130,10 @@ tr:hover {
   height: auto;
   display: flex;
   position: relative;
+}
+
+.card .content h3 {
+  margin: 0;
 }
 
 .button {

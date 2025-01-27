@@ -5,6 +5,33 @@ import { isObject, match, type Result } from "shulk"
 import type { Translator } from "../Translator"
 import { Error } from "./components/Error"
 import { Form, type FieldType } from "./components/Form"
+import { Card } from "./components/Card"
+
+export interface AutoTableOkInput {
+  title: string
+  breadcrumbs: HypermediaType["Link"][]
+  form?: Record<string, FieldType["any"]>
+  table: {
+    columns: Record<string, string>
+    rows: Record<string, HypermediaType["any"] | undefined>[]
+  }
+  credit?: {
+    provider: HypermediaType["Text"]
+    website: HypermediaType["Link"]
+    date: HypermediaType["Text"]
+    license?: HypermediaType["Link"]
+  }
+  page: number
+  "items-per-page": number
+  "items-count": number
+  "items-total": number
+  "total-pages": number
+  navigation: {
+    "previous-page": HypermediaType["Link"] | undefined
+    "next-page": HypermediaType["Link"] | undefined
+  }
+  formats: Record<string, HypermediaType["Link"]>
+}
 
 interface PageData {
   page: Result<
@@ -14,22 +41,7 @@ interface PageData {
       form?: Record<string, FieldType["any"]>
       error: Error
     },
-    {
-      title: string
-      breadcrumbs: HypermediaType["Link"][]
-      form?: Record<string, FieldType["any"]>
-      table: {
-        columns: Record<string, string>
-        rows: Record<string, HypermediaType["any"] | undefined>[]
-      }
-      page: number
-      "total-pages": number
-      navigation: {
-        "previous-page": HypermediaType["Link"] | undefined
-        "next-page": HypermediaType["Link"] | undefined
-      }
-      formats: Record<string, HypermediaType["Link"]>
-    }
+    AutoTableOkInput
   >
   t: Translator
 }
@@ -98,21 +110,54 @@ export function AutoTable(props: PageData) {
         </div>
 
         <footer style={{ textAlign: "center", marginTop: "25px" }}>
-          <a href={page.formats.json.href}>{page.formats.json.value}</a>
-          {" • "}
-          <a href={page.formats.csv.href}>{page.formats.csv.value}</a>
+          {Object.values(page.formats)
+            .filter((format) => format.value !== "HTML")
+            .map((format) => <a href={format.href}>{format.value}</a>)
+            .join(" • ")}
         </footer>
+
+        <br />
+
+        {page.credit && (
+          <Card info>
+            <h3>
+              <img src={"/public/icons/circle-info.svg"} height={16} />{" "}
+              {page.credit.provider.value}
+            </h3>
+            <p>
+              <img src={page.credit.website.icon} height={16} />{" "}
+              <a href={page.credit.website.href} target="_blank">
+                {page.credit.website.value}
+              </a>{" "}
+            </p>
+            <p>
+              <img src={"/public/icons/calendar.svg"} height={16} />{" "}
+              {page.credit.date.value}
+            </p>
+            {page.credit.license && (
+              <p>
+                <img src={page.credit.license.icon} height={16} />{" "}
+                <a href={page.credit.license.href} target="_blank">
+                  {page.credit.license.value}
+                </a>
+              </p>
+            )}
+          </Card>
+        )}
       </Layout>
     ),
   })
 }
 
 const parseHypermedia = (item: HypermediaType["any"]) =>
-  match(item).case({
-    List: (item) =>
-      item.values
-        .map((val) => (isObject(val) && "value" in val ? val.value : val))
-        .join(", "),
-    _otherwise: () =>
-      isObject(item) && "value" in item ? item.value : "Error!",
-  })
+  match(item)
+    .returnType<string | number | boolean | JSX.Element>()
+    .case({
+      Link: (link) => <a href={link.href}>{link.value}</a>,
+      List: (item) =>
+        item.values
+          .map((val) => (isObject(val) && "value" in val ? val.value : val))
+          .join(", "),
+      _otherwise: () =>
+        isObject(item) && "value" in item ? item.value : "Error!",
+    })

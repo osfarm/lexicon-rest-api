@@ -41,8 +41,9 @@ phytosanitary_cropset_crops,Cultures,Crops
 phytosanitary_product_title,Produits,Products
 pytosanitary_product_firm,Firme,firm
 phytosanitary_product_active_compounds,Principes actifs,Active compounds
+pytosanitary_product_state,État d'usage,Usage state
 pytosanitary_product_state_inherited,Hérité,Inherited
-pytosanitary_product_state_withdrawn,Retiré,Withdrawn
+pytosanitary_product_state_withdrawn,Retrait,Withdrawn
 pytosanitary_product_state_authorized,Autorisé,Authorized
 
 phytosanitary_symbol_title,Symboles,Symbols
@@ -73,9 +74,14 @@ viticulture_vine_variety_utility_table,Table,Table
 viticulture_vine_variety_utility_certified,Certifié,Certified
 
 credits_title,Crédits,Credits
+credits_datasources_title,Sources des données,Data sources
+credits_software_title,Logiciel,Software
+credits_dataset,Jeu de données,Dataset
 credits_production,Production,Production
 credits_data_providers,Fournisseurs de données,Data providers
 credits_open_source_softwares,Logiciels open-source,Open source softwares
-
+credits_datasource,Source des données,Data sources
+credits_provider,Fournisseur,Providers
+credits_license,Licence,License
 
 country_FR,France,France

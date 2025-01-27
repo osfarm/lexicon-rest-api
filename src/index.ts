@@ -3,7 +3,7 @@ import { swagger } from "@elysiajs/swagger"
 import { html, Html } from "@elysiajs/html"
 import { Home } from "./templates/Home"
 import packageJson from "../package.json"
-import { Credits } from "./templates/Credits"
+import { Credits, CreditTable } from "./namespaces/Credits"
 import { useTranslator } from "./Translator"
 import { staticPlugin } from "@elysiajs/static"
 import { Hypermedia, HypermediaList, type HypermediaType } from "./Hypermedia"
@@ -15,6 +15,7 @@ import { generateTablePage } from "./generateTablePage"
 import { Phytosanitary } from "./namespaces/Phytosanitary"
 import { GeographicalReferences } from "./namespaces/GeographicalReferences"
 import { AutoList } from "./templates/AutoList"
+import { match } from "shulk"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -97,12 +98,38 @@ new Elysia()
       output = "csv"
     }
 
+    const locale = match(serverLanguage).with({
+      fr: "fr-FR",
+      en: "en-US",
+      _otherwise: "en-US",
+    })
+
+    const dateTimeFormatter = {
+      DateTime: (date: Date | number) =>
+        Intl.DateTimeFormat(locale, {
+          // timeZone: timezone,
+          dateStyle: "short",
+          timeStyle: "short",
+        }).format(date),
+      Date: (date: Date | number) =>
+        Intl.DateTimeFormat(locale, {
+          //  timeZone: timezone,
+          dateStyle: "short",
+        }).format(date),
+      Time: (date: Date | number) =>
+        Intl.DateTimeFormat(locale, {
+          // timeZone: timezone,
+          timeStyle: "short",
+        }).format(date),
+    }
+
     return {
       output,
       language: serverLanguage,
       t: useTranslator(serverLanguage),
       BREADCRUMBS: [] as HypermediaType["Link"][],
       db,
+      dateTimeFormatter,
     }
   })
   .get("/", () => Home())
@@ -111,7 +138,7 @@ new Elysia()
     {
       query: t.Object({ page: t.Number({ default: 1 }) }),
     },
-    (app) => app.use(GeographicalReferences).use(Phytosanitary)
+    (app) => app.use(GeographicalReferences).use(Phytosanitary).use(Credits)
   )
   .get("/viticulture", ({ t }) =>
     AutoList({
@@ -174,6 +201,9 @@ new Elysia()
           }),
         },
         query: VineVarietyTable(db).select().orderBy("short_name", "ASC"),
+        credits: CreditTable(db)
+          .select()
+          .where("datasource", "=", "vine_varieties"),
         columns: {
           name: context.t("common_fields_name"),
           category: context.t("common_fields_category"),
@@ -222,7 +252,13 @@ new Elysia()
       }),
     }
   )
-  .get("/credits", ({ t }) => Credits({ t }))
+  .get("/datasources", async ({ db }) =>
+    console.log(
+      (await CreditTable(db).select().run()).map((credits) =>
+        credits.map((c) => c.datasource)
+      ).val
+    )
+  )
   .listen(PORT)
 
 console.log("Lexicon REST API is open on port " + PORT)

@@ -5,6 +5,7 @@ import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import { AutoList } from "../templates/AutoList"
+import { CreditTable } from "./Credits"
 
 interface Cropset {
   id: string
@@ -153,12 +154,15 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
           }),
         },
         query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
+        credits: CreditTable(cxt.db)
+          .select()
+          .where("datasource", "=", "phytosanitary"),
         columns: {
           name: cxt.t("common_fields_name"),
           firm: cxt.t("pytosanitary_product_firm"),
           type: cxt.t("common_fields_type"),
           "active-compounds": cxt.t("phytosanitary_product_active_compounds"),
-          state: cxt.t("common_fields_state"),
+          state: cxt.t("pytosanitary_product_state"),
         },
         handler: (product) => ({
           name: Hypermedia.Text({
@@ -178,7 +182,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             values: product.active_compounds,
           }),
           state: Hypermedia.Text({
-            label: cxt.t("common_fields_state"),
+            label: cxt.t("pytosanitary_product_state"),
             value: cxt.t("pytosanitary_product_state_" + product.state),
           }),
         }),

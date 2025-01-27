@@ -140,6 +140,30 @@ class Select<T extends object> {
       return Err(e as Error)
     }
   }
+
+  //   async credits(): AsyncResult<Error, Credit | undefined> {
+  //     const db = this.db
+
+  //     try {
+  //       const response = await db.query(
+  //         `SELECT * FROM "${DB_SCHEMA}".datasource_credits WHERE datasource LIKE '%${this.def.table}';`
+  //       )
+
+  //       return Ok(response.rows[0])
+  //     } catch (e) {
+  //       return Err(e as Error)
+  //     }
+  //   }
+}
+
+interface Credit {
+  datasource: string
+  name: string
+  url: string
+  provider: string
+  licence?: string
+  licence_url: string
+  updated_at: Date
 }
 
 export type t_Select<T extends object> = Select<T>

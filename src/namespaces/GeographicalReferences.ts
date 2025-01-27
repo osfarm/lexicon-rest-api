@@ -5,6 +5,7 @@ import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import { AutoList } from "../templates/AutoList"
+import { CreditTable } from "./Credits"
 
 interface PostalCode {
   id: string
@@ -119,6 +120,9 @@ export const GeographicalReferences = new Elysia({
         .select()
         .orderBy("country", "ASC")
         .orderBy("postal_code", "ASC"),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "postal_codes"),
       columns: {
         country: cxt.t("common_fields_country"),
         "postal-code": cxt.t("geographical_references_postal_code_code"),
@@ -153,6 +157,9 @@ export const GeographicalReferences = new Elysia({
       // .orderBy("section_prefix", "ASC")
       // .orderBy("section", "ASC")
       // .orderBy("work_number", "ASC"),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "cadastre"),
       columns: {
         "town-insee-code": cxt.t(
           "geographical_references_cadastral_parcel_town_insee_code"
