@@ -14,6 +14,9 @@ export function Home() {
         <li>
           <a href="/viticulture">Viticulture</a>
         </li>
+        <li>
+          <a href="/weather">Météorologie</a>
+        </li>
       </ul>
     </Layout>
   )

@@ -4,6 +4,7 @@ import { generateTablePage, type Context } from "../generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
+import type { Country } from "../types/Country"
 
 interface PostalCode {
   id: string
@@ -15,10 +16,6 @@ interface PostalCode {
   city_delivery_detail?: string
   city_centroid?: string
   city_shape?: string
-}
-
-enum Country {
-  FR = "fr",
 }
 
 const PostalCodeTable = Table<PostalCode>({

@@ -17,6 +17,7 @@ import { GeographicalReferences } from "./namespaces/GeographicalReferences"
 import { AutoList } from "./templates/AutoList"
 import { match } from "shulk"
 import cors from "@elysiajs/cors"
+import { Weather } from "./namespaces/Weather"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -139,7 +140,12 @@ new Elysia()
     {
       query: t.Object({ page: t.Number({ default: 1 }) }),
     },
-    (app) => app.use(GeographicalReferences).use(Phytosanitary).use(Credits)
+    (app) =>
+      app
+        .use(GeographicalReferences)
+        .use(Phytosanitary)
+        .use(Weather)
+        .use(Credits)
   )
   .get("/viticulture", ({ t }) =>
     AutoList({

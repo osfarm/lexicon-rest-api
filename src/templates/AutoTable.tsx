@@ -185,6 +185,7 @@ const parseHypermedia = (item: HypermediaType["any"]) =>
   match(item)
     .returnType<string | number | boolean | JSX.Element>()
     .case({
+      Number: (nb) => <>{nb.value + " " + nb.unit}</>,
       Link: (link) => <a href={link.href}>{link.value}</a>,
       List: (item) =>
         item.values

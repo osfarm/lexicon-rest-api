@@ -16,12 +16,14 @@ import type { Credit } from "./namespaces/Credits"
 export interface Context {
   path: string
   request: Request
+  params?: Record<string, string>
   query?: Record<string, string | number>
   t: Translator
   output: OutputFormat
   BREADCRUMBS: HypermediaType["Link"][]
   db: Pool
   dateTimeFormatter: {
+    DateTime: (date: Date) => string
     Date: (date: Date) => string
   }
 }

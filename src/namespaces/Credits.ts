@@ -73,7 +73,7 @@ export const Credits = new Elysia({ prefix: "/credits" })
           href: "/credits",
         }),
       ],
-      query: CreditTable(cxt.db).select(),
+      query: CreditTable(cxt.db).select().orderBy("name", "ASC"),
       columns: {
         dataset: cxt.t("credits_dataset"),
         provider: cxt.t("credits_provider"),
