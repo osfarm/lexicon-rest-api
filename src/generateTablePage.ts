@@ -10,7 +10,7 @@ import type { FieldType } from "./templates/components/Form"
 import type { Translator } from "./Translator"
 import { createHref, ObjectMap, type OutputFormat } from "./utils"
 import { AutoTable, type AutoTableOkInput } from "./templates/AutoTable"
-import type { Client } from "pg"
+import type { Pool } from "pg"
 import type { Credit } from "./namespaces/Credits"
 
 export interface Context {
@@ -20,7 +20,7 @@ export interface Context {
   t: Translator
   output: OutputFormat
   BREADCRUMBS: HypermediaType["Link"][]
-  db: Client
+  db: Pool
   dateTimeFormatter: {
     Date: (date: Date) => string
   }
@@ -40,7 +40,7 @@ export async function generateTablePage<T extends object, F extends string>(
   context: Context,
   params: AutoTableParams<T, F>
 ) {
-  const PER_PAGE = 50
+  const PER_PAGE = 150
 
   const { path, request, query: queryParams, t, output } = context
 
@@ -128,7 +128,32 @@ export async function generateTablePage<T extends object, F extends string>(
         "items-total": count,
         page: page,
         "total-pages": totalPages,
+        pages: Array(totalPages)
+          .fill(0)
+          .map((_, i) => i + 1)
+          .slice(Math.max(page - 1 - 5, 0), page - 1 + 6)
+          .map((p) =>
+            Hypermedia.Link({
+              value: p.toString(),
+              method: "GET",
+              href: createHref(path, {
+                ...context.query,
+                page: p,
+              }),
+            })
+          ),
         navigation: {
+          "first-page":
+            page !== 1
+              ? Hypermedia.Link({
+                  value: "1",
+                  method: "GET",
+                  href: createHref(path, {
+                    ...context.query,
+                    page: 1,
+                  }),
+                })
+              : undefined,
           "previous-page":
             page > 1
               ? Hypermedia.Link({
@@ -148,6 +173,17 @@ export async function generateTablePage<T extends object, F extends string>(
                   href: createHref(path, {
                     ...context.query,
                     page: page + 1,
+                  }),
+                })
+              : undefined,
+          "last-page":
+            page !== totalPages
+              ? Hypermedia.Link({
+                  value: totalPages.toString(),
+                  method: "GET",
+                  href: createHref(path, {
+                    ...context.query,
+                    page: totalPages,
                   }),
                 })
               : undefined,

@@ -1,4 +1,4 @@
-import type { Client } from "pg"
+import type { Client, Pool } from "pg"
 import { Err, Ok, type AsyncResult } from "shulk"
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
@@ -13,7 +13,7 @@ type TableDefinition<T extends object> = {
 }
 
 export function Table<T extends object>(definition: TableDefinition<T>) {
-  return (db: Client) => ({
+  return (db: Pool) => ({
     select: () => new Select(db, definition),
     example: () =>
       db.query(`SELECT * FROM "${DB_SCHEMA}".${definition.table} LIMIT 1;`),
@@ -26,7 +26,7 @@ class Select<T extends object> {
   protected limitValue?: number
   protected offsetValue: number = 0
 
-  constructor(protected db: Client, protected def: TableDefinition<T>) {
+  constructor(protected db: Pool, protected def: TableDefinition<T>) {
     this.conditions = []
   }
 

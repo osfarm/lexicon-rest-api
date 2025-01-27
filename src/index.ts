@@ -9,13 +9,14 @@ import { staticPlugin } from "@elysiajs/static"
 import { Hypermedia, HypermediaList, type HypermediaType } from "./Hypermedia"
 import { Table } from "./Database"
 import { Field } from "./templates/components/Form"
-import { Client } from "pg"
+import { Pool } from "pg"
 import type { OutputFormat } from "./utils"
 import { generateTablePage } from "./generateTablePage"
 import { Phytosanitary } from "./namespaces/Phytosanitary"
 import { GeographicalReferences } from "./namespaces/GeographicalReferences"
 import { AutoList } from "./templates/AutoList"
 import { match } from "shulk"
+import cors from "@elysiajs/cors"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -23,14 +24,13 @@ const DB_USER = import.meta.env.DB_USER
 const DB_PASSWORD = import.meta.env.DB_PASSWORD
 const DB_NAME = import.meta.env.DB_NAME
 
-const db = new Client({
+const pool = new Pool({
   host: DB_HOST,
   port: DB_PORT,
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
 })
-await db.connect()
 
 const PORT = 3000
 const AVAILABLE_LANGUAGES = ["fr", "en"]
@@ -71,6 +71,7 @@ const VineVarietyTable = Table<VineVariety>({
 
 new Elysia()
   .use(staticPlugin())
+  .use(cors())
   .use(
     swagger({
       path: "/documentation",
@@ -128,7 +129,7 @@ new Elysia()
       language: serverLanguage,
       t: useTranslator(serverLanguage),
       BREADCRUMBS: [] as HypermediaType["Link"][],
-      db,
+      db: pool,
       dateTimeFormatter,
     }
   })
@@ -200,8 +201,10 @@ new Elysia()
             required: false,
           }),
         },
-        query: VineVarietyTable(db).select().orderBy("short_name", "ASC"),
-        credits: CreditTable(db)
+        query: VineVarietyTable(context.db)
+          .select()
+          .orderBy("short_name", "ASC"),
+        credits: CreditTable(context.db)
           .select()
           .where("datasource", "=", "vine_varieties"),
         columns: {

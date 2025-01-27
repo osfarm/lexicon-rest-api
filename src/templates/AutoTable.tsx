@@ -26,9 +26,12 @@ export interface AutoTableOkInput {
   "items-count": number
   "items-total": number
   "total-pages": number
+  pages: HypermediaType["Link"][]
   navigation: {
+    "first-page": HypermediaType["Link"] | undefined
     "previous-page": HypermediaType["Link"] | undefined
     "next-page": HypermediaType["Link"] | undefined
+    "last-page": HypermediaType["Link"] | undefined
   }
   formats: Record<string, HypermediaType["Link"]>
 }
@@ -100,7 +103,36 @@ export function AutoTable(props: PageData) {
             </a>
           ) : undefined}
 
-          {` ${page.page} / ${page["total-pages"]} `}
+          {page.navigation["first-page"] &&
+            parseInt(page.navigation["first-page"].value) < page.page - 5 && (
+              <>
+                <a href={page.navigation["first-page"].href}>
+                  {page.navigation["first-page"].value}
+                </a>
+                {" ... "}
+              </>
+            )}
+
+          {page.pages
+            .map((link) =>
+              parseInt(link.value) == page.page ? (
+                <a>{link.value}</a>
+              ) : (
+                <a href={link.href}>{link.value}</a>
+              )
+            )
+            .join(" • ")}
+
+          {page.navigation["last-page"] &&
+            parseInt(page.navigation["last-page"].value) > page.page + 5 && (
+              <>
+                {" "}
+                {" ... "}
+                <a href={page.navigation["last-page"].href}>
+                  {page.navigation["last-page"].value}
+                </a>
+              </>
+            )}
 
           {page.navigation["next-page"] ? (
             <a href={page.navigation["next-page"].href} class="button">

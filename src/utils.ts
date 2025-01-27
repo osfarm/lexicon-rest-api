@@ -9,6 +9,7 @@ export function createHref(
   }
 
   const queryString = Object.entries(query)
+    .filter(([, value]) => value !== undefined)
     .map(([key, value]) => `${key}=${value}`)
     .join("&")
 

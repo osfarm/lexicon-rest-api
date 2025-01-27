@@ -189,6 +189,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
       }),
     {
       query: t.Object({
+        page: t.Optional(t.Number({ default: 1 })),
         product_type: t.Optional(t.String()),
         state: t.Optional(t.String()),
       }),

@@ -1,9 +1,7 @@
-import Elysia, { t } from "elysia"
+import Elysia from "elysia"
 import { Table } from "../Database"
 import { generateTablePage, type Context } from "../generateTablePage"
-import { Hypermedia, HypermediaList } from "../Hypermedia"
-import { Field } from "../templates/components/Form"
-import { ObjectFlatMap } from "../utils"
+import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
 
