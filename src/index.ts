@@ -33,7 +33,7 @@ const pool = new Pool({
   database: DB_NAME,
 })
 
-const PORT = 3000
+const PORT = import.meta.env.PORT as string
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 
 type VineVariety = {

@@ -20,6 +20,7 @@ $ nano .env
 .env file structure:
 
 ```env
+PORT=
 DB_HOST=
 DB_PORT=
 DB_USER=
