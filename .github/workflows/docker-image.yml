@@ -1,10 +1,7 @@
 name: Create and push Docker Image
-on:
-   push:
+on: push
 env:
-   # Use docker.io for Docker Hub if empty
    REGISTRY: ghcr.io
-   # github.repository as <account>/<repo>
    IMAGE_NAME: osfarm/lexicon-rest-api
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
@@ -49,7 +46,6 @@ jobs:
            id: push
            uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
            with:
-              context: packages/backoffice-ui
               push: true
               tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.package-version.outputs.version }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
               labels: ${{ steps.meta.outputs.labels }}
