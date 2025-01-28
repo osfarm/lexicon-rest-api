@@ -4,13 +4,14 @@ WORKDIR /app
 
 ENV PATH="${PATH}:/root/.bun/bin"
 
-#########
+###########
 # ARGS
 ###########
 
 ###########
 # ENV
 ###########
+ENV production true
 
 ENV FULL_ICU_PREFER_NPM=true
 RUN npm init -y && bun add full-icu
@@ -24,7 +25,7 @@ RUN rm -rf ./node_modules
 RUN bun install
 
 ENV HOST=0.0.0.0
-ENV PORT=4321
-EXPOSE 4321
+ENV PORT=8888
+EXPOSE 8888
 
 CMD ["bun", "start"]

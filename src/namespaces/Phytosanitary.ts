@@ -6,6 +6,7 @@ import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
+import type { Translator } from "../Translator"
 
 interface Cropset {
   id: string
@@ -73,15 +74,16 @@ const SymbolTable = Table<Symbol>({
 })
 
 export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
-  .derive(({ t }) => ({
+  .derive((cxt) => ({
+    ...cxt,
     BREADCRUMBS: [
       Hypermedia.Link({
-        value: t("home_title"),
+        value: cxt.t("home_title"),
         method: "GET",
         href: "/",
       }),
       Hypermedia.Link({
-        value: t("phytosanitary_title"),
+        value: cxt.t("phytosanitary_title"),
         method: "GET",
         href: "/phytosanitary",
       }),

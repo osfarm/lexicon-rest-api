@@ -204,8 +204,15 @@ export function hypermedia2csv(obj: TableCompatible) {
     ...obj.table.rows.map((item) =>
       Object.values(item)
         .map((col) => {
-          if (isObject(col) && "value" in col) {
-            return `"${col.value}"`
+          if (isObject(col)) {
+            return match(col).case({
+              Text: (c) => `"${c.value}"`,
+              Number: (c) => c.value.toString(),
+              Boolean: (c) => (c.value === true ? "1" : "0"),
+              Link: (c) => `=HYPERLINK("${c.href}";"${c.value}")`,
+              List: (c) => `"${c.values.join(", ")}"`,
+              _otherwise: () => "",
+            })
           } else {
             return ""
           }

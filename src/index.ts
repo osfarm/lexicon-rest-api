@@ -134,7 +134,7 @@ new Elysia()
       dateTimeFormatter,
     }
   })
-  .get("/", () => Home())
+  .get("/", ({ t }) => Home({ t }))
   .group(
     "",
     {

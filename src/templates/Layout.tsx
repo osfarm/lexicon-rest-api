@@ -68,11 +68,11 @@ export function Layout(props: Props) {
         <footer style={{ textAlign: "center", marginTop: "25px" }}>
           <a href="/documentation">Documentation</a>
           {" • "}
-          <a href="/credits">Crédits</a>
-          {" • "}
+          <a href="/credits">Crédits</a> {" • "}
           <a href="https://github.com/osfarm/lexicon" target="_blank">
             GitHub
           </a>
+          {" • "} <a href="https://www.osfarm.org/">OSFarm</a>
         </footer>
       </body>
     </html>

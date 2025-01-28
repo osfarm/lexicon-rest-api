@@ -32,6 +32,10 @@ interface AutoTableParams<T extends object, F extends string> {
   title: string
   breadcrumbs: HypermediaType["Link"][]
   form?: Record<string, FieldType["any"]>
+  formHandler?: (
+    input: Record<string, unknown | undefined>,
+    query: t_Select<T>
+  ) => void
   query: t_Select<T>
   credits?: t_Select<Credit>
   columns: Record<F, string>
@@ -58,11 +62,21 @@ export async function generateTablePage<T extends object, F extends string>(
     .limit(PER_PAGE)
     .offset((page - 1) * PER_PAGE)
 
-  Object.entries(queryParams || {})
-    .filter(([key]) => key !== "page")
-    .filter(([, value]) => value !== undefined)
-    .filter(([, value]) => value !== "")
-    .map(([key, value]) => enhancedQuery.where(key as keyof T, "=", value))
+  if (params.formHandler) {
+    params.formHandler(queryParams || {}, enhancedQuery)
+  } else {
+    Object.entries(queryParams || {})
+      .filter(([key]) => key !== "page")
+      .filter(([, value]) => value !== undefined)
+      .filter(([, value]) => value !== "")
+      .map(([key, value]) => {
+        if (params.form && params.form[key]._state === "Text") {
+          enhancedQuery.where(key as keyof T, "LIKE", `%${value}%`)
+        } else {
+          enhancedQuery.where(key as keyof T, "=", value)
+        }
+      })
+  }
 
   // prettier-ignore
   const result = await Concurrently

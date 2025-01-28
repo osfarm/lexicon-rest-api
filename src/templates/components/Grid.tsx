@@ -6,21 +6,21 @@ interface Props {
 
 export function Grid(props: Props) {
   return (
-    <section
+    <div
       class="grid"
       style={{
-        flexGrow: 0,
-        display: "flex",
-        maxWidth: "100%",
-        flexBasis: "100%",
+        display: "flex!important",
+        width: "100%",
         height: "auto",
         margin: "0px",
         boxSizing: "border-box",
         padding: "10px",
+        flexWrap: "wrap",
+        flexDirection: "row",
       }}
     >
       {props.children}
-    </section>
+    </div>
   )
 }
 
@@ -32,18 +32,21 @@ interface CellProps {
 export function Cell(props: CellProps) {
   const { width, children } = props
 
-  const percent = `${(width / 12) * 100}%`
+  const percent = `${(width / 12) * 100 - 1}%`
 
   return (
     <div
       style={{
         flexGrow: 0,
         display: "inherit",
-        overflow: "none",
+        overflow: "hidden",
         marginLeft: "0.25em",
         marginRight: "0.25em",
-        maxWidth: percent,
+        marginTop: "0.25em",
+        marginBottom: "0.25em",
+        width: percent,
         flexBasis: percent,
+        flexWrap: "wrap",
       }}
     >
       {children}

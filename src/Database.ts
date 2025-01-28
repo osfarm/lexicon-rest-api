@@ -20,8 +20,15 @@ export function Table<T extends object>(definition: TableDefinition<T>) {
   })
 }
 
+type Operator = "=" | ">" | "<" | "LIKE"
+
 class Select<T extends object> {
-  protected conditions: { field: keyof T; op: "="; value: unknown; or: [] }[]
+  protected conditions: {
+    field: keyof T
+    op: Operator
+    value: unknown
+    or: []
+  }[]
   protected orders: { field: keyof T; sort: "ASC" | "DESC" }[] = []
   protected limitValue?: number
   protected offsetValue: number = 0
@@ -30,7 +37,7 @@ class Select<T extends object> {
     this.conditions = []
   }
 
-  where(field: keyof T, op: "=", value: unknown) {
+  where(field: keyof T, op: Operator, value: unknown) {
     this.conditions.push({ field, op, value, or: [] })
     return this
   }
@@ -54,7 +61,14 @@ class Select<T extends object> {
     const conditions =
       this.conditions.length > 0
         ? `WHERE ${this.conditions
-            .map((condition, i) => (condition.field as string) + "=$" + (i + 1))
+            .map(
+              (condition, i) =>
+                (condition.field as string) +
+                " " +
+                condition.op +
+                " $" +
+                (i + 1)
+            )
             .join(" AND ")}`
         : ""
 
@@ -116,7 +130,10 @@ class Select<T extends object> {
           ])
         )
       )*/
-      console.log(parsedResponse[0])
+
+      if (!import.meta.env.PRODUCTION) {
+        console.debug(parsedResponse[0])
+      }
 
       return Ok(parsedResponse as T[])
     } catch (e) {

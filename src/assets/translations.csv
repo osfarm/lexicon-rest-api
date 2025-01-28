@@ -9,6 +9,11 @@ common_fields_color,Couleur,Color
 common_fields_category,Catégorie,Category
 common_fields_country,Pays,Country
 common_fields_city,Ville,City
+common_fields_date,Date,Date
+common_fields_date_start,Date de début,Start date
+common_fields_date_end,Date de fin,End date
+
+
 common_fields_datetime,Date et heure,Datetime
 
 navigation_first_page,Première page,First page
@@ -17,6 +22,12 @@ navigation_previous_page,Page précédente,Previous page
 navigation_next_page,Page suivante,Next page
 
 home_title,Accueil,Home
+home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
+home_explore,Explorer,Explore
+home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
+home_how_to_step1,Explorez et trouvez le jeu de données qui répond à vos besoins,Explore and find the dataset you need
+home_how_to_step2,Filtrez les données à l'aide des formulaires si nécessaire,Filter the data with the forms if you need to
+home_how_to_step3,Trouvez le format de sortie (JSON / CSV) qui vous convient et copiez l'URL ou téléchargez le document,Find the most adapted output format (JSON / CSV) for your usecase and copy the page URL or download the document
 
 geographical_references_title,Références géographiques,Geographical references
 
@@ -25,6 +36,7 @@ geographical_references_cadastral_parcel_town_insee_code,Code INSEE de la commun
 geographical_references_cadastral_parcel_section_prefix,Préfixe de section,Section prefix
 geographical_references_cadastral_parcel_section,Section,Section
 geographical_references_cadastral_parcel_work_number,Numéro,Number
+geographical_references_cadastral_parcel_area,Superficie,Area
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
 geographical_references_cap_parcel_culture,Culture,Culture

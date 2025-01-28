@@ -3,6 +3,16 @@ import { Html } from "@elysiajs/html"
 import { Cell, Grid } from "./Grid"
 
 export const Field = union<{
+  Text: {
+    label: string
+    defaultValue?: string
+    required: boolean
+  }
+  DateTime: {
+    label: string
+    defaultValue?: string
+    required: boolean
+  }
   Select: {
     label: string
     options: Record<string, string>
@@ -26,6 +36,35 @@ export function Form(props: Props) {
         {Object.entries(definition).map(([name, field]) => (
           <Cell width={5}>
             {match(field).case({
+              Text: (field) => (
+                <div class="field">
+                  <label for={name}>{field.label}</label>
+                  <br />
+                  <input
+                    type="text"
+                    autocomplete="off"
+                    name={name}
+                    id={name}
+                    required={field.required}
+                    placeholder={field.label}
+                    value={field.defaultValue || ""}
+                  ></input>
+                </div>
+              ),
+              DateTime: (field) => (
+                <div class="field">
+                  <label for={name}>{field.label}</label>
+                  <br />
+                  <input
+                    type="datetime-local"
+                    name={name}
+                    id={name}
+                    required={field.required}
+                    placeholder={field.label}
+                    value={field.defaultValue || ""}
+                  ></input>
+                </div>
+              ),
               Select: (field) => (
                 <div class="field">
                   <label for={name}>{field.label}</label>
