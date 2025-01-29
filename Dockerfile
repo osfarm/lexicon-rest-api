@@ -11,10 +11,10 @@ ENV PATH="${PATH}:/root/.bun/bin"
 ###########
 # ENV
 ###########
-ENV production true
+ENV production=true
 
 ENV FULL_ICU_PREFER_NPM=true
-RUN npm init -y && bun add full-icu
+RUN bun add full-icu
 ENV NODE_ICU_DATA=/app/node_modules/full-icu
 
 ENV NODE_OPTIONS=--max_old_space_size=4096
