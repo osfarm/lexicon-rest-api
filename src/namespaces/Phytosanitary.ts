@@ -73,27 +73,25 @@ const SymbolTable = Table<Symbol>({
   primaryKey: "id",
 })
 
+const Breadcrumbs = (t: Translator) => [
+  Hypermedia.Link({
+    value: t("home_title"),
+    method: "GET",
+    href: "/",
+  }),
+  Hypermedia.Link({
+    value: t("phytosanitary_title"),
+    method: "GET",
+    href: "/phytosanitary",
+  }),
+]
+
 export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
-  .derive((cxt) => ({
-    ...cxt,
-    BREADCRUMBS: [
-      Hypermedia.Link({
-        value: cxt.t("home_title"),
-        method: "GET",
-        href: "/",
-      }),
-      Hypermedia.Link({
-        value: cxt.t("phytosanitary_title"),
-        method: "GET",
-        href: "/phytosanitary",
-      }),
-    ],
-  }))
-  .get("/", ({ t, BREADCRUMBS }: Context) =>
+  .get("/", ({ t }: Context) =>
     AutoList({
       page: {
         title: t("phytosanitary_title"),
-        breadcrumbs: [BREADCRUMBS[0]],
+        breadcrumbs: [Breadcrumbs(t)[0]],
         links: [
           Hypermedia.Link({
             value: t("phytosanitary_cropset_title"),
@@ -117,7 +115,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
   .get("/cropsets*", async (cxt: Context) =>
     generateTablePage(cxt, {
       title: cxt.t("phytosanitary_cropset_title"),
-      breadcrumbs: cxt.BREADCRUMBS,
+      breadcrumbs: Breadcrumbs(cxt.t),
       query: CroptsetTable(cxt.db).select().orderBy("id", "ASC"),
       columns: {
         name: cxt.t("common_fields_name"),
@@ -140,7 +138,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
     async (cxt: Context) =>
       generateTablePage(cxt, {
         title: cxt.t("phytosanitary_product_title"),
-        breadcrumbs: cxt.BREADCRUMBS,
+        breadcrumbs: Breadcrumbs(cxt.t),
         form: {
           product_type: Field.Select({
             label: cxt.t("common_fields_type"),
@@ -200,7 +198,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
   .get("/symbols*", async (cxt: Context) =>
     generateTablePage(cxt, {
       title: cxt.t("phytosanitary_symbol_title"),
-      breadcrumbs: cxt.BREADCRUMBS,
+      breadcrumbs: Breadcrumbs(cxt.t),
       query: SymbolTable(cxt.db).select().orderBy("id", "ASC"),
       columns: {
         code: cxt.t("phytosanitary_symbol_code"),

@@ -32,7 +32,7 @@ DB_SCHEMA=
 ### 3. Install the dependencies
 
 ```sh
-$ bun
+$ bun install
 ```
 
 ### 4. Start the server

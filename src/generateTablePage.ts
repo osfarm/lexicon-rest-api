@@ -20,7 +20,6 @@ export interface Context {
   query?: Record<string, string | number>
   t: Translator
   output: OutputFormat
-  BREADCRUMBS: HypermediaType["Link"][]
   db: Pool
   dateTimeFormatter: {
     DateTime: (date: Date) => string

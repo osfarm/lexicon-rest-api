@@ -7,6 +7,7 @@ import { CreditTable } from "./Credits"
 import { Country } from "../types/Country"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
+import type { Translator } from "../Translator"
 
 interface PostalCode {
   id: string
@@ -68,28 +69,27 @@ const CapParcelTable = Table<CapParcel>({
   },
 })
 
+const Breadcrumbs = (t: Translator) => [
+  Hypermedia.Link({
+    value: t("home_title"),
+    method: "GET",
+    href: "/",
+  }),
+  Hypermedia.Link({
+    value: t("geographical_references_title"),
+    method: "GET",
+    href: "/geographical-references",
+  }),
+]
+
 export const GeographicalReferences = new Elysia({
   prefix: "/geographical-references",
 })
-  .derive(({ t }) => ({
-    BREADCRUMBS: [
-      Hypermedia.Link({
-        value: t("home_title"),
-        method: "GET",
-        href: "/",
-      }),
-      Hypermedia.Link({
-        value: t("geographical_references_title"),
-        method: "GET",
-        href: "/geographical-references",
-      }),
-    ],
-  }))
-  .get("/", ({ t, BREADCRUMBS }: Context) =>
+  .get("/", ({ t }: Context) =>
     AutoList({
       page: {
         title: t("geographical_references_title"),
-        breadcrumbs: [BREADCRUMBS[0]],
+        breadcrumbs: [Breadcrumbs(t)[0]],
         links: [
           Hypermedia.Link({
             value: t("geographical_references_cadastral_parcel_title"),
@@ -115,7 +115,7 @@ export const GeographicalReferences = new Elysia({
     async (cxt: Context) =>
       generateTablePage(cxt, {
         title: cxt.t("geographical_references_postal_code_title"),
-        breadcrumbs: cxt.BREADCRUMBS,
+        breadcrumbs: Breadcrumbs(cxt.t),
         form: {
           country: Field.Select({
             label: cxt.t("common_fields_country"),
@@ -180,8 +180,8 @@ export const GeographicalReferences = new Elysia({
   .get("/cadastral-parcels*", async (cxt: Context) =>
     generateTablePage(cxt, {
       title: cxt.t("geographical_references_cadastral_parcel_title"),
-      breadcrumbs: cxt.BREADCRUMBS,
-      query: ParcelTable(cxt.db).select(), //.orderBy("town_insee_code", "ASC"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      query: ParcelTable(cxt.db).select().orderBy("town_insee_code", "ASC"),
       // .orderBy("section_prefix", "ASC")
       // .orderBy("section", "ASC")
       // .orderBy("work_number", "ASC"),
@@ -235,7 +235,7 @@ export const GeographicalReferences = new Elysia({
     async (cxt: Context) =>
       generateTablePage(cxt, {
         title: cxt.t("geographical_references_cap_parcel_title"),
-        breadcrumbs: cxt.BREADCRUMBS,
+        breadcrumbs: Breadcrumbs(cxt.t),
         form: {
           city: Field.Text({
             label: cxt.t("common_fields_city"),

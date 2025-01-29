@@ -7,6 +7,7 @@ import { Country } from "../types/Country"
 import { CreditTable } from "./Credits"
 import { ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
+import type { Translator } from "../Translator"
 
 interface Station {
   reference_name: string
@@ -44,28 +45,27 @@ const HourlyReportTable = Table<HourlyReport>({
   primaryKey: "station_id",
 })
 
+const Breadcrumbs = (t: Translator) => [
+  Hypermedia.Link({
+    value: t("home_title"),
+    method: "GET",
+    href: "/",
+  }),
+  Hypermedia.Link({
+    value: t("weather_title"),
+    method: "GET",
+    href: "/weather",
+  }),
+]
+
 export const Weather = new Elysia({
   prefix: "/weather",
 })
-  .derive(({ t }) => ({
-    BREADCRUMBS: [
-      Hypermedia.Link({
-        value: t("home_title"),
-        method: "GET",
-        href: "/",
-      }),
-      Hypermedia.Link({
-        value: t("weather_title"),
-        method: "GET",
-        href: "/weather",
-      }),
-    ],
-  }))
-  .get("/", ({ t, BREADCRUMBS }: Context) =>
+  .get("/", ({ t }: Context) =>
     AutoList({
       page: {
         title: t("weather_title"),
-        breadcrumbs: [BREADCRUMBS[0]],
+        breadcrumbs: [Breadcrumbs(t)[0]],
         links: [
           Hypermedia.Link({
             value: t("weather_station_title"),
@@ -81,7 +81,7 @@ export const Weather = new Elysia({
     async (cxt: Context) =>
       generateTablePage(cxt, {
         title: cxt.t("weather_station_title"),
-        breadcrumbs: cxt.BREADCRUMBS,
+        breadcrumbs: Breadcrumbs(cxt.t),
         form: {
           country: Field.Select({
             label: cxt.t("common_fields_country"),
@@ -157,7 +157,7 @@ export const Weather = new Elysia({
       generateTablePage(cxt, {
         title: cxt.t("weather_station_hourly_reports"),
         breadcrumbs: [
-          ...cxt.BREADCRUMBS,
+          ...Breadcrumbs(cxt.t),
           Hypermedia.Link({
             value: cxt.t("weather_station_title"),
             method: "GET",
