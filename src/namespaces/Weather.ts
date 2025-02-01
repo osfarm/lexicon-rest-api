@@ -207,9 +207,10 @@ export const Weather = new Elysia({
           pressure: cxt.t("weather_station_hourly_report_pressure"),
         },
         handler: (report) => ({
-          datetime: Hypermedia.Text({
+          datetime: Hypermedia.Date({
             label: cxt.t("common_fields_datetime"),
             value: cxt.dateTimeFormatter.DateTime(report.started_at),
+            iso: report.started_at.toISOString(),
           }),
           "temperature-min": report.min_temp
             ? Hypermedia.Number({

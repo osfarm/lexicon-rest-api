@@ -123,9 +123,10 @@ export async function generateTablePage<T extends object, F extends string>(
                 method: "GET",
                 href: credit[0].url,
               }),
-              date: Hypermedia.Text({
+              date: Hypermedia.Date({
                 label: t("credits_date"),
                 value: context.dateTimeFormatter.Date(credit[0].updated_at),
+                iso: credit[0].updated_at.toISOString(),
               }),
               license: credit[0].licence
                 ? Hypermedia.Link({

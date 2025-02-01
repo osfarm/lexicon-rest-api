@@ -30,6 +30,26 @@ So, when we declare a fallible function in our code, instead of having a signatu
 
 And then, when we will call the function, we will actually be forced by the compiler to handle the error.
 
+Example:
+
+```ts
+import { Result, Ok, Err } from "shulk"
+
+function divide(dividend: number, divisor: number): Result<Error, number> {
+  if (divisor == 0) {
+    return Err(new Error("Cannot divide by 0!"))
+  } else {
+    return Ok(dividend / divisor)
+  }
+}
+
+divide(10, 2)
+  .map((value) => console.log("10 / 2 = " + value)) // <-- Handles success case
+  .mapErr((error) => console.error(err)) // <-- Handles failure case
+
+const divisionResult = divide(6, 3).val // <-- Will be of type 'Error | number'
+```
+
 [Result monad documentation](https://shulk.org/docs/result/)
 
 ### Polymorphism and state management
@@ -167,6 +187,7 @@ interface MyResource {
   id: string
   name: string
   status: "availabe" | "removed"
+  created_at: Date
   list_of_things: string[]
 }
 
@@ -197,6 +218,7 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
       columns: {
         name: cxt.t("common_fields_name"),
         status: cxt.t("namespace_resource_status"),
+        date: cxt.t("common_fields_date"),
         "list-of-things": cxt.t("namespace_resource_list_of_things"),
       },
       handler: (resource) => ({
@@ -204,9 +226,14 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
           label: cxt.t("common_fields_name"),
           value: resource.name,
         }),
-        resource: Hypermedia.Text({
+        status: Hypermedia.Text({
           label: cxt.t("namespace_resource_status"),
           value: cxt.t("namespace_resource_status_" + resource.status),
+        }),
+        date: Hypermedia.Date({
+          label: cxt.t("common_fields_date"),
+          value: cxt.dateTimeFormatter.DateTime(resource.created_at),
+          iso: resource.created_at.toISOString(),
         }),
         "list-of-things": HypermediaList({
           label: cxt.t("namespace_resource_list_of_things"),

@@ -26,14 +26,10 @@ export const Hypermedia = union<{
     icon?: string
     color?: string
   }
-  Gauge: {
-    label?: string
-    value: number
-    minimum: number
-    maximum: number
-    unit: string
-    minimumColor: string
-    maximumColor: string
+  Date: {
+    label: string
+    value: string
+    iso: string
   }
   Image: {
     label?: string
@@ -209,6 +205,7 @@ export function hypermedia2csv(obj: TableCompatible) {
               Text: (c) => `"${c.value}"`,
               Number: (c) => c.value.toString(),
               Boolean: (c) => (c.value === true ? "1" : "0"),
+              Date: (c) => c.iso,
               Link: (c) => `=HYPERLINK("${c.href}";"${c.value}")`,
               List: (c) => `"${c.values.join(", ")}"`,
               _otherwise: () => "",

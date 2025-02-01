@@ -18,7 +18,7 @@ export interface AutoTableOkInput {
   credit?: {
     provider: HypermediaType["Text"]
     website: HypermediaType["Link"]
-    date: HypermediaType["Text"]
+    date: HypermediaType["Date"]
     license?: HypermediaType["Link"]
   }
   page: number
@@ -187,6 +187,7 @@ const parseHypermedia = (item: HypermediaType["any"]) =>
     .case({
       Number: (nb) => <>{nb.value + " " + nb.unit}</>,
       Link: (link) => <a href={link.href}>{link.value}</a>,
+      Date: (date) => date.value,
       List: (item) =>
         item.values
           .map((val) => (isObject(val) && "value" in val ? val.value : val))

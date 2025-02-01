@@ -1,4 +1,4 @@
-import type { Client, Pool } from "pg"
+import type { Pool } from "pg"
 import { Err, Ok, type AsyncResult } from "shulk"
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
@@ -20,7 +20,7 @@ export function Table<T extends object>(definition: TableDefinition<T>) {
   })
 }
 
-type Operator = "=" | ">" | "<" | "LIKE"
+type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE"
 
 class Select<T extends object> {
   protected conditions: {
