@@ -1,4 +1,3 @@
-import { isPropertySignature } from "typescript"
 import type { Translator } from "../Translator"
 import { Layout } from "./Layout"
 import { html, Html } from "@elysiajs/html"

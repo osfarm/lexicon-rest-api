@@ -154,9 +154,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
           }),
         },
         query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "phytosanitary"),
+
         columns: {
           name: cxt.t("common_fields_name"),
           firm: cxt.t("pytosanitary_product_firm"),
@@ -186,6 +184,9 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             value: cxt.t("pytosanitary_product_state_" + product.state),
           }),
         }),
+        credits: CreditTable(cxt.db)
+          .select()
+          .where("datasource", "=", "phytosanitary"),
       }),
     {
       query: t.Object({

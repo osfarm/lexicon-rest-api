@@ -2,6 +2,8 @@
 
 _Note: this project is a web interface for [Lexicon](https://github.com/osfarm/lexicon). Please consult its repository if you wish to contribute to the database._
 
+Do you wish to contribute to this repo? [Read this](./CONTRIBUTING.md)
+
 ## I. Get started
 
 ### 1. Clone the repo

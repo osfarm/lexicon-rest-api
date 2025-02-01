@@ -1,0 +1,286 @@
+# Contributing
+
+## A few things to know
+
+### API engine
+
+Our HTTP server engine is _Elysia_.
+
+It is mostly fine and well conceived, giving us really nice things such as consistant typing, input validation, and JSX templating.
+
+But is also comes with some constraints, such as big method chaining, and difficult to solve type errors sometimes.
+
+### Error handling
+
+This is a TypeScript project, but there is something people may not realise about TypeScript, even when they work with it: error handling is terrible in this language.
+
+In fact, it is so bad that the default way to handle errors — the try/catch clause — should be considered as a code smell.
+
+Here is the problem with Typescript's try/catch clause: you not only get all the disavantages from this statement in other languages (slowing down the process speed), but you also do not get the security you get in other languages.
+
+In Java, you know from a function's signature that it can throw an exception of a specific type. In Typescript, there is no way to add this information to the signature at all.
+
+In Java, when you call a fallible function, the compiler forces you to handle the possible exception: either by adding the exception type in the signature, or by adding a `try/catch`. In Typescript the compiler doesn't force you to handle the error, it can just go up until it crashes your program without having you warned.
+
+Default error handling in Typescript is basically putting `try/catch` everywhere and hope for the best, because you don't actually know what is going on.
+
+So, what we do in this project is that we use a `Result` monad, which is a special type that can contains either a value or an error.
+
+So, when we declare a fallible function in our code, instead of having a signature like `function fallibleFunction(): string` that makes us none the wiser, we have an explicit signature that tells us that the function can return an error `function fallibleFunction(): Result<Error, string>`
+
+And then, when we will call the function, we will actually be forced by the compiler to handle the error.
+
+[Result monad documentation](https://shulk.org/docs/result/)
+
+### Polymorphism and state management
+
+[Tagged unions documentation](https://shulk.org/docs/tagged-unions/)
+
+### Translations
+
+Translations are stored in the file `src/assets/translations.csv`
+
+We are using a CSV file for parsing and editing convenience.
+
+_Warning_: The API will not automatically reload when you edit the translations file, so you'll have to restart the server manually.
+
+### Templating
+
+For the Hypertext representations of the resources, we are using JSX components.
+
+**Remember this:** JSX templates _are not_ React components. They don't actually manage frontend state, they are converted to HTML code directly on the server, you cannot access any frontend feature from them.
+
+JSX template example:
+
+```tsx
+interface Props {
+  firstname: string
+}
+
+export function MyTemplate(props: Props) {
+  const { firstname } = props
+
+  return <div>Hello, {firstname}!</div>
+}
+```
+
+## How to
+
+### How to add a namespace
+
+1. Create a new file with path `src/namespaces/[Namespace name].ts`
+
+2. Add the following dependencies:
+
+```ts
+import Elysia, { t } from "elysia"
+import { generateTablePage, type Context } from "../generateTablePage"
+import type { Translator } from "../Translator"
+```
+
+3. Add a breadcrumbs generator function and initialize the API namespace
+
+```ts
+const Breadcrumbs = (t: Translator) => [
+  Hypermedia.Link({
+    value: t("home_title"),
+    method: "GET",
+    href: "/",
+  }),
+  Hypermedia.Link({
+    value: t("namespace_title"),
+    method: "GET",
+    href: "/namespace-slug",
+  }),
+]
+
+export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+```
+
+4. Add the namespace to the `src/index.ts` file:
+
+```ts
+import { Elysia, t } from "elysia"
+import { NewNamespace } from "./namespaces/Namespace"
+
+// [...]
+
+new Elysia()
+  // [...]
+  .get("/", ({ t }) => Home({ t }))
+  .group(
+    "",
+    {
+      query: t.Object({ page: t.Number({ default: 1 }) }),
+    },
+    (app) =>
+      app
+        .use(NewNamespace) // <-- Add it here
+        .use(GeographicalReferences)
+        .use(Phytosanitary)
+        .use(Viticulture)
+        .use(Weather)
+        .use(Credits)
+  )
+```
+
+### How to add a list page
+
+List pages are used as tables of contents for namespaces. There is a dedicated template that makes them easy to create.
+
+Let's add a list page to our namespace:
+
+```ts
+import { AutoList } from "../templates/AutoList" /// <-- Add this
+
+// [...]
+
+export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+  // Add the code below
+  .get("/", ({ t }: Context) =>
+    AutoList({
+      page: {
+        title: t("namespace_title"),
+        breadcrumbs: [Breadcrumbs(t)[0]],
+        links: [
+          Hypermedia.Link({
+            value: t("namespace_resource_title"),
+            method: "GET",
+            href: "/namespace-slug/my-resource",
+          }),
+        ],
+      },
+    })
+  )
+```
+
+### How to add a table page
+
+Table pages are the primary way data are presented through the API. To make them easier to create, there is a generator function that handles querying, pagination, and output format (Hypertext, JSON, and CSV)
+
+Let's add a table page to our namespace!
+
+1. Add a type representing the resource as it is returned by the DB (property mapping is deactivated for now)
+
+```ts
+interface MyResource {
+  id: string
+  name: string
+  status: "availabe" | "removed"
+  list_of_things: string[]
+}
+
+const MyResourceTable = Table<MyResource>({
+  table: "my_resource",
+  primaryKey: "id",
+})
+```
+
+2. Create the endpoint and call the generator function
+
+```ts
+// Add these imports
+import { generateTablePage, type Context } from "../generateTablePage"
+import { Hypermedia, HypermediaList } from "../Hypermedia"
+import { CreditTable } from "./Credits"
+
+// [...]
+
+export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+  // Add the code below
+  // The '*' at the end of the path is necessary to handle multiple output formats
+  .get("/my-resource*", async (cxt: Context) =>
+    generateTablePage(cxt, {
+      title: cxt.t("namespace_resource_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      query: MyResourceTable(cxt.db).select().orderBy("name", "ASC"),
+      columns: {
+        name: cxt.t("common_fields_name"),
+        status: cxt.t("namespace_resource_status"),
+        "list-of-things": cxt.t("namespace_resource_list_of_things"),
+      },
+      handler: (resource) => ({
+        name: Hypermedia.Text({
+          label: cxt.t("common_fields_name"),
+          value: resource.name,
+        }),
+        resource: Hypermedia.Text({
+          label: cxt.t("namespace_resource_status"),
+          value: cxt.t("namespace_resource_status_" + resource.status),
+        }),
+        "list-of-things": HypermediaList({
+          label: cxt.t("namespace_resource_list_of_things"),
+          values: resource.list_of_things,
+        }),
+      }),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "resource"),
+    })
+  )
+```
+
+There are quite a few things to see, let's break it down:
+
+- **title** is simply the title of the page
+- **breadcrumbs** takes an array of Hypermedia.Link, it will help the user navigate the Lexicon. Here we call the Breadcrumbs generator function we wrote earlier and we pass it the `t` translator function in the API context `cxt`
+- **query** takes a select query formed from the Table object we created earlier. The generator function will have to enrich it for pagination and filtering so we don't call the `run()` method before passing it.
+- **columns** is a mapping between the columns identifiers of our table and the labels associated with them as `strings`.
+- **handler** is a formatter function that will be applied for each entry from the query result. It has to return a mapping between the columns identifiers and `Hypermedia` objects.
+- **credits** takes another select query from the `QueryTable`. It is used to display the source of the dataset. This is actually an optionnal argument, you don't actually need to give it to the function if the source is unknown.
+
+### How to add filtering and form
+
+Now that we have our table function, let's add filters to help the users find the data they actually need.
+
+```ts
+// Add these imports
+import { Field } from "../templates/components/Form"
+
+// [...]
+
+export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+  // Add the code below
+  .get("/my-resource*", async (cxt: Context) =>
+    generateTablePage(
+      cxt,
+      {
+        // [...]
+        // Add the code below
+        form: {
+          name: Field.Text({
+            label: cxt.t("common_fields_name"),
+            required: false,
+          }),
+          status: Field.Select({
+            label: cxt.t("namespace_resource_status"),
+            required: false,
+            options: {
+              available: cxt.t("namespace_resource_status_available"),
+              removed: cxt.t("namespace_resource_status_removed"),
+            },
+          }),
+        },
+        formHandler: (input, query) => {
+          if (input.name) {
+            query.where("name", "LIKE", "%" + input.name + "%")
+          }
+          if (input.status) {
+            query.where("status", "=", input.status)
+          }
+        },
+      },
+      // Add the code below, it won't work if you don't
+      {
+        page: t.Number({ default: 1 }), // <-- This one is mandatory for pagination
+        name: t.Optional(t.String()), // <-- This is for our form's name field
+        status: t.Optional(t.String()), // <-- This is for our form's status field
+      }
+    )
+  )
+```
+
+So, here's what we have here:
+
+- **form** which is the form definition, which is a mapping with fields names as keys and fields definitions as values
+- **formHandler** which is the function that will be called on a form submit. It has a `input` parameter which contains the values entered by the user in the form, and a `query` parameter which is actually the `query` you provided earlier to the generator, which you can now complete with the form values.
