@@ -6,6 +6,8 @@ Do you wish to contribute to this repo? [Read this](./CONTRIBUTING.md)
 
 ## I. Get started
 
+[Install Bun if not done already](https://bun.sh/)
+
 ### 1. Clone the repo
 
 ```sh
@@ -16,6 +18,7 @@ $ git clone https://github.com/osfarm/lexicon-rest-api.git
 
 ```sh
 $ cd ./lexicon-rest-api
+$ touch .env
 $ nano .env
 ```
 
