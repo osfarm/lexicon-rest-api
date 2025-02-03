@@ -1,3 +1,3 @@
 export enum Country {
-  FR = "fr",
+  FR = "FR",
 }

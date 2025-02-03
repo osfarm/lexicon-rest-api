@@ -54,7 +54,77 @@ const divisionResult = divide(6, 3).val // <-- Will be of type 'Error | number'
 
 ### Polymorphism and state management
 
+We use tagged unions and pattern matching to handle some objects, such as the Hypermedia elements:
+
+```ts
+import { union, type InferUnion, match } from "shulk"
+
+const Hypermedia = union<{
+  Text: { label: string; value: string }
+  Number: { label: string; value: number; unit?: string }
+}>()
+type Hypermedia = InferUnion<typeof Hypermedia>["any"]
+
+function displayHypermedia(element: Hypermedia) {
+  const serialized = match(element).case({
+    Text: (element) => element.value,
+    Number: (element) => element.value + " " + element.unit,
+  })
+
+  console
+  log(serialized)
+}
+
+const textElement = Hypermedia.Text({ label: "My label", value: "My value" })
+const numbeElement = Hypermedia.Number({
+  label: "My label",
+  value: 5,
+  unit: "kg",
+})
+
+displayHypermedia(textElement) // -> "My value"
+displayHypermedia(numberElement) // -> "5 kg"
+```
+
 [Tagged unions documentation](https://shulk.org/docs/tagged-unions/)
+
+### DB relations
+
+Relations are handled, but in a clunky way for now. The fields of both tables are merged in a single object.
+
+You'll have to declare the relation in the table definition.
+
+Example with CAP registered parcels, which need a one-to-one with CAP codes:
+
+```ts
+interface CapParcel {
+  // Parcel properties
+  id: string
+  cap_crop_code: CapCode
+  city_name: string
+  shape: string
+  centroid: string
+  // CAP code property
+  cap_code: string
+  cap_label: string
+  production: string
+  cap_precision?: string
+  cap_category?: string
+  is_seed: boolean
+  year: number
+}
+
+const CapParcelTable = Table<CapParcel>({
+  table: "registered_graphic_parcels",
+  primaryKey: "id",
+  oneToOne: {
+    cap_crop_code: {
+      table: "master_crop_production_cap_codes",
+      primaryKey: "cap_code",
+    },
+  },
+})
+```
 
 ### Translations
 
