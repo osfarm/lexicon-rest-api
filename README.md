@@ -25,20 +25,21 @@ $ git clone https://github.com/osfarm/lexicon-rest-api.git
 
 ```sh
 $ cd ./lexicon-rest-api
-$ touch .env
+$ cp .env.example .env
 $ nano .env
 ```
 
 Structure du fichier .env :
 
 ```env
-PORT=
-DB_HOST=
-DB_PORT=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-DB_SCHEMA=
+HOST=0.0.0.0                        
+PORT=8888                           
+DB_HOST=lexicon.osfarm.org          
+DB_PORT=5432                        
+DB_USER=your_user                   
+DB_PASSWORD=your_password           
+DB_NAME=lexicon                     
+DB_SCHEMA=lexicon__6_0_0-ekyviti   
 ```
 
 ### 3. Installer les dépendances
@@ -51,6 +52,13 @@ $ bun install
 
 ```sh
 $ bun start
+```
+### 5. Accéder à l'application en local
+
+Une fois le serveur démarré, ouvrez votre navigateur et accédez à :
+
+```sh
+http://localhost:8888
 ```
 
 ## II. Hypermedia par conception
@@ -395,13 +403,14 @@ $ nano .env
 Structure of the `.env` file:
 
 ```env
-PORT=
-DB_HOST=
-DB_PORT=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-DB_SCHEMA=
+HOST=0.0.0.0                        
+PORT=8888                           
+DB_HOST=lexicon.osfarm.org          
+DB_PORT=5432                        
+DB_USER=your_user                   
+DB_PASSWORD=your_password           
+DB_NAME=lexicon                     
+DB_SCHEMA=lexicon__6_0_0-ekyviti   
 ```
 
 ### 3. Install dependencies
@@ -414,6 +423,13 @@ $ bun install
 
 ```sh
 $ bun start
+```
+### 5. Access the application locally
+
+Once the server is started, open your browser and navigate to:
+
+```sh
+http://localhost:8888
 ```
 
 ## II. Hypermedia by Design
