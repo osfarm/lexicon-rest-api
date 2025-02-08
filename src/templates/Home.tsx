@@ -33,6 +33,12 @@ export function Home(props: Props) {
       <h2>{t("home_explore")}</h2>
 
       <Grid>
+      <Cell width={6}>
+          <a href="/seed" style={SECTION_STYLE}>
+            <img src={"/public/icons/seed.svg"} height={16} />{" "}
+            {t("seed_title")}
+          </a>{" "}
+        </Cell>
         <Cell width={6}>
           <a href="/geographical-references" style={SECTION_STYLE}>
             <img src={"/public/icons/map.svg"} height={16} />{" "}

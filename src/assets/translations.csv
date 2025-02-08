@@ -65,6 +65,11 @@ phytosanitary_symbol_code,Code,Code
 phytosanitary_symbol_mention,Mention danger,Danger mention
 phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
 
+seed_title,Semences,Seeds
+specie,Espèce,Specie
+variety_title,Varietés,Varieties
+variety,Variété,Variety
+
 viticulture_title,Viticulture,Viticulture
 
 viticulture_phenological_stage_title,Stades phénologiques,Phenological stages
