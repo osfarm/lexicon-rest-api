@@ -13,7 +13,7 @@ interface Variety {
   id_specie: string
   specie_name_fra: string
   variety_name: string
-  registration_date: Date
+  registration_date?: Date
 }
 
 const VarietyTable = Table<Variety>({
@@ -57,22 +57,35 @@ export const Seed = new Elysia({ prefix: "/seed" })
       query: VarietyTable(cxt.db).select().orderBy("id", "ASC"),
       columns: {
         id: cxt.t("id"),
+        id_specie: cxt.t("id_specie"),
         specie_name_fra: cxt.t("specie"),
         variety_name: cxt.t("variety"),
+        registration_date: cxt.t("registration_date"),
       },
       handler: (resource) => ({
         id: Hypermedia.Text({
           label: cxt.t("id"),
           value: resource.id,
         }),
+        id_specie: Hypermedia.Text({
+          label: cxt.t("id_specie"),
+          value: resource.id_specie,
+        }),
         specie_name_fra: Hypermedia.Text({
           label: cxt.t("specie"),
-          value: resource.id_specie,
+          value: resource.specie_name_fra,
         }),
         variety_name: Hypermedia.Text({
           label: cxt.t("variety"),
           value: resource.variety_name,
         }),
+        registration_date: resource.registration_date
+                    ? Hypermedia.Date({
+                        label: cxt.t("registration_date"),
+                        value: cxt.dateTimeFormatter.Date(resource.registration_date),
+                        iso: resource.registration_date.toISOString()
+                      })
+                    : undefined,
       }),
       credits: CreditTable(cxt.db)
         .select()

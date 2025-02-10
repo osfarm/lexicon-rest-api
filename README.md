@@ -371,9 +371,20 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
   )
 ```
 
+### Ajouter une entrée de menu
+
+Aller dans  `src/templates/Home.tsx` et ajouter votre namespace avec une icone de votre choix au format svg (que vous placerez dans `public/icons`)
+
+```tsx
+<Cell width={6}>
+          <a href="/<<namespace>>" style={SECTION_STYLE}>
+            <img src={"/public/icons/<<votre_icone.svg>>"} height={16} />{" "}
+            {t("<<namespace_title>>")}
+          </a>{" "}
+        </Cell>
+```
+
 ---
-
-
 
 
 ## English

@@ -69,6 +69,8 @@ seed_title,Semences,Seeds
 specie,Espèce,Specie
 variety_title,Varietés,Varieties
 variety,Variété,Variety
+id_specie,Genre,Genus
+registration_date,Date d'inscription,Registration date 
 
 viticulture_title,Viticulture,Viticulture
 
