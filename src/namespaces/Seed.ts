@@ -54,13 +54,24 @@ export const Seed = new Elysia({ prefix: "/seed" })
     generateTablePage(cxt, {
       title: cxt.t("variety_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
-      query: VarietyTable(cxt.db).select().orderBy("id", "ASC"),
+      query: VarietyTable(cxt.db).select().orderBy("specie_name_fra", "ASC").orderBy("variety_name", "ASC").orderBy("id", "ASC"),
       columns: {
         id: cxt.t("id"),
         id_specie: cxt.t("id_specie"),
         specie_name_fra: cxt.t("specie"),
         variety_name: cxt.t("variety"),
         registration_date: cxt.t("registration_date"),
+      },
+      form: {
+        name: Field.Text({
+          label: cxt.t("specie"),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.name) {
+          query.where("specie_name_fra", "LIKE", "%" + input.name + "%")
+        }
       },
       handler: (resource) => ({
         id: Hypermedia.Text({
@@ -90,5 +101,11 @@ export const Seed = new Elysia({ prefix: "/seed" })
       credits: CreditTable(cxt.db)
         .select()
         .where("datasource", "=", "seed_varieties"),
-    })
+    }),
+    {
+      query: t.Object({
+        page: t.Number({ default: 1 }),
+        name: t.Optional(t.String()),
+      }),
+    }
   )
