@@ -34,33 +34,39 @@ export function Home(props: Props) {
 
       <Grid>
       <Cell width={6}>
+          <a href="/production" style={SECTION_STYLE}>
+            <img src={"/public/icons/farm.svg"} height={32} />{" "}
+            {t("production_title")}
+          </a>{" "}
+        </Cell>
+        <Cell width={6}>
           <a href="/seed" style={SECTION_STYLE}>
-            <img src={"/public/icons/seed.svg"} height={16} />{" "}
+            <img src={"/public/icons/seed.svg"} height={32} />{" "}
             {t("seed_title")}
           </a>{" "}
         </Cell>
         <Cell width={6}>
           <a href="/geographical-references" style={SECTION_STYLE}>
-            <img src={"/public/icons/map.svg"} height={16} />{" "}
+            <img src={"/public/icons/land-parcels.svg"} height={32} />{" "}
             {t("geographical_references_title")}
           </a>{" "}
         </Cell>
 
         <Cell width={6}>
           <a href="/phytosanitary" style={SECTION_STYLE}>
-            <img src={"/public/icons/prescription-bottle.svg"} height={16} />{" "}
+            <img src={"/public/icons/chemical-product.svg"} height={32} />{" "}
             {t("phytosanitary_title")}
           </a>
         </Cell>
         <Cell width={6}>
           <a href="/viticulture" style={SECTION_STYLE}>
-            <img src={"/public/icons/wine.svg"} height={16} />{" "}
+            <img src={"/public/icons/bottles.svg"} height={32} />{" "}
             {t("viticulture_title")}
           </a>{" "}
         </Cell>
         <Cell width={6}>
           <a href="/weather" style={SECTION_STYLE}>
-            <img src={"/public/icons/cloud.svg"} height={16} />{" "}
+            <img src={"/public/icons/cloud.svg"} height={32} />{" "}
             {t("weather_title")}
           </a>
         </Cell>
