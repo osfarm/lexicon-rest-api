@@ -19,13 +19,13 @@ type VineVariety = {
   utilities?: string[]
 }
 
-enum VineColor {
+export enum VineColor {
   BLACK = "black",
   WHITE = "white",
   GREY = "grey",
 }
 
-enum VineCategory {
+export enum VineCategory {
   VARIETY = "variety",
   HYBRID = "hybrid",
   ROOTSTOCK = "rootstock",

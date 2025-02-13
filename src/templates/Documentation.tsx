@@ -47,9 +47,8 @@ export function Documentation(props: Props) {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.19.5/swagger-ui-standalone-preset.js"> </script>
         <script>
             window.onload = () => {
-            console.log(${JSON.stringify(props.documentation)})
-                const ui = SwaggerUIBundle({
-                dom_id: '#swagger-ui',
+            const ui = SwaggerUIBundle({
+              dom_id: '#swagger-ui',
               deepLinking: true,
               presets: [
                 SwaggerUIBundle.presets.apis,

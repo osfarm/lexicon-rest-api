@@ -41,13 +41,19 @@ interface Product {
   restricted_mentions?: unknown
   operator_protection_mentions: string
   firm_name: string
-  product_type: string
+  product_type: ProductType
 }
 
-enum ProductState {
+export enum ProductState {
   INHERITED = "inherited",
   WITHDRAWN = "withdrawn",
   AUTHORIZED = "authorized",
+}
+
+export enum ProductType {
+  PPP = "PPP",
+  PCP = "PCP",
+  ADJUVANT = "ADJUVANT",
 }
 
 const ProductTable = Table<Product>({
@@ -145,7 +151,9 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
         form: {
           type: Field.Select({
             label: cxt.t("common_fields_type"),
-            options: { PPP: "PPP", PCP: "PCP", ADJUVANT: "ADJUVANT" },
+            options: ObjectFlatMap(ProductState, (_, value) => ({
+              [value]: value,
+            })),
             required: false,
           }),
           state: Field.Select({

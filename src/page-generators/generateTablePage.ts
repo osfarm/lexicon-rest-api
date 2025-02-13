@@ -238,22 +238,3 @@ export async function generateTablePage<T extends object, F extends string>(
       csv: () => hypermedia2csv(pageData.val),
     })
 }
-
-// type EndpointConfig<T, F> = (cxt: { t: Translator }) => AutoTableParams<T, F>
-
-// export function generateNamespace(name: string) {
-//   return new Elysia({ prefix: "/" + name })
-// }
-
-// class NamespaceGenerator {
-//   protected router: Elysia
-
-//   constructor(namespace: string) {
-//     this.router = new Elysia({ prefix: "/" + namespace })
-//   }
-
-//   endpoint() {
-
-//     return this
-//   }
-// }

@@ -1,12 +1,16 @@
 import packageJson from "../../package.json"
 import { Hypermedia } from "../Hypermedia"
+import { ProductState, ProductType } from "../namespaces/Phytosanitary"
+import { VineCategory, VineColor } from "../namespaces/Viticulture"
 import { Documentation } from "../templates/Documentation"
 import type { Translator } from "../Translator"
+import { Country } from "../types/Country"
+import { ObjectFlatMap, ObjectMap } from "../utils"
 
 export function generateDocumentation(t: Translator) {
   const documentation = {
     info: {
-      title: "Lexicon",
+      title: "Lexicon API",
       description: "Documentation of Lexicon.",
       version: packageJson.version,
     },
@@ -26,7 +30,7 @@ export function generateDocumentation(t: Translator) {
     paths: {
       "/phytosanitary/cropsets.json": {
         get: TableEndpoint({
-          description: "Lists cropsets.",
+          description: "Lists crop sets.",
           category: "phytosanitary",
           query: {},
           resourceSchema: {},
@@ -42,11 +46,13 @@ export function generateDocumentation(t: Translator) {
               description:
                 "Filters the phytosanitary products by the provided type",
               type: "string",
+              enum: Object.values(ProductType),
             },
             state: {
               description:
                 "Filters the phytosanitary products by the provided state",
               type: "string",
+              enum: Object.values(ProductState),
             },
           },
           resourceSchema: {},
@@ -71,10 +77,12 @@ export function generateDocumentation(t: Translator) {
               description:
                 "Filters the vine varieties by the provided category.",
               type: "string",
+              enum: Object.values(VineCategory),
             },
             color: {
               description: "Filters the vine varieties by the provided color.",
               type: "string",
+              enum: Object.values(VineColor),
             },
           },
           resourceSchema: {
@@ -92,6 +100,7 @@ export function generateDocumentation(t: Translator) {
               description:
                 "Filters the weather stations by the provided country.",
               type: "string",
+              enum: Object.values(Country),
             },
             name: {
               description:
@@ -266,43 +275,47 @@ type EndpointDoc = {
   description: string
   category: string
   params?: Record<string, { type: string; description: string }>
-  query: Record<string, { type: string; description: string }>
+  query: Record<string, { type: string; description: string; enum?: unknown[] }>
   resourceSchema: object
 }
 
 function TableEndpoint(doc: EndpointDoc) {
+  const pathParameters = Object.entries(doc.params || {}).map(
+    ([field, schema]) => ({
+      name: field,
+      in: "path",
+      description: schema.description,
+      required: true,
+      schema: { type: schema.type },
+    })
+  )
+
+  const queryParameters = Object.entries(doc.query).map(([field, schema]) => ({
+    name: field,
+    in: "query",
+    description: schema.description,
+    required: false,
+    schema: { type: schema.type, enum: schema.enum },
+  }))
+
+  const pageParameter = {
+    name: "page",
+    in: "query",
+    description: "The number of the page you wish to consult.",
+    required: false,
+    schema: {
+      type: "number",
+      default: 1,
+      minimum: 1,
+    },
+  }
+
   return {
     summary: doc.description,
     description: doc.description,
     tags: [doc.category],
     produces: ["text/html", "application/json", "text/csv"],
-    parameters: [
-      ...Object.entries(doc.params || {}).map(([field, schema]) => ({
-        name: field,
-        in: "path",
-        description: schema.description,
-        required: true,
-        schema: { type: schema.type },
-      })),
-      {
-        name: "page",
-        in: "query",
-        description: "The number of the page you wish to consult.",
-        required: false,
-        schema: {
-          type: "number",
-          default: 1,
-          minimum: 1,
-        },
-      },
-      ...Object.entries(doc.query).map(([field, schema]) => ({
-        name: field,
-        in: "query",
-        description: schema.description,
-        required: false,
-        schema: { type: schema.type },
-      })),
-    ],
+    parameters: [...pathParameters, pageParameter, ...queryParameters],
     responses: {
       200: {
         content: {
