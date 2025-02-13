@@ -24,6 +24,44 @@ export function generateDocumentation(t: Translator) {
     openapi: "3.0.0",
 
     paths: {
+      "/phytosanitary/cropsets.json": {
+        get: TableEndpoint({
+          description: "Lists cropsets.",
+          category: "phytosanitary",
+          query: {},
+          resourceSchema: {},
+        }),
+      },
+
+      "/phytosanitary/products.json": {
+        get: TableEndpoint({
+          description: "Lists phytosanitary products.",
+          category: "phytosanitary",
+          query: {
+            type: {
+              description:
+                "Filters the phytosanitary products by the provided type",
+              type: "string",
+            },
+            state: {
+              description:
+                "Filters the phytosanitary products by the provided state",
+              type: "string",
+            },
+          },
+          resourceSchema: {},
+        }),
+      },
+
+      "/phytosanitary/symbols.json": {
+        get: TableEndpoint({
+          description: "Lists phytosanitary symbols.",
+          category: "phytosanitary",
+          query: {},
+          resourceSchema: {},
+        }),
+      },
+
       "/viticulture/vine-varieties.json": {
         get: TableEndpoint({
           description: "Lists vine varieties.",
@@ -42,6 +80,53 @@ export function generateDocumentation(t: Translator) {
           resourceSchema: {
             $ref: "#/components/schemas/VineVariety",
           },
+        }),
+      },
+
+      "/weather/stations.json": {
+        get: TableEndpoint({
+          description: "Lists available weather stations.",
+          category: "weather",
+          query: {
+            country: {
+              description:
+                "Filters the weather stations by the provided country.",
+              type: "string",
+            },
+            name: {
+              description:
+                "Searches for weather stations with a matching name.",
+              type: "string",
+            },
+          },
+          resourceSchema: {},
+        }),
+      },
+
+      "/weather/stations/{station_code}/hourly-reports.json": {
+        get: TableEndpoint({
+          description:
+            "Retrieves the hourly weather reports for a given weather station.",
+          category: "weather",
+          params: {
+            station_code: {
+              description: "The identifier code of the weather station.",
+              type: "string",
+            },
+          },
+          query: {
+            start: {
+              description:
+                "Returns the reports collected after the provided date.",
+              type: "date",
+            },
+            end: {
+              description:
+                "Returns the reports collected before the provided date.",
+              type: "date",
+            },
+          },
+          resourceSchema: {},
         }),
       },
     },
@@ -180,6 +265,7 @@ export function generateDocumentation(t: Translator) {
 type EndpointDoc = {
   description: string
   category: string
+  params?: Record<string, { type: string; description: string }>
   query: Record<string, { type: string; description: string }>
   resourceSchema: object
 }
@@ -191,6 +277,13 @@ function TableEndpoint(doc: EndpointDoc) {
     tags: [doc.category],
     produces: ["text/html", "application/json", "text/csv"],
     parameters: [
+      ...Object.entries(doc.params || {}).map(([field, schema]) => ({
+        name: field,
+        in: "path",
+        description: schema.description,
+        required: true,
+        schema: { type: schema.type },
+      })),
       {
         name: "page",
         in: "query",

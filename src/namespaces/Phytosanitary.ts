@@ -143,7 +143,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
         title: cxt.t("phytosanitary_product_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
         form: {
-          product_type: Field.Select({
+          type: Field.Select({
             label: cxt.t("common_fields_type"),
             options: { PPP: "PPP", PCP: "PCP", ADJUVANT: "ADJUVANT" },
             required: false,
@@ -156,6 +156,15 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             required: false,
           }),
         },
+        formHandler: (input, query) => {
+          if (input.type) {
+            query.where("product_type", "=", input.type)
+          }
+          if (input.state) {
+            query.where("state", "=", input.state)
+          }
+        },
+
         query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
 
         columns: {
@@ -194,7 +203,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
     {
       query: t.Object({
         page: t.Optional(t.Number({ default: 1 })),
-        product_type: t.Optional(t.String()),
+        type: t.Optional(t.String()),
         state: t.Optional(t.String()),
       }),
     }
