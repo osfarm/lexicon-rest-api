@@ -1,6 +1,9 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"

@@ -1,7 +1,10 @@
 import Elysia, { t } from "elysia"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { AutoList } from "../templates/AutoList"
 import { Field } from "../templates/components/Form"
 import { CreditTable } from "./Credits"
