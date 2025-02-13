@@ -1,8 +1,6 @@
 import { Elysia, t } from "elysia"
-import { swagger } from "@elysiajs/swagger"
 import { html, Html } from "@elysiajs/html"
 import { Home } from "./templates/Home"
-import packageJson from "../package.json"
 import { Credits, CreditTable } from "./namespaces/Credits"
 import { useTranslator } from "./Translator"
 import { staticPlugin } from "@elysiajs/static"
@@ -14,6 +12,7 @@ import { match } from "shulk"
 import cors from "@elysiajs/cors"
 import { Viticulture } from "./namespaces/Viticulture"
 import { Weather } from "./namespaces/Weather"
+import { generateDocumentation } from "./page-generators/generateDocumentation"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -35,17 +34,6 @@ const AVAILABLE_LANGUAGES = ["fr", "en"]
 new Elysia()
   .use(staticPlugin())
   .use(cors())
-  .use(
-    swagger({
-      path: "/documentation",
-      documentation: {
-        info: {
-          title: "Lexicon REST API documentation",
-          version: packageJson.version,
-        },
-      },
-    })
-  )
   .use(html())
   .derive(({ headers, path }) => {
     const clientDesiredLanguage =
@@ -96,6 +84,7 @@ new Elysia()
     }
   })
   .get("/", ({ t }) => Home({ t }))
+  .get("/documentation", ({ t }) => generateDocumentation(t))
   .group(
     "",
     {
