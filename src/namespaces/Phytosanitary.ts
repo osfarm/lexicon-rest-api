@@ -151,7 +151,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
         form: {
           type: Field.Select({
             label: cxt.t("common_fields_type"),
-            options: ObjectFlatMap(ProductState, (_, value) => ({
+            options: ObjectFlatMap(ProductType, (_, value) => ({
               [value]: value,
             })),
             required: false,

@@ -111,4 +111,8 @@ credits_datasource,Source des données,Data sources
 credits_provider,Fournisseur,Providers
 credits_license,Licence,License
 
+documentation_title,Documentation,Documentation
+documentation_description,La documentation de l'API Lexicon,Documentation of Lexicon API
+documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
+
 country_FR,France,France

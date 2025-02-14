@@ -1,6 +1,7 @@
 import { match } from "shulk"
 import { useTranslator } from "./Translator"
 import { Pool } from "pg"
+import type { OutputFormat } from "./utils"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -17,19 +18,22 @@ const pool = new Pool({
 })
 
 const AVAILABLE_LANGUAGES = ["fr", "en"]
+const DEFAULT_LANGUAGE = "fr"
 
-export function applyRequestConfiguration(req: {
+type BaseRequest = {
   headers: Record<string, string | undefined>
   path: string
-}) {
+}
+
+export function applyRequestConfiguration(req: BaseRequest) {
   const { headers, path } = req
 
   const clientDesiredLanguage =
     headers["accept-language"]?.split(",")[0]?.split("-")[0] || ""
 
   const serverLanguage = AVAILABLE_LANGUAGES.includes(clientDesiredLanguage)
-    ? (clientDesiredLanguage as string)
-    : "fr"
+    ? clientDesiredLanguage
+    : DEFAULT_LANGUAGE
 
   const locale = match(serverLanguage).with({
     fr: "fr-FR",
@@ -39,7 +43,7 @@ export function applyRequestConfiguration(req: {
 
   const extension: string | undefined = path.split(".")[1]
 
-  const output = match(extension).with({
+  const output: OutputFormat = match(extension).with({
     json: "json",
     csv: "csv",
     _otherwise: "html",

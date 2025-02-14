@@ -1,13 +1,141 @@
+import { match } from "shulk"
 import packageJson from "../../package.json"
-import { Hypermedia } from "../Hypermedia"
+import { Hypermedia, hypermedia2json } from "../Hypermedia"
 import { ProductState, ProductType } from "../namespaces/Phytosanitary"
 import { VineCategory, VineColor } from "../namespaces/Viticulture"
 import { Documentation } from "../templates/Documentation"
 import type { Translator } from "../Translator"
 import { Country } from "../types/Country"
-import { ObjectFlatMap, ObjectMap } from "../utils"
+import type { OutputFormat } from "../utils"
 
-export function generateDocumentation(t: Translator) {
+const Paths = (t: Translator) => ({
+  "/geographical-references/postal-codes.json": {
+    get: TableEndpoint({
+      description: t("geographical_references_postal_code_title"),
+      category: t("geographical_references_title"),
+      query: {
+        country: {
+          description: "Filters the postal codes by country.",
+          type: "string",
+          enum: Object.values(Country),
+        },
+        city: {
+          description: "Searches for a matching city name.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/cropsets.json": {
+    get: TableEndpoint({
+      description: t("phytosanitary_cropset_title"),
+      category: t("phytosanitary_title"),
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/products.json": {
+    get: TableEndpoint({
+      description: t("phytosanitary_product_title"),
+      category: t("phytosanitary_title"),
+      query: {
+        type: {
+          description:
+            "Filters the phytosanitary products by the provided type",
+          type: "string",
+          enum: Object.values(ProductType),
+        },
+        state: {
+          description:
+            "Filters the phytosanitary products by the provided state",
+          type: "string",
+          enum: Object.values(ProductState),
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/symbols.json": {
+    get: TableEndpoint({
+      description: t("phytosanitary_symbol_title"),
+      category: t("phytosanitary_title"),
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/viticulture/vine-varieties.json": {
+    get: TableEndpoint({
+      description: t("viticulture_vine_variety_title"),
+      category: t("viticulture_title"),
+      query: {
+        category: {
+          description: "Filters the vine varieties by the provided category.",
+          type: "string",
+          enum: Object.values(VineCategory),
+        },
+        color: {
+          description: "Filters the vine varieties by the provided color.",
+          type: "string",
+          enum: Object.values(VineColor),
+        },
+      },
+      resourceSchema: {
+        $ref: "#/components/schemas/VineVariety",
+      },
+    }),
+  },
+
+  "/weather/stations.json": {
+    get: TableEndpoint({
+      description: t("weather_station_title"),
+      category: t("weather_title"),
+      query: {
+        country: {
+          description: "Filters the weather stations by the provided country.",
+          type: "string",
+          enum: Object.values(Country),
+        },
+        name: {
+          description: "Searches for weather stations with a matching name.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/weather/stations/{station_code}/hourly-reports.json": {
+    get: TableEndpoint({
+      description: t("documentation_weather_hourly_reports"),
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {
+        start: {
+          description: "Returns the reports collected after the provided date.",
+          type: "date",
+        },
+        end: {
+          description:
+            "Returns the reports collected before the provided date.",
+          type: "date",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+})
+
+export function generateDocumentation(t: Translator, output: OutputFormat) {
   const documentation = {
     info: {
       title: "Lexicon API",
@@ -27,118 +155,7 @@ export function generateDocumentation(t: Translator) {
     },
     openapi: "3.0.0",
 
-    paths: {
-      "/phytosanitary/cropsets.json": {
-        get: TableEndpoint({
-          description: "Lists crop sets.",
-          category: "phytosanitary",
-          query: {},
-          resourceSchema: {},
-        }),
-      },
-
-      "/phytosanitary/products.json": {
-        get: TableEndpoint({
-          description: "Lists phytosanitary products.",
-          category: "phytosanitary",
-          query: {
-            type: {
-              description:
-                "Filters the phytosanitary products by the provided type",
-              type: "string",
-              enum: Object.values(ProductType),
-            },
-            state: {
-              description:
-                "Filters the phytosanitary products by the provided state",
-              type: "string",
-              enum: Object.values(ProductState),
-            },
-          },
-          resourceSchema: {},
-        }),
-      },
-
-      "/phytosanitary/symbols.json": {
-        get: TableEndpoint({
-          description: "Lists phytosanitary symbols.",
-          category: "phytosanitary",
-          query: {},
-          resourceSchema: {},
-        }),
-      },
-
-      "/viticulture/vine-varieties.json": {
-        get: TableEndpoint({
-          description: "Lists vine varieties.",
-          category: "viticulture",
-          query: {
-            category: {
-              description:
-                "Filters the vine varieties by the provided category.",
-              type: "string",
-              enum: Object.values(VineCategory),
-            },
-            color: {
-              description: "Filters the vine varieties by the provided color.",
-              type: "string",
-              enum: Object.values(VineColor),
-            },
-          },
-          resourceSchema: {
-            $ref: "#/components/schemas/VineVariety",
-          },
-        }),
-      },
-
-      "/weather/stations.json": {
-        get: TableEndpoint({
-          description: "Lists available weather stations.",
-          category: "weather",
-          query: {
-            country: {
-              description:
-                "Filters the weather stations by the provided country.",
-              type: "string",
-              enum: Object.values(Country),
-            },
-            name: {
-              description:
-                "Searches for weather stations with a matching name.",
-              type: "string",
-            },
-          },
-          resourceSchema: {},
-        }),
-      },
-
-      "/weather/stations/{station_code}/hourly-reports.json": {
-        get: TableEndpoint({
-          description:
-            "Retrieves the hourly weather reports for a given weather station.",
-          category: "weather",
-          params: {
-            station_code: {
-              description: "The identifier code of the weather station.",
-              type: "string",
-            },
-          },
-          query: {
-            start: {
-              description:
-                "Returns the reports collected after the provided date.",
-              type: "date",
-            },
-            end: {
-              description:
-                "Returns the reports collected before the provided date.",
-              type: "date",
-            },
-          },
-          resourceSchema: {},
-        }),
-      },
-    },
+    paths: Paths(t),
 
     components: {
       schemas: {
@@ -163,12 +180,11 @@ export function generateDocumentation(t: Translator) {
                 },
                 label: {
                   type: "string",
-                  example: "Usages",
                 },
                 values: {
                   type: "array",
                   items: {
-                    $ref: "#/components/schemas/Text",
+                    type: "string",
                   },
                 },
               },
@@ -268,7 +284,12 @@ export function generateDocumentation(t: Translator) {
     documentation,
   }
 
-  return Documentation(page)
+  return match(output)
+    .returnType<unknown>()
+    .case({
+      json: () => page,
+      _otherwise: () => Documentation(page),
+    })
 }
 
 type EndpointDoc = {
@@ -312,7 +333,6 @@ function TableEndpoint(doc: EndpointDoc) {
 
   return {
     summary: doc.description,
-    description: doc.description,
     tags: [doc.category],
     produces: ["text/html", "application/json", "text/csv"],
     parameters: [...pathParameters, pageParameter, ...queryParameters],
@@ -320,108 +340,7 @@ function TableEndpoint(doc: EndpointDoc) {
       200: {
         content: {
           "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                "@id": {
-                  type: "string",
-                },
-                title: {
-                  type: "string",
-                },
-                breadcrumbs: {
-                  type: "array",
-                  items: {
-                    $ref: "#/components/schemas/Link",
-                  },
-                },
-                form: {
-                  type: "object",
-                  properties: {},
-                },
-                table: {
-                  type: "object",
-                  properties: {
-                    columns: {
-                      type: "object",
-                      properties: {},
-                    },
-                    rows: {
-                      type: "array",
-                      items: doc.resourceSchema,
-                    },
-                  },
-                },
-                credit: {
-                  type: "object",
-                  properties: {
-                    provider: {
-                      $ref: "#/components/schemas/Text",
-                    },
-                    website: {
-                      $ref: "#/components/schemas/Link",
-                    },
-                    date: {
-                      $ref: "#/components/schemas/Date",
-                    },
-                    license: {
-                      $ref: "#/components/schemas/Link",
-                    },
-                  },
-                },
-                "items-per-page": {
-                  type: "integer",
-                  example: 150,
-                },
-                "items-count": {
-                  type: "integer",
-                  example: 150,
-                },
-                "items-total": {
-                  type: "integer",
-                  example: 416,
-                },
-                page: {
-                  type: "integer",
-                  example: 1,
-                },
-                "total-pages": {
-                  type: "integer",
-                  example: 3,
-                },
-                pages: {
-                  type: "array",
-                  items: {
-                    $ref: "#/components/schemas/Link",
-                  },
-                },
-                navigation: {
-                  type: "object",
-                  properties: {
-                    "next-page": {
-                      $ref: "#/components/schemas/Link",
-                    },
-                    "last-page": {
-                      $ref: "#/components/schemas/Link",
-                    },
-                  },
-                },
-                formats: {
-                  type: "object",
-                  properties: {
-                    html: {
-                      $ref: "#/components/schemas/Link",
-                    },
-                    json: {
-                      $ref: "#/components/schemas/Link",
-                    },
-                    csv: {
-                      $ref: "#/components/schemas/Link",
-                    },
-                  },
-                },
-              },
-            },
+            schema: doc.resourceSchema,
           },
         },
       },

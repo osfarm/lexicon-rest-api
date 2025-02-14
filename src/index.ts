@@ -19,7 +19,7 @@ new Elysia({ serve: { idleTimeout: 255 } })
   .use(html())
   .derive(applyRequestConfiguration)
   .get("/", ({ t }) => Home({ t }))
-  .get("/documentation", ({ t }) => generateDocumentation(t))
+  .get("/documentation*", ({ t, output }) => generateDocumentation(t, output))
   .guard({
     query: t.Object({ page: t.Number({ default: 1 }) }),
   })

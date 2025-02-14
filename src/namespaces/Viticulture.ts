@@ -144,12 +144,7 @@ export const Viticulture = new Elysia({
             ? HypermediaList({
                 label: context.t("viticulture_vine_variety_utilities"),
                 values: item.utilities.map((utility: string) =>
-                  Hypermedia.Text({
-                    label: context.t("viticulture_vine_variety_utilities"),
-                    value: context.t(
-                      "viticulture_vine_variety_utility_" + utility
-                    ),
-                  })
+                  context.t("viticulture_vine_variety_utility_" + utility)
                 ),
               })
             : undefined,
