@@ -10,6 +10,8 @@ import { Viticulture } from "./namespaces/Viticulture"
 import { Weather } from "./namespaces/Weather"
 import { generateDocumentation } from "./page-generators/generateDocumentation"
 import { applyRequestConfiguration } from "./applyRequestConfiguration"
+import { Seed } from "./namespaces/Seed"
+import { Production } from "./namespaces/Production"
 
 const PORT = import.meta.env.PORT as string
 
@@ -25,6 +27,8 @@ new Elysia({ serve: { idleTimeout: 255 } })
   })
   .use(GeographicalReferences)
   .use(Phytosanitary)
+  .use(Production)
+  .use(Seed)
   .use(Viticulture)
   .use(Weather)
   .use(Credits)
