@@ -46,6 +46,12 @@ geographical_references_postal_code_code,Code postal,Postal code
 geographical_references_postal_code_city,Ville,City
 geographical_references_postal_code_city_code,Code commune,City code
 
+production,Production,Production
+production_title,Production,Production
+productions_title,Productions,Productions
+id,Identifiant,Id
+activity_family,Famille d'activités,Activity Family
+usage,Usage,Usage
 
 phytosanitary_title,Phytosanitaire,Phytosanitary
 
@@ -64,6 +70,13 @@ phytosanitary_symbol_title,Symboles,Symbols
 phytosanitary_symbol_code,Code,Code
 phytosanitary_symbol_mention,Mention danger,Danger mention
 phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
+
+seed_title,Semences,Seeds
+specie,Espèce,Specie
+variety_title,Varietés,Varieties
+variety,Variété,Variety
+id_specie,Genre,Genus
+registration_date,Date d'inscription,Registration date 
 
 viticulture_title,Viticulture,Viticulture
 

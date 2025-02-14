@@ -14,6 +14,8 @@ import { match } from "shulk"
 import cors from "@elysiajs/cors"
 import { Viticulture } from "./namespaces/Viticulture"
 import { Weather } from "./namespaces/Weather"
+import { Seed } from "./namespaces/Seed"
+import { Production } from "./namespaces/Production"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -103,6 +105,8 @@ new Elysia()
     },
     (app) =>
       app
+        .use(Production)
+        .use(Seed)
         .use(GeographicalReferences)
         .use(Phytosanitary)
         .use(Viticulture)
