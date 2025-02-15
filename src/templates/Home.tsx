@@ -3,26 +3,17 @@ import { Layout } from "./Layout"
 import { html, Html } from "@elysiajs/html"
 import { Card } from "./components/Card"
 import { Cell, Grid } from "./components/Grid"
+import { SectionLink } from "./components/SectionLink"
 
 interface Props {
   t: Translator
 }
 
-const SECTION_STYLE = {
-  borderRadius: "15px",
-  fontSize: "1.3em",
-  color: "black",
-  border: "solid 1px black",
-  padding: "5px",
-  width: "100%",
-  textAlign: "center",
-} as const
-
 export function Home(props: Props) {
   const { t } = props
 
   return (
-    <Layout title={t("home_title")} breadcrumbs={[]}>
+    <Layout title={t("home_title")} breadcrumbs={[]} t={t}>
       <Card info>
         <p>
           <img src={"/public/icons/circle-info.svg"} height={13} />{" "}
@@ -33,42 +24,41 @@ export function Home(props: Props) {
       <h2>{t("home_explore")}</h2>
 
       <Grid>
-      <Cell width={6}>
-          <a href="/production" style={SECTION_STYLE}>
-            <img src={"/public/icons/farm.svg"} height={32} />{" "}
-            {t("production_title")}
-          </a>{" "}
-        </Cell>
         <Cell width={6}>
-          <a href="/seed" style={SECTION_STYLE}>
-            <img src={"/public/icons/seed.svg"} height={32} />{" "}
-            {t("seed_title")}
-          </a>{" "}
-        </Cell>
-        <Cell width={6}>
-          <a href="/geographical-references" style={SECTION_STYLE}>
-            <img src={"/public/icons/land-parcels.svg"} height={32} />{" "}
+          <SectionLink
+            href="/geographical-references"
+            icon="/public/icons/land-parcels.svg"
+          >
             {t("geographical_references_title")}
-          </a>{" "}
+          </SectionLink>
         </Cell>
-
         <Cell width={6}>
-          <a href="/phytosanitary" style={SECTION_STYLE}>
-            <img src={"/public/icons/chemical-product.svg"} height={32} />{" "}
+          <SectionLink
+            href="/phytosanitary"
+            icon="/public/icons/chemical-product.svg"
+          >
             {t("phytosanitary_title")}
-          </a>
+          </SectionLink>
         </Cell>
         <Cell width={6}>
-          <a href="/viticulture" style={SECTION_STYLE}>
-            <img src={"/public/icons/bottles.svg"} height={32} />{" "}
+          <SectionLink href="/production" icon="/public/icons/farm.svg">
+            {t("production_title")}
+          </SectionLink>
+        </Cell>
+        <Cell width={6}>
+          <SectionLink href="/seed" icon="/public/icons/seed.svg">
+            {t("seed_title")}
+          </SectionLink>
+        </Cell>
+        <Cell width={6}>
+          <SectionLink href="/viticulture" icon="/public/icons/bottles.svg">
             {t("viticulture_title")}
-          </a>{" "}
+          </SectionLink>
         </Cell>
         <Cell width={6}>
-          <a href="/weather" style={SECTION_STYLE}>
-            <img src={"/public/icons/cloud.svg"} height={32} />{" "}
+          <SectionLink href="/weather" icon="/public/icons/cloud.svg">
             {t("weather_title")}
-          </a>
+          </SectionLink>
         </Cell>
       </Grid>
 
@@ -87,6 +77,16 @@ export function Home(props: Props) {
           <li>{t("home_how_to_step2")}</li>
           <li>{t("home_how_to_step3")}</li>
         </ol>
+      </div>
+
+      <div style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }}>
+        <SectionLink
+          href="/documentation"
+          icon="/public/icons/book.svg"
+          target="_blank"
+        >
+          {t("home_full_documentation")}
+        </SectionLink>
       </div>
 
       <br />

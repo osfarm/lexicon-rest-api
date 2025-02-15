@@ -1,7 +1,10 @@
 import Elysia from "elysia"
 import { Table } from "../Database"
 import { Hypermedia } from "../Hypermedia"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { AutoTable } from "../templates/AutoTable"
 import { Ok } from "shulk"
 import { AutoList } from "../templates/AutoList"
@@ -56,6 +59,7 @@ export const Credits = new Elysia({ prefix: "/credits" })
           }),
         ],
       },
+      t,
     })
   )
   .get("/datasources*", async (cxt: Context) =>

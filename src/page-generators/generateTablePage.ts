@@ -1,17 +1,17 @@
 import { Concurrently, match, Ok } from "shulk"
-import type { t_Select } from "./Database"
+import type { t_Select } from "../Database"
 import {
   Hypermedia,
   hypermedia2csv,
   hypermedia2json,
   type HypermediaType,
-} from "./Hypermedia"
-import type { FieldType } from "./templates/components/Form"
-import type { Translator } from "./Translator"
-import { createHref, ObjectMap, type OutputFormat } from "./utils"
-import { AutoTable, type AutoTableOkInput } from "./templates/AutoTable"
+} from "../Hypermedia"
+import type { FieldType } from "../templates/components/Form"
+import type { Translator } from "../Translator"
+import { createHref, ObjectMap, type OutputFormat } from "../utils"
+import { AutoTable, type AutoTableOkInput } from "../templates/AutoTable"
 import type { Pool } from "pg"
-import type { Credit } from "./namespaces/Credits"
+import type { Credit } from "../namespaces/Credits"
 
 export interface Context {
   path: string
@@ -238,22 +238,3 @@ export async function generateTablePage<T extends object, F extends string>(
       csv: () => hypermedia2csv(pageData.val),
     })
 }
-
-// type EndpointConfig<T, F> = (cxt: { t: Translator }) => AutoTableParams<T, F>
-
-// export function generateNamespace(name: string) {
-//   return new Elysia({ prefix: "/" + name })
-// }
-
-// class NamespaceGenerator {
-//   protected router: Elysia
-
-//   constructor(namespace: string) {
-//     this.router = new Elysia({ prefix: "/" + namespace })
-//   }
-
-//   endpoint() {
-
-//     return this
-//   }
-// }

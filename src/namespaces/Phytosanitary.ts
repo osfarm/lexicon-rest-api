@@ -1,6 +1,9 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
@@ -38,13 +41,19 @@ interface Product {
   restricted_mentions?: unknown
   operator_protection_mentions: string
   firm_name: string
-  product_type: string
+  product_type: ProductType
 }
 
-enum ProductState {
+export enum ProductState {
   INHERITED = "inherited",
   WITHDRAWN = "withdrawn",
   AUTHORIZED = "authorized",
+}
+
+export enum ProductType {
+  PPP = "PPP",
+  PCP = "PCP",
+  ADJUVANT = "ADJUVANT",
 }
 
 const ProductTable = Table<Product>({
@@ -110,6 +119,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
           }),
         ],
       },
+      t,
     })
   )
   .get("/cropsets*", async (cxt: Context) =>
@@ -140,9 +150,11 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
         title: cxt.t("phytosanitary_product_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
         form: {
-          product_type: Field.Select({
+          type: Field.Select({
             label: cxt.t("common_fields_type"),
-            options: { PPP: "PPP", PCP: "PCP", ADJUVANT: "ADJUVANT" },
+            options: ObjectFlatMap(ProductType, (_, value) => ({
+              [value]: value,
+            })),
             required: false,
           }),
           state: Field.Select({
@@ -153,6 +165,15 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             required: false,
           }),
         },
+        formHandler: (input, query) => {
+          if (input.type) {
+            query.where("product_type", "=", input.type)
+          }
+          if (input.state) {
+            query.where("state", "=", input.state)
+          }
+        },
+
         query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
 
         columns: {
@@ -191,7 +212,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
     {
       query: t.Object({
         page: t.Optional(t.Number({ default: 1 })),
-        product_type: t.Optional(t.String()),
+        type: t.Optional(t.String()),
         state: t.Optional(t.String()),
       }),
     }

@@ -1,6 +1,9 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
@@ -108,6 +111,7 @@ export const GeographicalReferences = new Elysia({
           }),
         ],
       },
+      t,
     })
   )
   .get(

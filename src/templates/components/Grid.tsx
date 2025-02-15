@@ -39,7 +39,7 @@ export function Cell(props: CellProps) {
       style={{
         flexGrow: 0,
         display: "inherit",
-        overflow: "hidden",
+        overflow: "visible",
         marginLeft: "0.25em",
         marginRight: "0.25em",
         marginTop: "0.25em",

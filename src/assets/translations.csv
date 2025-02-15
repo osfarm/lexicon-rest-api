@@ -23,11 +23,12 @@ navigation_next_page,Page suivante,Next page
 
 home_title,Accueil,Home
 home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
-home_explore,Explorer,Explore
+home_explore,Explorer les jeux de données,Explore datasets
 home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
 home_how_to_step1,Explorez et trouvez le jeu de données qui répond à vos besoins,Explore and find the dataset you need
 home_how_to_step2,Filtrez les données à l'aide des formulaires si nécessaire,Filter the data with the forms if you need to
 home_how_to_step3,Trouvez le format de sortie (JSON / CSV) qui vous convient et copiez l'URL ou téléchargez le document,Find the most adapted output format (JSON / CSV) for your usecase and copy the page URL or download the document
+home_full_documentation,Voir la documentation complète,See the complete documentation
 
 geographical_references_title,Références géographiques,Geographical references
 
@@ -123,5 +124,9 @@ credits_open_source_softwares,Logiciels open-source,Open source softwares
 credits_datasource,Source des données,Data sources
 credits_provider,Fournisseur,Providers
 credits_license,Licence,License
+
+documentation_title,Documentation,Documentation
+documentation_description,La documentation de l'API Lexicon,Documentation of Lexicon API
+documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
 
 country_FR,France,France

@@ -164,7 +164,10 @@ export function MyTemplate(props: Props) {
 
 ```ts
 import Elysia, { t } from "elysia"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import type { Translator } from "../Translator"
 ```
 
@@ -198,20 +201,16 @@ import { NewNamespace } from "./namespaces/Namespace"
 new Elysia()
   // [...]
   .get("/", ({ t }) => Home({ t }))
-  .group(
-    "",
-    {
-      query: t.Object({ page: t.Number({ default: 1 }) }),
-    },
-    (app) =>
-      app
-        .use(NewNamespace) // <-- Add it here
-        .use(GeographicalReferences)
-        .use(Phytosanitary)
-        .use(Viticulture)
-        .use(Weather)
-        .use(Credits)
-  )
+  .get("/documentation*", ({ t, output }) => generateDocumentation(t, output))
+  .guard({
+    query: t.Object({ page: t.Number({ default: 1 }) }),
+  })
+  .use(NewNamespace) // <-- Add the namespace after the guard
+  .use(GeographicalReferences)
+  .use(Phytosanitary)
+  .use(Viticulture)
+  .use(Weather)
+  .use(Credits)
 ```
 
 ### How to add a list page

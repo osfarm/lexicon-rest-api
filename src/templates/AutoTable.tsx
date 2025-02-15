@@ -54,7 +54,7 @@ export function AutoTable(props: PageData) {
 
   return match(page).case({
     Err: ({ val: page }) => (
-      <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
         {page.form && <Form method={"GET"} definition={page.form} />}
 
         <br />
@@ -63,7 +63,7 @@ export function AutoTable(props: PageData) {
       </Layout>
     ),
     Ok: ({ val: page }) => (
-      <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
         {page.form && <Form method={"GET"} definition={page.form} />}
 
         <br />

@@ -1,7 +1,10 @@
 import Elysia, { t } from "elysia"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import { AutoList } from "../templates/AutoList"
 import { Field } from "../templates/components/Form"
 import { CreditTable } from "./Credits"
@@ -16,13 +19,13 @@ type VineVariety = {
   utilities?: string[]
 }
 
-enum VineColor {
+export enum VineColor {
   BLACK = "black",
   WHITE = "white",
   GREY = "grey",
 }
 
-enum VineCategory {
+export enum VineCategory {
   VARIETY = "variety",
   HYBRID = "hybrid",
   ROOTSTOCK = "rootstock",
@@ -76,6 +79,7 @@ export const Viticulture = new Elysia({
           }),
         ],
       },
+      t,
     })
   )
   .get(
@@ -141,12 +145,7 @@ export const Viticulture = new Elysia({
             ? HypermediaList({
                 label: context.t("viticulture_vine_variety_utilities"),
                 values: item.utilities.map((utility: string) =>
-                  Hypermedia.Text({
-                    label: context.t("viticulture_vine_variety_utilities"),
-                    value: context.t(
-                      "viticulture_vine_variety_utility_" + utility
-                    ),
-                  })
+                  context.t("viticulture_vine_variety_utility_" + utility)
                 ),
               })
             : undefined,
