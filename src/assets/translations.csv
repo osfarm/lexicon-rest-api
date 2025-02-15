@@ -23,7 +23,7 @@ navigation_next_page,Page suivante,Next page
 
 home_title,Accueil,Home
 home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
-home_explore,Explorer,Explore
+home_explore,Explorer les jeux de données,Explore datasets
 home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
 home_how_to_step1,Explorez et trouvez le jeu de données qui répond à vos besoins,Explore and find the dataset you need
 home_how_to_step2,Filtrez les données à l'aide des formulaires si nécessaire,Filter the data with the forms if you need to

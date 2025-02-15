@@ -164,7 +164,10 @@ export function MyTemplate(props: Props) {
 
 ```ts
 import Elysia, { t } from "elysia"
-import { generateTablePage, type Context } from "../generateTablePage"
+import {
+  generateTablePage,
+  type Context,
+} from "../page-generators/generateTablePage"
 import type { Translator } from "../Translator"
 ```
 
