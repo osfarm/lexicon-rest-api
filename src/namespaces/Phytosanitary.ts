@@ -119,6 +119,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
           }),
         ],
       },
+      t,
     })
   )
   .get("/cropsets*", async (cxt: Context) =>

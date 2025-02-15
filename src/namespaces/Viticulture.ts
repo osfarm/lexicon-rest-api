@@ -79,6 +79,7 @@ export const Viticulture = new Elysia({
           }),
         ],
       },
+      t,
     })
   )
   .get(

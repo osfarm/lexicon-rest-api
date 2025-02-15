@@ -77,6 +77,7 @@ export const Weather = new Elysia({
           }),
         ],
       },
+      t,
     })
   )
   .get(

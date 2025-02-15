@@ -111,6 +111,7 @@ export const GeographicalReferences = new Elysia({
           }),
         ],
       },
+      t,
     })
   )
   .get(

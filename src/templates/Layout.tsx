@@ -1,10 +1,12 @@
 import { html, Html } from "@elysiajs/html"
 import { Breadcrumbs } from "./components/Breadcrumbs"
 import type { HypermediaType } from "../Hypermedia"
+import type { Translator } from "../Translator"
 
 type Props = {
   title: string
   breadcrumbs: HypermediaType["Link"][]
+  t: Translator
   children: any
 }
 
@@ -24,7 +26,12 @@ export function Layout(props: Props) {
               {/* <img src="/public/images/lexicon-icon.svg" width={90} /> */}
               <h1>Lexicon</h1>
             </div>
-            <div class="col center"></div>
+            <div class="col center">
+              <a href="/">{props.t("home_title")}</a>
+              <a href="/documentation" target="_blank">
+                {props.t("documentation_title")}
+              </a>
+            </div>
             <div class="col right"></div>
           </header>
         </nav>

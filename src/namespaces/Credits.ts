@@ -59,6 +59,7 @@ export const Credits = new Elysia({ prefix: "/credits" })
           }),
         ],
       },
+      t,
     })
   )
   .get("/datasources*", async (cxt: Context) =>

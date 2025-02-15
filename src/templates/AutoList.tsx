@@ -1,6 +1,7 @@
 import { html, Html } from "@elysiajs/html"
 import type { HypermediaType } from "../Hypermedia"
 import { Layout } from "./Layout"
+import type { Translator } from "../Translator"
 
 interface PageData {
   page: {
@@ -8,13 +9,14 @@ interface PageData {
     breadcrumbs: HypermediaType["Link"][]
     links: HypermediaType["Link"][]
   }
+  t: Translator
 }
 
 export function AutoList(props: PageData) {
-  const { page } = props
+  const { page, t } = props
 
   return (
-    <Layout title={page.title} breadcrumbs={page.breadcrumbs}>
+    <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
       <ul>
         {page.links.map((link) => (
           <li>
