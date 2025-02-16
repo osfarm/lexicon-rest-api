@@ -1,33 +1,33 @@
 {
-  "name": "rest-api",
-  "version": "1.0.0",
-  "homepage": "https://lexicon.osfarm.org",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "start": "bun --hot run ./src/index.ts",
-    "tag": "bun run ./bin/tag.ts"
-  },
-  "contributors": [
-    "David JOULIN <djoulin@ekylibre.com> (https://ekylibre.com)",
-    "Elliott LÉPINE <elliott@brad.ag>",
-    "Olivier LÉPINE <olivier@brad.ag> (https://wwww.brad.ag)"
-  ],
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/pg": "^8.11.10"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@elysiajs/cors": "^1.2.0",
-    "@elysiajs/html": "^1.2.0",
-    "@elysiajs/static": "^1.2.0",
-    "@elysiajs/swagger": "^1.2.0",
-    "csv-parse": "^5.6.0",
-    "elysia": "^1.2.10",
-    "pg": "^8.13.1",
-    "shulk": "^0.15.0"
-  }
+   "name": "rest-api",
+   "version": "1.1.0",
+   "homepage": "https://lexicon.osfarm.org",
+   "module": "src/index.ts",
+   "type": "module",
+   "scripts": {
+      "start": "bun --hot run ./src/index.ts",
+      "tag": "bun run ./bin/tag.ts"
+   },
+   "contributors": [
+      "David JOULIN <djoulin@ekylibre.com> (https://ekylibre.com)",
+      "Elliott LÉPINE <elliott@brad.ag>",
+      "Olivier LÉPINE <olivier@brad.ag> (https://wwww.brad.ag)"
+   ],
+   "devDependencies": {
+      "@types/bun": "latest",
+      "@types/pg": "^8.11.10"
+   },
+   "peerDependencies": {
+      "typescript": "^5.0.0"
+   },
+   "dependencies": {
+      "@elysiajs/cors": "^1.2.0",
+      "@elysiajs/html": "^1.2.0",
+      "@elysiajs/static": "^1.2.0",
+      "@elysiajs/swagger": "^1.2.0",
+      "csv-parse": "^5.6.0",
+      "elysia": "^1.2.10",
+      "pg": "^8.13.1",
+      "shulk": "^0.15.0"
+   }
 }
