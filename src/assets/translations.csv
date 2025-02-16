@@ -53,6 +53,24 @@ productions_title,Productions,Productions
 id,Identifiant,Id
 activity_family,Famille d'activités,Activity Family
 usage,Usage,Usage
+productions_family_administering,Administration,Administering
+productions_family_plant_farming,Culture de plantes,Plant farming
+productions_family_animal_farming,Élevage,Animal farming
+productions_family_service_delivering,Prestations de service,Service delivering
+productions_family_tool_maintaining,Entretien d'outils,Tool maintaining
+productions_family_processing,Transformation,Processing
+productions_family_vine_farming,Viticulture,Viticulture
+productions_family_wine_making,Vinification,Winemaking
+productions_usage_fodder,Fourrage,Fodder
+productions_usage_fruit,Fruits,Fruits
+productions_usage_plant,Plantes,Plants
+productions_usage_grain,Grain,Grain
+productions_usage_vegetable,Légumes,Vegetables
+productions_usage_flower,Fleurs,Flowers
+productions_usage_meat,Viande,Meat
+productions_usage_meadow,Prairie,Meadow
+productions_usage_milk,Lait,Milk
+productions_usage_seed,Semences,Seeds
 
 phytosanitary_title,Phytosanitaire,Phytosanitary
 
@@ -72,10 +90,11 @@ phytosanitary_symbol_code,Code,Code
 phytosanitary_symbol_mention,Mention danger,Danger mention
 phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
 
-seed_title,Semences,Seeds
-specie,Espèce,Specie
-variety_title,Varietés,Varieties
+seeds_title,Semences,Seeds
+species,Espèce,Specie
+seeds_variety_title,Varietés,Varieties
 variety,Variété,Variety
+seeds_variety_code,Code SEMAE,SEMAE code
 id_specie,Genre,Genus
 registration_date,Date d'inscription,Registration date 
 

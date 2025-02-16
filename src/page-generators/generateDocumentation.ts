@@ -7,6 +7,7 @@ import { Documentation } from "../templates/Documentation"
 import type { Translator } from "../Translator"
 import { Country } from "../types/Country"
 import type { OutputFormat } from "../utils"
+import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
 
 const Paths = (t: Translator) => ({
   "/geographical-references/postal-codes.json": {
@@ -22,6 +23,26 @@ const Paths = (t: Translator) => ({
         city: {
           description: "Searches for a matching city name.",
           type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/productions.json": {
+    get: TableEndpoint({
+      description: t("productions_title"),
+      category: t("production_title"),
+      query: {
+        family: {
+          description: "Filters the productions by family of activities.",
+          type: "string",
+          enum: Object.values(ActivityFamily),
+        },
+        usage: {
+          description: "Filters the productions by usage.",
+          type: "string",
+          enum: Object.values(ProductionUsage),
         },
       },
       resourceSchema: {},
@@ -64,6 +85,20 @@ const Paths = (t: Translator) => ({
       description: t("phytosanitary_symbol_title"),
       category: t("phytosanitary_title"),
       query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/seeds/varieties.json": {
+    get: TableEndpoint({
+      description: t("seeds_variety_title"),
+      category: t("seeds_title"),
+      query: {
+        species: {
+          description: "Search for a seed variety with a matching name",
+          type: "string",
+        },
+      },
       resourceSchema: {},
     }),
   },

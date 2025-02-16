@@ -9,20 +9,52 @@ import { Field } from "../templates/components/Form"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
+import { ObjectFlatMap } from "../utils"
 
 interface Production {
   reference_name: string
-  activity_family: string
+  activity_family: ActivityFamily
   specie: string
-  usage?: string
+  usage?: ProductionUsage
   agroedi_crop_code?: string
   registration_date?: Date
   translation_id: string
+  // Translation table fields
+  id: string
+  fra: string
+  eng: string
+}
+
+export enum ActivityFamily {
+  ADMINISTERING = "administering",
+  PLANT_FARMING = "plant_farming",
+  ANIMAL_FARMING = "animal_farming",
+  SERVICE_DELIVERING = "service_delivering",
+  TOOL_MAINTAINING = "tool_maintaining",
+  PROCESSING = "processing",
+  VINE_FARMING = "vine_farming",
+  WINE_MAKING = "wine_making",
+}
+
+export enum ProductionUsage {
+  FODDER = "fodder",
+  FRUIT = "fruit",
+  PLANT = "plant",
+  GRAIN = "grain",
+  VEGETABLE = "vegetable",
+  FLOWER = "flower",
+  MEAT = "meat",
+  MEADOW = "meadow",
+  MILK = "milk",
+  SEED = "seed",
 }
 
 const ProductionTable = Table<Production>({
   table: "master_productions",
   primaryKey: "reference_name",
+  oneToOne: {
+    translation_id: { table: "master_translations", primaryKey: "id" },
+  },
 })
 
 const Breadcrumbs = (t: Translator) => [
@@ -65,39 +97,47 @@ export const Production = new Elysia({ prefix: "/production" })
           .select()
           .orderBy("reference_name", "ASC"),
         columns: {
-          reference_name: cxt.t("id"),
-          activity_family: cxt.t("activity_family"),
-          specie: cxt.t("specie"),
+          name: cxt.t("common_fields_name"),
+          family: cxt.t("activity_family"),
           usage: cxt.t("usage"),
         },
         form: {
-          name: Field.Text({
+          family: Field.Select({
             label: cxt.t("activity_family"),
             required: false,
+            options: ObjectFlatMap(ActivityFamily, (_, val) => ({
+              [val]: cxt.t("productions_family_" + val),
+            })),
+          }),
+          usage: Field.Select({
+            label: cxt.t("usage"),
+            required: false,
+            options: ObjectFlatMap(ProductionUsage, (_, val) => ({
+              [val]: cxt.t("productions_usage_" + val),
+            })),
           }),
         },
         formHandler: (input, query) => {
-          if (input.name) {
-            query.where("activity_family", "LIKE", "%" + input.name + "%")
+          if (input.family) {
+            query.where("activity_family", "=", input.family)
+          }
+          if (input.usage) {
+            query.where("usage", "=", input.usage)
           }
         },
         handler: (resource) => ({
-          reference_name: Hypermedia.Text({
+          name: Hypermedia.Text({
             label: cxt.t("reference_name"),
-            value: resource.reference_name,
+            value: resource.fra,
           }),
-          activity_family: Hypermedia.Text({
+          family: Hypermedia.Text({
             label: cxt.t("activity_family"),
-            value: resource.activity_family,
-          }),
-          specie: Hypermedia.Text({
-            label: cxt.t("specie"),
-            value: resource.specie,
+            value: cxt.t("productions_family_" + resource.activity_family),
           }),
           usage: resource.usage
             ? Hypermedia.Text({
                 label: cxt.t("usage"),
-                value: resource.usage,
+                value: cxt.t("productions_usage_" + resource.usage),
               })
             : undefined,
         }),
@@ -108,7 +148,8 @@ export const Production = new Elysia({ prefix: "/production" })
     {
       query: t.Object({
         page: t.Number({ default: 1 }),
-        name: t.Optional(t.String()),
+        family: t.Optional(t.String()),
+        usage: t.Optional(t.String()),
       }),
     }
   )

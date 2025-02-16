@@ -30,23 +30,23 @@ const Breadcrumbs = (t: Translator) => [
     href: "/",
   }),
   Hypermedia.Link({
-    value: t("seed_title"),
+    value: t("seeds_title"),
     method: "GET",
-    href: "/seed",
+    href: "/seeds",
   }),
 ]
 
-export const Seed = new Elysia({ prefix: "/seed" })
+export const Seeds = new Elysia({ prefix: "/seeds" })
   .get("/", ({ t }: Context) =>
     AutoList({
       page: {
-        title: t("seed_title"),
+        title: t("seeds_title"),
         breadcrumbs: [Breadcrumbs(t)[0]],
         links: [
           Hypermedia.Link({
-            value: t("variety_title"),
+            value: t("seeds_variety_title"),
             method: "GET",
-            href: "/seed/varieties",
+            href: "/seeds/varieties",
           }),
         ],
       },
@@ -57,7 +57,7 @@ export const Seed = new Elysia({ prefix: "/seed" })
     "/varieties*",
     async (cxt: Context) =>
       generateTablePage(cxt, {
-        title: cxt.t("variety_title"),
+        title: cxt.t("seeds_variety_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
         query: VarietyTable(cxt.db)
           .select()
@@ -65,37 +65,32 @@ export const Seed = new Elysia({ prefix: "/seed" })
           .orderBy("variety_name", "ASC")
           .orderBy("id", "ASC"),
         columns: {
-          id: cxt.t("id"),
-          id_specie: cxt.t("id_specie"),
-          specie_name_fra: cxt.t("specie"),
-          variety_name: cxt.t("variety"),
+          code: cxt.t("seeds_variety_code"),
+          species: cxt.t("species"),
+          variety: cxt.t("variety"),
           registration_date: cxt.t("registration_date"),
         },
         form: {
-          name: Field.Text({
-            label: cxt.t("specie"),
+          species: Field.Text({
+            label: cxt.t("species"),
             required: false,
           }),
         },
         formHandler: (input, query) => {
-          if (input.name) {
-            query.where("specie_name_fra", "LIKE", "%" + input.name + "%")
+          if (input.species) {
+            query.where("specie_name_fra", "LIKE", "%" + input.species + "%")
           }
         },
         handler: (resource) => ({
-          id: Hypermedia.Text({
-            label: cxt.t("id"),
+          code: Hypermedia.Text({
+            label: cxt.t("seeds_variety_code"),
             value: resource.id,
           }),
-          id_specie: Hypermedia.Text({
-            label: cxt.t("id_specie"),
-            value: resource.id_specie,
-          }),
-          specie_name_fra: Hypermedia.Text({
-            label: cxt.t("specie"),
+          species: Hypermedia.Text({
+            label: cxt.t("species"),
             value: resource.specie_name_fra,
           }),
-          variety_name: Hypermedia.Text({
+          variety: Hypermedia.Text({
             label: cxt.t("variety"),
             value: resource.variety_name,
           }),
@@ -114,7 +109,7 @@ export const Seed = new Elysia({ prefix: "/seed" })
     {
       query: t.Object({
         page: t.Number({ default: 1 }),
-        name: t.Optional(t.String()),
+        species: t.Optional(t.String()),
       }),
     }
   )
