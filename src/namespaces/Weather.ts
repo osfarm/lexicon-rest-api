@@ -1,9 +1,6 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage, type Context } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { Country } from "../types/Country"
@@ -11,6 +8,7 @@ import { CreditTable } from "./Credits"
 import { ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
 import type { Translator } from "../Translator"
+import { match } from "shulk"
 
 interface Station {
   reference_name: string
@@ -19,12 +17,15 @@ interface Station {
   station_code: string
   station_name: string
   elevation: number
-  centroid: string
+  centroid: Geometry
 }
+
+type Geometry = `POINT(${number} ${number})`
 
 const StationTable = Table<Station>({
   table: "registered_weather_stations",
   primaryKey: "reference_name",
+  geometry: ["centroid"],
 })
 
 type HourlyReport = {
@@ -111,9 +112,7 @@ export const Weather = new Elysia({
           .select()
           .orderBy("country", "ASC")
           .orderBy("station_code", "ASC"),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "weather"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "weather"),
         columns: {
           country: cxt.t("common_fields_country"),
           code: cxt.t("weather_station_code"),
@@ -155,6 +154,11 @@ export const Weather = new Elysia({
       }),
     }
   )
+  .get("/stations/:reference/coverage", async (cxt: Context) => {
+    const readStationResult = await StationTable(cxt.db).read(cxt.params.reference)
+
+    return readStationResult.map((station) => station.centroid).map((geojson) => geojson).val
+  })
   .get(
     "/stations/:reference/hourly-reports*",
     async (cxt: Context) =>
@@ -190,24 +194,16 @@ export const Weather = new Elysia({
         query: HourlyReportTable(cxt.db)
           .select()
           .where("station_id", "=", cxt.params?.reference)
-          .orderBy("started_at", "ASC"),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "weather"),
+          .orderBy("started_at", "DESC"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "weather"),
         columns: {
           datetime: cxt.t("common_fields_datetime"),
-          "temperature-min": cxt.t(
-            "weather_station_hourly_report_temperature_min"
-          ),
-          "temperature-max": cxt.t(
-            "weather_station_hourly_report_temperature_max"
-          ),
+          "temperature-min": cxt.t("weather_station_hourly_report_temperature_min"),
+          "temperature-max": cxt.t("weather_station_hourly_report_temperature_max"),
           humidity: cxt.t("weather_station_hourly_report_humidity"),
           rain: cxt.t("weather_station_hourly_report_rain"),
           "wind-speed": cxt.t("weather_station_hourly_report_wind_speed"),
-          "wind-direction": cxt.t(
-            "weather_station_hourly_report_wind_direction"
-          ),
+          "wind-direction": cxt.t("weather_station_hourly_report_wind_direction"),
           pressure: cxt.t("weather_station_hourly_report_pressure"),
         },
         handler: (report) => ({

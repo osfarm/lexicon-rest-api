@@ -1,5 +1,6 @@
 import type { Pool } from "pg"
-import { Err, Ok, type AsyncResult } from "shulk"
+import { Err, Ok, type AsyncResult, type Result } from "shulk"
+import { ObjectMap } from "./utils"
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
 
@@ -10,13 +11,30 @@ type TableDefinition<T extends object> = {
   oneToOne?: {
     [x in keyof T]?: TableDefinition<T>
   }
+  geometry?: (keyof T)[]
 }
+
+class NotFound extends Error {}
 
 export function Table<T extends object>(definition: TableDefinition<T>) {
   return (db: Pool) => ({
     select: () => new Select(db, definition),
-    example: () =>
-      db.query(`SELECT * FROM "${DB_SCHEMA}".${definition.table} LIMIT 1;`),
+
+    read: async (key: string): AsyncResult<NotFound | Error, T> => {
+      const result = await new Select(db, definition)
+        .where(definition.primaryKey, "=", key)
+        .limit(1)
+        .run()
+
+      return result
+        .map((rows) => rows[0])
+        .flatMap(
+          (maybeRow): Result<NotFound, T> =>
+            maybeRow !== undefined ? Ok(maybeRow) : Err(new NotFound())
+        )
+    },
+
+    example: () => db.query(`SELECT * FROM "${DB_SCHEMA}".${definition.table} LIMIT 1;`),
   })
 }
 
@@ -62,12 +80,7 @@ class Select<T extends object> {
       this.conditions.length > 0
         ? `WHERE ${this.conditions
             .map(
-              (condition, i) =>
-                (condition.field as string) +
-                " " +
-                condition.op +
-                " $" +
-                (i + 1)
+              (condition, i) => (condition.field as string) + " " + condition.op + " $" + (i + 1)
             )
             .join(" AND ")}`
         : ""
@@ -83,23 +96,18 @@ class Select<T extends object> {
     const { conditions, params } = this.prepareConditionsAndParams()
 
     try {
-      //   const q = `SELECT * FROM "${DB_SCHEMA}".${this.def.table} ${conditions} ${
-      //     this.orders.length > 0
-      //       ? `ORDER BY ${this.orders.map(
-      //           (order) => `${this.def.map[order.field]} ${order.sort}`
-      //         )}`
-      //       : ``
-      //   } ${this.limitValue ? `LIMIT ${this.limitValue}` : ``} ${
-      //     this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
-      //   };`
-
       const tableName = `"${DB_SCHEMA}".${this.def.table}`
+
+      const fields = this.def.geometry
+        ? "*, " +
+          this.def.geometry
+            ?.map((field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field}`)
+            .join(", ")
+        : "*"
 
       const sortings =
         this.orders.length > 0
-          ? `ORDER BY ${this.orders.map(
-              (order) => `${order.field as string} ${order.sort}`
-            )}`
+          ? `ORDER BY ${this.orders.map((order) => `${order.field as string} ${order.sort}`)}`
           : ``
 
       const joints = this.def.oneToOne
@@ -116,11 +124,16 @@ class Select<T extends object> {
       const limit = this.limitValue ? `LIMIT ${this.limitValue}` : ``
       const offset = this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
 
-      const q = `SELECT * FROM ${tableName} ${joints} ${conditions} ${sortings} ${limit} ${offset};`
+      const q = `SELECT ${fields} FROM ${tableName} ${joints} ${conditions} ${sortings} ${limit} ${offset};`
 
+      console.log(q)
       const response = await db.query(q, params)
 
-      const parsedResponse = response.rows
+      const parsedResponse = response.rows.map((row) =>
+        ObjectMap(row, (key, value) =>
+          this.def.geometry && this.def.geometry.includes(key) ? JSON.parse(value) : value
+        )
+      )
 
       /*response.rows.map((row) =>
         Object.fromEntries(
@@ -157,30 +170,6 @@ class Select<T extends object> {
       return Err(e as Error)
     }
   }
-
-  //   async credits(): AsyncResult<Error, Credit | undefined> {
-  //     const db = this.db
-
-  //     try {
-  //       const response = await db.query(
-  //         `SELECT * FROM "${DB_SCHEMA}".datasource_credits WHERE datasource LIKE '%${this.def.table}';`
-  //       )
-
-  //       return Ok(response.rows[0])
-  //     } catch (e) {
-  //       return Err(e as Error)
-  //     }
-  //   }
-}
-
-interface Credit {
-  datasource: string
-  name: string
-  url: string
-  provider: string
-  licence?: string
-  licence_url: string
-  updated_at: Date
 }
 
 export type t_Select<T extends object> = Select<T>
