@@ -11,6 +11,7 @@ import type { Translator } from "../Translator"
 import { match } from "shulk"
 import { MapPage } from "../templates/MapPage"
 import type { Context } from "../types/Context"
+import type { Point } from "../types/Geometry"
 
 interface Station {
   reference_name: string
@@ -23,14 +24,6 @@ interface Station {
 }
 
 type Meters = number
-
-type Point = {
-  type: "Point"
-  coordinates: [Longitude, Latitude]
-}
-
-type Latitude = number
-type Longitude = number
 
 const StationTable = Table<Station>({
   table: "registered_weather_stations",
@@ -194,6 +187,7 @@ export const Weather = new Elysia({
                     longitude: station.centroid.coordinates[0],
                   },
                 ],
+                shapes: [],
               },
             }),
         })

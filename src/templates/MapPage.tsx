@@ -1,6 +1,7 @@
 import { Html } from "@elysiajs/html"
 import { Layout } from "./Layout"
 import type { HypermediaType } from "../Hypermedia"
+import type { Geometry } from "../types/Geometry"
 
 type Coordinates = {
   latitude: number
@@ -13,6 +14,7 @@ interface Props {
   map: {
     center: Coordinates
     markers: Coordinates[]
+    shapes: Geometry[]
   }
 }
 
@@ -35,14 +37,18 @@ export function MapPage(props: Props) {
 
       {`
       <script>
-        var map = L.map('map').setView([${props.map.center.latitude}, ${props.map.center.longitude}], 13);
+        var map = L.map('map').setView([${props.map.center.latitude}, ${
+        props.map.center.longitude
+      }], 13);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
         L.marker([${props.map.markers[0].latitude}, ${props.map.markers[0].longitude}]).addTo(map);
-      </script>
+     
+     L.geoJSON(${JSON.stringify(props.map.shapes[0])}, {}).addTo(map)
+        </script>
       `}
     </Layout>
   )

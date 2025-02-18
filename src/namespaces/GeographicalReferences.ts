@@ -9,6 +9,9 @@ import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import type { Translator } from "../Translator"
 import type { Context } from "../types/Context"
+import type { MultiPolygon, Point } from "../types/Geometry"
+import { Err, match, Ok } from "shulk"
+import { MapPage } from "../templates/MapPage"
 
 interface PostalCode {
   id: string
@@ -18,14 +21,30 @@ interface PostalCode {
   postal_code: string
   city_delivery_name: string
   city_delivery_detail?: string
-  city_centroid?: string
-  city_shape?: string
+  city_centroid?: Point
+  city_shape?: MultiPolygon
 }
 
 const PostalCodeTable = Table<PostalCode>({
   table: "registered_postal_codes",
   primaryKey: "id",
+  geometry: ["city_centroid", "city_shape"],
 })
+
+namespace PostalCodeFilters {
+  export function hasGeolocation(postalCode: PostalCode) {
+    if (postalCode.city_shape && postalCode.city_centroid) {
+      return Ok({
+        id: postalCode.id,
+        city_name: postalCode.city_name,
+        city_centroid: postalCode.city_centroid,
+        city_shape: postalCode.city_shape,
+      })
+    } else {
+      return Err(new Error("This city has no geolocation data."))
+    }
+  }
+}
 
 interface Parcel {
   id: string
@@ -122,7 +141,7 @@ export const GeographicalReferences = new Elysia({
           country: Field.Select({
             label: cxt.t("common_fields_country"),
             options: ObjectFlatMap(Country, (_, value) => ({
-              [value]: cxt.t("country_" + value.toUpperCase()),
+              [value]: cxt.t("country_" + value),
             })),
             required: false,
           }),
@@ -142,22 +161,19 @@ export const GeographicalReferences = new Elysia({
         query: PostalCodeTable(cxt.db)
           .select()
           .orderBy("country", "ASC")
-          .orderBy("postal_code", "ASC"),
+          .orderBy("city_name", "ASC"),
         credits: CreditTable(cxt.db).select().where("datasource", "=", "postal_codes"),
         columns: {
           country: cxt.t("common_fields_country"),
-          "postal-code": cxt.t("geographical_references_postal_code_code"),
           city: cxt.t("geographical_references_postal_code_city"),
           "city-code": cxt.t("geographical_references_postal_code_city_code"),
+          "postal-code": cxt.t("geographical_references_postal_code_code"),
+          location: cxt.t("location"),
         },
         handler: (postalCode) => ({
           country: Hypermedia.Text({
             label: cxt.t("common_fields_country"),
             value: cxt.t("country_" + postalCode.country),
-          }),
-          "postal-code": Hypermedia.Text({
-            label: cxt.t("geographical_references_postal_code_code"),
-            value: postalCode.postal_code,
           }),
           city: Hypermedia.Text({
             label: cxt.t("geographical_references_postal_code_city"),
@@ -167,6 +183,20 @@ export const GeographicalReferences = new Elysia({
             label: cxt.t("geographical_references_postal_code_city_code"),
             value: postalCode.code,
           }),
+          "postal-code": Hypermedia.Text({
+            label: cxt.t("geographical_references_postal_code_code"),
+            value: postalCode.postal_code,
+          }),
+
+          location: PostalCodeFilters.hasGeolocation(postalCode)
+            .map((postalCode) =>
+              Hypermedia.Link({
+                value: cxt.t("open"),
+                method: "GET",
+                href: `/geographical-references/postal-codes/${postalCode.id}/location`,
+              })
+            )
+            .unwrapOr(undefined),
         }),
       }),
     {
@@ -177,6 +207,44 @@ export const GeographicalReferences = new Elysia({
       }),
     }
   )
+  .get("/postal-codes/:id/location*", async (cxt: Context) => {
+    const readPostalCodeResult = await PostalCodeTable(cxt.db).read(cxt.params.id)
+
+    return readPostalCodeResult
+      .flatMap(PostalCodeFilters.hasGeolocation)
+      .map((postalCode) =>
+        match(cxt.output)
+          .returnType<any>()
+          .case({
+            geojson: () => postalCode.city_shape,
+            _otherwise: () =>
+              MapPage({
+                title: postalCode.city_name,
+                breadcrumbs: [
+                  ...Breadcrumbs(cxt.t),
+                  Hypermedia.Link({
+                    value: cxt.t("geographical_references_postal_code_title"),
+                    method: "GET",
+                    href: "/geographical-references/postal-codes",
+                  }),
+                ],
+                map: {
+                  center: {
+                    latitude: postalCode.city_centroid.coordinates[1],
+                    longitude: postalCode.city_centroid.coordinates[0],
+                  },
+                  markers: [
+                    {
+                      latitude: postalCode.city_centroid.coordinates[1],
+                      longitude: postalCode.city_centroid.coordinates[0],
+                    },
+                  ],
+                  shapes: [postalCode.city_shape],
+                },
+              }),
+          })
+      ).val
+  })
   .get("/cadastral-parcels*", async (cxt: Context) =>
     generateTablePage(cxt, {
       title: cxt.t("geographical_references_cadastral_parcel_title"),
@@ -187,8 +255,12 @@ export const GeographicalReferences = new Elysia({
       // .orderBy("work_number", "ASC"),
       credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastre"),
       columns: {
-        "town-insee-code": cxt.t("geographical_references_cadastral_parcel_town_insee_code"),
-        "section-prefix": cxt.t("geographical_references_cadastral_parcel_section_prefix"),
+        "town-insee-code": cxt.t(
+          "geographical_references_cadastral_parcel_town_insee_code"
+        ),
+        "section-prefix": cxt.t(
+          "geographical_references_cadastral_parcel_section_prefix"
+        ),
         section: cxt.t("geographical_references_cadastral_parcel_section"),
         "work-number": cxt.t("geographical_references_cadastral_parcel_work_number"),
         area: cxt.t("geographical_references_cadastral_parcel_area"),
