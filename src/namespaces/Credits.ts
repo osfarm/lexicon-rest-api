@@ -1,13 +1,11 @@
 import Elysia from "elysia"
 import { Table } from "../Database"
 import { Hypermedia } from "../Hypermedia"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { AutoTable } from "../templates/AutoTable"
 import { Ok } from "shulk"
 import { AutoList } from "../templates/AutoList"
+import type { Context } from "../types/Context"
 
 export interface Credit {
   datasource: string

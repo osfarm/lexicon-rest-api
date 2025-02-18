@@ -1,9 +1,6 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
@@ -11,6 +8,7 @@ import { Country } from "../types/Country"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import type { Translator } from "../Translator"
+import type { Context } from "../types/Context"
 
 interface PostalCode {
   id: string
@@ -145,9 +143,7 @@ export const GeographicalReferences = new Elysia({
           .select()
           .orderBy("country", "ASC")
           .orderBy("postal_code", "ASC"),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "postal_codes"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "postal_codes"),
         columns: {
           country: cxt.t("common_fields_country"),
           "postal-code": cxt.t("geographical_references_postal_code_code"),
@@ -189,33 +185,21 @@ export const GeographicalReferences = new Elysia({
       // .orderBy("section_prefix", "ASC")
       // .orderBy("section", "ASC")
       // .orderBy("work_number", "ASC"),
-      credits: CreditTable(cxt.db)
-        .select()
-        .where("datasource", "=", "cadastre"),
+      credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastre"),
       columns: {
-        "town-insee-code": cxt.t(
-          "geographical_references_cadastral_parcel_town_insee_code"
-        ),
-        "section-prefix": cxt.t(
-          "geographical_references_cadastral_parcel_section_prefix"
-        ),
+        "town-insee-code": cxt.t("geographical_references_cadastral_parcel_town_insee_code"),
+        "section-prefix": cxt.t("geographical_references_cadastral_parcel_section_prefix"),
         section: cxt.t("geographical_references_cadastral_parcel_section"),
-        "work-number": cxt.t(
-          "geographical_references_cadastral_parcel_work_number"
-        ),
+        "work-number": cxt.t("geographical_references_cadastral_parcel_work_number"),
         area: cxt.t("geographical_references_cadastral_parcel_area"),
       },
       handler: (parcel) => ({
         "town-insee-code": Hypermedia.Text({
-          label: cxt.t(
-            "geographical_references_cadastral_parcel_town_insee_code"
-          ),
+          label: cxt.t("geographical_references_cadastral_parcel_town_insee_code"),
           value: parcel.town_insee_code,
         }),
         "section-prefix": Hypermedia.Text({
-          label: cxt.t(
-            "geographical_references_cadastral_parcel_section_prefix"
-          ),
+          label: cxt.t("geographical_references_cadastral_parcel_section_prefix"),
           value: parcel.section_prefix,
         }),
         section: Hypermedia.Text({

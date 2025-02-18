@@ -1,15 +1,13 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
 import { ObjectFlatMap } from "../utils"
 import { AutoList } from "../templates/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
+import type { Context } from "../types/Context"
 
 interface Cropset {
   id: string
@@ -205,9 +203,7 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             value: cxt.t("pytosanitary_product_state_" + product.state),
           }),
         }),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "phytosanitary"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "phytosanitary"),
       }),
     {
       query: t.Object({

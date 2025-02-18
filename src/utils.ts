@@ -1,9 +1,4 @@
-export type OutputFormat = "html" | "json" | "csv"
-
-export function createHref(
-  basePath: string,
-  query?: { page?: number; [key: string]: unknown }
-) {
+export function createHref(basePath: string, query?: { page?: number; [key: string]: unknown }) {
   if (!query || Object.keys(query).length === 0) {
     return basePath
   }
@@ -21,10 +16,7 @@ export function ObjectMap<T extends object, P>(
   fn: (key: keyof T, value: T[keyof T]) => P
 ): Record<keyof T, P> {
   return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [
-      key,
-      fn(key as keyof T, value as any),
-    ])
+    Object.entries(obj).map(([key, value]) => [key, fn(key as keyof T, value as any)])
   ) as Record<keyof T, P>
 }
 

@@ -1,6 +1,6 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import { generateTablePage, type Context } from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/AutoList"
 import { Country } from "../types/Country"
@@ -9,6 +9,8 @@ import { ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
 import type { Translator } from "../Translator"
 import { match } from "shulk"
+import { MapPage } from "../templates/MapPage"
+import type { Context } from "../types/Context"
 
 interface Station {
   reference_name: string
@@ -16,11 +18,19 @@ interface Station {
   country_zone: string
   station_code: string
   station_name: string
-  elevation: number
-  centroid: Geometry
+  elevation: Meters
+  centroid: Point
 }
 
-type Geometry = `POINT(${number} ${number})`
+type Meters = number
+
+type Point = {
+  type: "Point"
+  coordinates: [Longitude, Latitude]
+}
+
+type Latitude = number
+type Longitude = number
 
 const StationTable = Table<Station>({
   table: "registered_weather_stations",
@@ -154,10 +164,40 @@ export const Weather = new Elysia({
       }),
     }
   )
-  .get("/stations/:reference/coverage", async (cxt: Context) => {
+  .get("/stations/:reference/location*", async (cxt: Context) => {
     const readStationResult = await StationTable(cxt.db).read(cxt.params.reference)
 
-    return readStationResult.map((station) => station.centroid).map((geojson) => geojson).val
+    return readStationResult.map((station) =>
+      match(cxt.output)
+        .returnType<any>()
+        .case({
+          geojson: () => station.centroid,
+          _otherwise: () =>
+            MapPage({
+              title: station.station_name,
+              breadcrumbs: [
+                ...Breadcrumbs(cxt.t),
+                Hypermedia.Link({
+                  value: cxt.t("weather_station_title"),
+                  method: "GET",
+                  href: "/weather/stations",
+                }),
+              ],
+              map: {
+                center: {
+                  latitude: station.centroid.coordinates[1],
+                  longitude: station.centroid.coordinates[0],
+                },
+                markers: [
+                  {
+                    latitude: station.centroid.coordinates[1],
+                    longitude: station.centroid.coordinates[0],
+                  },
+                ],
+              },
+            }),
+        })
+    ).val
   })
   .get(
     "/stations/:reference/hourly-reports*",

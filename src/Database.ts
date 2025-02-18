@@ -101,7 +101,7 @@ class Select<T extends object> {
       const fields = this.def.geometry
         ? "*, " +
           this.def.geometry
-            ?.map((field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field}`)
+            ?.map((field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`)
             .join(", ")
         : "*"
 
@@ -131,7 +131,7 @@ class Select<T extends object> {
 
       const parsedResponse = response.rows.map((row) =>
         ObjectMap(row, (key, value) =>
-          this.def.geometry && this.def.geometry.includes(key) ? JSON.parse(value) : value
+          this.def.geometry && this.def.geometry.includes(key as any) ? JSON.parse(value) : value
         )
       )
 
