@@ -1,7 +1,7 @@
 import Elysia, { t } from "elysia"
 import type { Context } from "../../types/Context"
 import { generateTablePage } from "../../page-generators/generateTablePage"
-import { ObjectFlatMap } from "../../utils"
+import { isString, ObjectFlatMap } from "../../utils"
 import { Field } from "../../templates/components/Form"
 import { MunicipalityTable } from "./Municipality"
 import { CreditTable } from "../Credits"
@@ -17,6 +17,7 @@ import { Country } from "../../types/Country"
 import { ParcelTable } from "./CadastralParcel"
 import { BadRequest, NotFound } from "../../types/HTTPErrors"
 import { generateResourcePage } from "../../page-generators/generateResourcePage"
+import { CapParcelTable } from "./CapParcel"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -55,8 +56,8 @@ export const MunicipalityAPI = new Elysia()
           if (input.country) {
             query.where("country", "=", input.country)
           }
-          if (input.city) {
-            query.where("city_name", "LIKE", `%${input.city}%`)
+          if (isString(input.city)) {
+            query.where("city_name", "LIKE", `%${input.city.toUpperCase()}%`)
           }
         },
         query: MunicipalityTable(cxt.db)
@@ -152,6 +153,15 @@ export const MunicipalityAPI = new Elysia()
                 })
               )
               .unwrapOr(undefined),
+            pac: MunicipalityFilters.hasGeolocation(municipality)
+              .map(() =>
+                Hypermedia.Link({
+                  value: cxt.t("geographical_references_municipality_cap"),
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${municipality.id}/cap-parcels`,
+                })
+              )
+              .unwrapOr(undefined),
           },
           links: associatedStations.flatMap((station) => [
             Hypermedia.Link({
@@ -221,7 +231,47 @@ export const MunicipalityAPI = new Elysia()
         generateMapSection({
           output: cxt.output,
           center: center,
-          markers: [center],
+          markers: [],
+          shapes: geojson,
+        })
+      ).val
+  })
+  .get("/municipalities/:id/cap-parcels*", async (cxt: Context) => {
+    const readMunicipalityResult = await MunicipalityTable(cxt.db).read(cxt.params.id)
+
+    const filteredMunicipalityResult = readMunicipalityResult
+      .flatMap(MunicipalityFilters.hasGeolocation)
+      .mapErr((e) => new BadRequest(e.message))
+
+    const listParcelsResult = await filteredMunicipalityResult.flatMapAsync(
+      (municipality) =>
+        CapParcelTable(cxt.db)
+          .select()
+          .where("shape", "ST_WITHIN", municipality.city_shape)
+          .run()
+    )
+
+    const geojson = listParcelsResult.unwrapOr([]).map((parcel) => ({
+      ...parcel.shape,
+      properties: {
+        href: `/geographical-references/cap-parcels/${parcel.id}`,
+        html: `<span>${parcel.cap_label}</span> 
+            <br/>
+            <a href="/geographical-references/cap-parcels/${parcel.id}">${cxt.t(
+          "common_see"
+        )}</a>
+            `,
+      },
+    }))
+
+    return filteredMunicipalityResult
+      .map((municipality) => municipality.city_centroid)
+      .map(pointToCoordinates)
+      .map((center) =>
+        generateMapSection({
+          output: cxt.output,
+          center: center,
+          markers: [],
           shapes: geojson,
         })
       ).val

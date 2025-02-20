@@ -9,20 +9,27 @@ interface Props {
 }
 
 export function Map(props: Props) {
+  const uniqid = Date.now()
+
   const markers = props.markers
-    .map((marker) => `L.marker([${marker.latitude}, ${marker.longitude}]).addTo(map);`)
+    .map(
+      (marker) =>
+        `L.marker([${marker.latitude}, ${marker.longitude}]).addTo(map${uniqid});`
+    )
     .join(";")
 
   const shapes = props.shapes
     .map(
       (shape) =>
-        `L.geoJSON(${JSON.stringify(shape)}, {onEachFeature: onEachFeature}).addTo(map)`
+        `L.geoJSON(${JSON.stringify(
+          shape
+        )}, {onEachFeature: onEachFeature}).addTo(map${uniqid})`
     )
     .join(";")
 
   return (
     <>
-      <div id="map" style={{ height: "600px" }}></div>
+      <div id={"map-" + uniqid} style={{ height: "600px" }}></div>
 
       <link
         rel="stylesheet"
@@ -44,11 +51,11 @@ export function Map(props: Props) {
             }
         }
 
-        var map = L.map('map').setView([${props.center.latitude}, ${props.center.longitude}], 13);
+        var map${uniqid} = L.map('map-${uniqid}').setView([${props.center.latitude}, ${props.center.longitude}], 13);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+        }).addTo(map${uniqid});
 
      
         ${markers}

@@ -1,4 +1,7 @@
-export function createHref(basePath: string, query?: { page?: number; [key: string]: unknown }) {
+export function createHref(
+  basePath: string,
+  query?: { page?: number; [key: string]: unknown }
+) {
   if (!query || Object.keys(query).length === 0) {
     return basePath
   }
@@ -33,4 +36,8 @@ export function ObjectFlatMap<T, I>(
     mappedObj = { ...mappedObj, ...fn(key, value) }
   }
   return mappedObj as Record<string, T>
+}
+
+export function isString(val: unknown): val is string {
+  return typeof val === "string"
 }

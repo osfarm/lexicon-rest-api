@@ -1,6 +1,6 @@
 import { match } from "shulk"
 import type { OutputFormat } from "../types/OutputFormat"
-import type { MultiPolygon } from "../types/Geometry"
+import type { MultiPolygon, Polygon } from "../types/Geometry"
 import type { Coordinates } from "../types/Coordinates"
 import { Map } from "../templates/components/Map"
 
@@ -8,7 +8,7 @@ interface MapSectionParams {
   output: OutputFormat
   center: Coordinates
   markers: Coordinates[]
-  shapes: MultiPolygon[]
+  shapes: (Polygon | MultiPolygon)[]
 }
 
 export function generateMapSection(params: MapSectionParams) {
