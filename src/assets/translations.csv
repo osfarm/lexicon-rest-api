@@ -49,6 +49,7 @@ geographical_references_cap_parcel_culture,Culture,Culture
 geographical_references_postal_code_title,Codes postaux,Postal codes
 
 geographical_references_municipality_title,Communes,Municipalities
+geographical_references_municipality,Commune,Municipality
 geographical_references_municipality_postal_code,Code postal,Postal code
 geographical_references_municipality_city,Ville,City
 geographical_references_municipality_city_code,Code commune,City code
@@ -130,6 +131,7 @@ viticulture_vine_variety_utility_certified,Certifié,Certified
 
 weather_title,Météorologie,Weather
 weather_station_title,Stations météorologiques,Weather stations
+weather_station,Station météorologique,Weather station
 weather_station_code,Code station,Station code
 weather_station_elevation,Élévation,Elevation
 weather_station_hourly_reports,Relevés horaires,Hourly reports

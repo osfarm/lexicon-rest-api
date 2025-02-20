@@ -4,13 +4,12 @@ import type { Context } from "../../types/Context"
 import { ParcelTable } from "./CadastralParcel"
 import { CreditTable } from "../Credits"
 import { Field } from "../../templates/components/Form"
-import { Hypermedia, hypermedia2json } from "../../Hypermedia"
+import { Hypermedia } from "../../Hypermedia"
 import { MunicipalityTable } from "./Municipality"
-import { match } from "shulk"
-import { ResourcePage } from "../../templates/views/ResourcePage"
 import { pointToCoordinates } from "../../types/Coordinates"
 import { generateMapSection } from "../../page-generators/generateMapSection"
 import type { Translator } from "../../Translator"
+import { generateResourcePage } from "../../page-generators/generateResourcePage"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -32,10 +31,7 @@ export const CadastralParcelAPI = new Elysia()
       generateTablePage(cxt, {
         title: cxt.t("geographical_references_cadastral_parcel_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
-        query: ParcelTable(cxt.db).select().orderBy("town_insee_code", "ASC"),
-        // .orderBy("section_prefix", "ASC")
-        // .orderBy("section", "ASC")
-        // .orderBy("work_number", "ASC"),
+        query: ParcelTable(cxt.db).select(),
         credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastre"),
         form: {
           code: Field.Text({
@@ -116,31 +112,8 @@ export const CadastralParcelAPI = new Elysia()
       }),
     }
   )
-  .get("/cadastral-parcels/:id", async (cxt: Context) => {
-    const [id, output] = cxt.params.id.split(".")
-
-    const readParcelResult = await ParcelTable(cxt.db).read(id)
-
-    const searchMunicipalitiesResult = await readParcelResult.flatMapAsync((parcel) =>
-      MunicipalityTable(cxt.db)
-        .select()
-        .where("code", "=", parcel.town_insee_code)
-        .limit(1)
-        .run()
-    )
-
-    const associatedMunicipality = searchMunicipalitiesResult
-      .toMaybe()
-      .filter((municipalities) => municipalities.length > 0)
-      .map((municipalities) => municipalities[0])
-      .unwrapOr(undefined)
-
-    const page = readParcelResult.map((parcel) => ({
-      title:
-        parcel.town_insee_code +
-        parcel.section_prefix +
-        parcel.section +
-        parcel.work_number,
+  .get("/cadastral-parcels/:id", async (cxt: Context) =>
+    generateResourcePage(cxt, {
       breadcrumbs: [
         ...Breadcrumbs(cxt.t),
         Hypermedia.Link({
@@ -149,62 +122,83 @@ export const CadastralParcelAPI = new Elysia()
           href: "/geographical-references/cadastral-parcels",
         }),
       ],
-      details: {
-        city: associatedMunicipality
-          ? Hypermedia.Link({
-              label: cxt.t("common_fields_city"),
-              value: associatedMunicipality.city_name,
-              method: "GET",
-              href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
-            })
-          : undefined,
-        code: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_city_code"),
-          value: parcel.town_insee_code,
-        }),
-        prefix: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_section_prefix"),
-          value: parcel.section_prefix,
-        }),
-        section: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_section"),
-          value: parcel.section,
-        }),
-        number: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_work_number"),
-          value: parcel.work_number,
-        }),
-        area: Hypermedia.Number({
-          label: cxt.t("geographical_references_cadastral_parcel_area"),
-          value: parcel.net_surface_area,
-          unit: "m²",
-        }),
-      },
-      sections: {
-        geolocation: Hypermedia.Link({
-          value: cxt.t("common_location"),
-          method: "GET",
-          href: `/geographical-references/cadastral-parcels/${id}/geolocation`,
-        }),
-      },
-      links: associatedMunicipality
-        ? [
-            Hypermedia.Link({
-              value: associatedMunicipality.city_name,
-              method: "GET",
-              href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
-            }),
-          ]
-        : [],
-    }))
+      handler: async () => {
+        const [id] = cxt.params.id.split(".")
 
-    return match(output)
-      .returnType<any>()
-      .case({
-        json: () => hypermedia2json(cxt.request, page.val),
-        _otherwise: () => ResourcePage({ page, t: cxt.t }),
-      })
-  })
+        const readParcelResult = await ParcelTable(cxt.db).read(id)
+
+        const searchMunicipalitiesResult = await readParcelResult.flatMapAsync((parcel) =>
+          MunicipalityTable(cxt.db)
+            .select()
+            .where("code", "=", parcel.town_insee_code)
+            .limit(1)
+            .run()
+        )
+
+        const associatedMunicipality = searchMunicipalitiesResult
+          .toMaybe()
+          .filter((municipalities) => municipalities.length > 0)
+          .map((municipalities) => municipalities[0])
+          .unwrapOr(undefined)
+
+        return readParcelResult.map((parcel) => ({
+          title:
+            parcel.town_insee_code +
+            parcel.section_prefix +
+            parcel.section +
+            parcel.work_number,
+
+          details: {
+            city: associatedMunicipality
+              ? Hypermedia.Link({
+                  label: cxt.t("common_fields_city"),
+                  value: associatedMunicipality.city_name,
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
+                })
+              : undefined,
+            code: Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_city_code"),
+              value: parcel.town_insee_code,
+            }),
+            prefix: Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_section_prefix"),
+              value: parcel.section_prefix,
+            }),
+            section: Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_section"),
+              value: parcel.section,
+            }),
+            number: Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_work_number"),
+              value: parcel.work_number,
+            }),
+            area: Hypermedia.Number({
+              label: cxt.t("geographical_references_cadastral_parcel_area"),
+              value: parcel.net_surface_area,
+              unit: "m²",
+            }),
+          },
+          sections: {
+            geolocation: Hypermedia.Link({
+              value: cxt.t("common_location"),
+              method: "GET",
+              href: `/geographical-references/cadastral-parcels/${id}/geolocation`,
+            }),
+          },
+          links: associatedMunicipality
+            ? [
+                Hypermedia.Link({
+                  value: associatedMunicipality.city_name,
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
+                }),
+              ]
+            : [],
+        }))
+      },
+    })
+  )
   .get("/cadastral-parcels/:id/geolocation*", async (cxt: Context) => {
     const readParcelResult = await ParcelTable(cxt.db).read(cxt.params.id)
 

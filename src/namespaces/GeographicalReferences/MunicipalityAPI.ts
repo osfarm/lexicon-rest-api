@@ -16,6 +16,7 @@ import type { Translator } from "../../Translator"
 import { Country } from "../../types/Country"
 import { ParcelTable } from "./CadastralParcel"
 import { BadRequest, NotFound } from "../../types/HTTPErrors"
+import { generateResourcePage } from "../../page-generators/generateResourcePage"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -102,23 +103,8 @@ export const MunicipalityAPI = new Elysia()
       }),
     }
   )
-  .get("/municipalities/:id", async (cxt: Context) => {
-    const [id, output] = cxt.params.id.split(".")
-
-    const readMunicipalityResult = await MunicipalityTable(cxt.db).read(id)
-
-    const searchStationsResult = await readMunicipalityResult.flatMapAsync(
-      (municipality) =>
-        StationTable(cxt.db)
-          .select()
-          .where("station_name", "=", municipality.city_name)
-          .run()
-    )
-
-    const associatedStations = searchStationsResult.unwrapOr([])
-
-    const page = readMunicipalityResult.map((municipality) => ({
-      title: municipality.city_name,
+  .get("/municipalities/:id", async (cxt: Context) =>
+    generateResourcePage(cxt, {
       breadcrumbs: [
         ...Breadcrumbs(cxt.t),
         Hypermedia.Link({
@@ -127,49 +113,64 @@ export const MunicipalityAPI = new Elysia()
           href: "/geographical-references/municipalities",
         }),
       ],
-      details: {
-        country: Hypermedia.Text({
-          label: cxt.t("common_fields_country"),
-          value: cxt.t("country_" + municipality.country),
-        }),
-        code: Hypermedia.Text({
-          label: cxt.t("geographical_references_municipality_city_code"),
-          value: municipality.code,
-        }),
-        "postal-code": Hypermedia.Text({
-          label: cxt.t("geographical_references_municipality_postal_code"),
-          value: municipality.postal_code,
-        }),
-      },
-      sections: {
-        cadastre: MunicipalityFilters.hasGeolocation(municipality)
-          .map(() =>
-            Hypermedia.Link({
-              value: cxt.t("geographical_references_municipality_cadastre"),
-              method: "GET",
-              href: `/geographical-references/municipalities/${municipality.id}/cadastre`,
-            })
-          )
-          .unwrapOr(undefined),
-      },
-      links: associatedStations.map((station) =>
-        Hypermedia.Link({
-          value:
-            cxt.t("geographical_references_municipality_weather_reports") +
-            ` (${station.station_name} - ${station.station_code})`,
-          method: "GET",
-          href: `/weather/stations/${station.reference_name}/hourly-reports`,
-        })
-      ),
-    }))
+      handler: async (id) => {
+        const readMunicipalityResult = await MunicipalityTable(cxt.db).read(id)
 
-    return match(output)
-      .returnType<any>()
-      .case({
-        json: () => hypermedia2json(cxt.request, page.val),
-        _otherwise: () => ResourcePage({ page, t: cxt.t }),
-      })
-  })
+        const searchStationsResult = await readMunicipalityResult.flatMapAsync(
+          (municipality) =>
+            StationTable(cxt.db)
+              .select()
+              .where("station_name", "=", municipality.city_name)
+              .run()
+        )
+
+        const associatedStations = searchStationsResult.unwrapOr([])
+
+        return readMunicipalityResult.map((municipality) => ({
+          title: municipality.city_name,
+          details: {
+            country: Hypermedia.Text({
+              label: cxt.t("common_fields_country"),
+              value: cxt.t("country_" + municipality.country),
+            }),
+            code: Hypermedia.Text({
+              label: cxt.t("geographical_references_municipality_city_code"),
+              value: municipality.code,
+            }),
+            "postal-code": Hypermedia.Text({
+              label: cxt.t("geographical_references_municipality_postal_code"),
+              value: municipality.postal_code,
+            }),
+          },
+          sections: {
+            cadastre: MunicipalityFilters.hasGeolocation(municipality)
+              .map(() =>
+                Hypermedia.Link({
+                  value: cxt.t("geographical_references_municipality_cadastre"),
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${municipality.id}/cadastre`,
+                })
+              )
+              .unwrapOr(undefined),
+          },
+          links: associatedStations.flatMap((station) => [
+            Hypermedia.Link({
+              value: cxt.t("weather_station") + " " + station.reference_name,
+              method: "GET",
+              href: `/weather/stations/${station.reference_name}`,
+            }),
+            Hypermedia.Link({
+              value:
+                cxt.t("geographical_references_municipality_weather_reports") +
+                ` (${cxt.t("weather_station")} ${station.reference_name})`,
+              method: "GET",
+              href: `/weather/stations/${station.reference_name}/hourly-reports`,
+            }),
+          ]),
+        }))
+      },
+    })
+  )
   .get("/municipalities/:id/cadastre*", async (cxt: Context) => {
     const readMunicipalityResult = await MunicipalityTable(cxt.db).read(cxt.params.id)
 

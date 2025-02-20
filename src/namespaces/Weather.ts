@@ -8,12 +8,12 @@ import { CreditTable } from "./Credits"
 import { ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
 import type { Translator } from "../Translator"
-import { match } from "shulk"
-import { MapPage } from "../templates/views/MapPage"
 import type { Context } from "../types/Context"
 import type { Point } from "../types/Geometry"
 import { generateMapSection } from "../page-generators/generateMapSection"
 import { pointToCoordinates } from "../types/Coordinates"
+import { generateResourcePage } from "../page-generators/generateResourcePage"
+import { MunicipalityTable } from "./GeographicalReferences/Municipality"
 
 interface Station {
   reference_name: string
@@ -123,7 +123,7 @@ export const Weather = new Elysia({
           code: cxt.t("weather_station_code"),
           name: cxt.t("common_fields_name"),
           elevation: cxt.t("weather_station_elevation"),
-          "hourly-reports": cxt.t("weather_station_hourly_reports"),
+          details: cxt.t("common_details"),
         },
         handler: (station) => ({
           country: Hypermedia.Text({
@@ -143,11 +143,11 @@ export const Weather = new Elysia({
             value: station.elevation,
             unit: "m",
           }),
-          "hourly-reports": Hypermedia.Link({
+          details: Hypermedia.Link({
             label: cxt.t("weather_station_hourly_reports"),
             value: cxt.t("common_see"),
             method: "GET",
-            href: `/weather/stations/${station.reference_name}/hourly-reports`,
+            href: `/weather/stations/${station.reference_name}`,
           }),
         }),
       }),
@@ -158,6 +158,92 @@ export const Weather = new Elysia({
         name: t.Optional(t.String()),
       }),
     }
+  )
+  .get("/stations/:reference", (cxt: Context) =>
+    generateResourcePage(cxt, {
+      breadcrumbs: [
+        ...Breadcrumbs(cxt.t),
+        Hypermedia.Link({
+          value: cxt.t("weather_station_title"),
+          method: "GET",
+          href: "/weather/stations",
+        }),
+      ],
+      handler: async (reference) => {
+        const readStationResult = await StationTable(cxt.db).read(reference)
+
+        const searchMunicipalityResult = await readStationResult
+          .map((station) => station.station_name)
+          .flatMapAsync((name) =>
+            MunicipalityTable(cxt.db)
+              .select()
+              .where("city_name", "=", name)
+              .limit(1)
+              .run()
+          )
+
+        const associatedMunicipality = searchMunicipalityResult
+          .toMaybe()
+          .filter((municipalities) => municipalities.length > 0)
+          .map((municipalities) => municipalities[0])
+          .unwrapOr(undefined)
+
+        return readStationResult.map((station) => ({
+          title: station.reference_name,
+          details: {
+            name: Hypermedia.Text({
+              label: cxt.t("common_fields_name"),
+              value: station.station_name,
+            }),
+            code: Hypermedia.Text({
+              label: cxt.t("weather_station_code"),
+              value: station.station_code,
+            }),
+            country: Hypermedia.Text({
+              label: cxt.t("common_fields_country"),
+              value: cxt.t("country_" + station.country),
+            }),
+            municipality: associatedMunicipality
+              ? Hypermedia.Link({
+                  label: cxt.t("geographical_references_municipality"),
+                  value: associatedMunicipality.city_name,
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
+                })
+              : undefined,
+            elevation: Hypermedia.Number({
+              label: cxt.t("weather_station_elevation"),
+              value: station.elevation,
+              unit: "m",
+            }),
+          },
+          sections: {
+            geolocation: Hypermedia.Link({
+              value: cxt.t("common_location"),
+              method: "GET",
+              href: `/weather/stations/${reference}/geolocation`,
+            }),
+          },
+          links: [
+            Hypermedia.Link({
+              value: cxt.t("weather_station_hourly_reports"),
+              method: "GET",
+              href: `/weather/stations/${reference}/hourly-reports`,
+            }),
+            ...(associatedMunicipality
+              ? [
+                  Hypermedia.Link({
+                    label: cxt.t("common_fields_city"),
+                    value: associatedMunicipality.city_name,
+                    method: "GET",
+                    href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
+                  }),
+                ]
+              : []),
+          ],
+        }))
+      },
+    })
   )
   .get("/stations/:reference/geolocation*", async (cxt: Context) => {
     const readStationResult = await StationTable(cxt.db).read(cxt.params.reference)
@@ -171,7 +257,7 @@ export const Weather = new Elysia({
         markers: [center],
         shapes: [],
       }))
-      .map(generateMapSection)
+      .map(generateMapSection).val
   })
   .get(
     "/stations/:reference/hourly-reports*",
@@ -184,6 +270,11 @@ export const Weather = new Elysia({
             value: cxt.t("weather_station_title"),
             method: "GET",
             href: "/weather/stations",
+          }),
+          Hypermedia.Link({
+            value: cxt.t(cxt.params.reference),
+            method: "GET",
+            href: "/weather/stations/" + cxt.params.reference,
           }),
         ],
         form: {
