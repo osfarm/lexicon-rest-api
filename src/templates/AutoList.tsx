@@ -1,6 +1,6 @@
 import { html, Html } from "@elysiajs/html"
 import type { HypermediaType } from "../Hypermedia"
-import { Layout } from "./Layout"
+import { Layout } from "./layouts/Layout"
 import type { Translator } from "../Translator"
 
 interface PageData {

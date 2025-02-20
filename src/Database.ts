@@ -1,5 +1,5 @@
 import type { Pool } from "pg"
-import { Err, Ok, type AsyncResult, type Result } from "shulk"
+import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
 import { ObjectMap } from "./utils"
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
@@ -38,15 +38,16 @@ export function Table<T extends object>(definition: TableDefinition<T>) {
   })
 }
 
-type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE"
+type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN"
+type Condition<T> = {
+  field: keyof T
+  op: Operator
+  value: unknown
+  or: []
+}
 
 class Select<T extends object> {
-  protected conditions: {
-    field: keyof T
-    op: Operator
-    value: unknown
-    or: []
-  }[]
+  protected conditions: Condition<T>[]
   protected orders: { field: keyof T; sort: "ASC" | "DESC" }[] = []
   protected limitValue?: number
   protected offsetValue: number = 0
@@ -75,17 +76,30 @@ class Select<T extends object> {
     return this
   }
 
+  protected makeCondition(condition: Condition<T>, i: number) {
+    const field = String(condition.field)
+
+    return match(condition.op).case({
+      ST_WITHIN: () =>
+        `postgis.ST_Within(${field}, postgis.ST_GeomFromGeoJSON($${i + 1}))`,
+      _otherwise: () => `${field} ${condition.op} $${i + 1}`,
+    })
+  }
+
   protected prepareConditionsAndParams() {
     const conditions =
       this.conditions.length > 0
-        ? `WHERE ${this.conditions
-            .map(
-              (condition, i) => (condition.field as string) + " " + condition.op + " $" + (i + 1)
-            )
-            .join(" AND ")}`
+        ? `WHERE ${this.conditions.map(this.makeCondition).join(" AND ")}`
         : ""
 
-    const params = this.conditions.flatMap((condition) => [condition.value])
+    const params = this.conditions.flatMap((condition) =>
+      match(condition.op).case({
+        ST_WITHIN: () => [JSON.stringify(condition.value)],
+        _otherwise: () => [condition.value],
+      })
+    )
+
+    console.log(params)
 
     return { conditions, params }
   }
@@ -101,13 +115,17 @@ class Select<T extends object> {
       const fields = this.def.geometry
         ? "*, " +
           this.def.geometry
-            ?.map((field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`)
+            ?.map(
+              (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`
+            )
             .join(", ")
         : "*"
 
       const sortings =
         this.orders.length > 0
-          ? `ORDER BY ${this.orders.map((order) => `${order.field as string} ${order.sort}`)}`
+          ? `ORDER BY ${this.orders.map(
+              (order) => `${order.field as string} ${order.sort}`
+            )}`
           : ``
 
       const joints = this.def.oneToOne
@@ -131,7 +149,9 @@ class Select<T extends object> {
 
       const parsedResponse = response.rows.map((row) =>
         ObjectMap(row, (key, value) =>
-          this.def.geometry && this.def.geometry.includes(key as any) ? JSON.parse(value) : value
+          this.def.geometry && this.def.geometry.includes(key as any)
+            ? JSON.parse(value)
+            : value
         )
       )
 

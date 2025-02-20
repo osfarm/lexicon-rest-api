@@ -1,6 +1,9 @@
 key,fr,en
 common_undefined,Non renseigné,Not defined
+common_details,Détails,Details
 common_see,Voir,See
+common_see_also,Voir aussi,See also
+common_location,Emplacement,Location
 common_fields_name,Nom,Name
 common_fields_state,État,State
 common_fields_type,Type,Type
@@ -34,18 +37,23 @@ geographical_references_title,Références géographiques,Geographical reference
 
 geographical_references_cadastral_parcel_title,Parcelles cadastrales,Cadastral parcels
 geographical_references_cadastral_parcel_town_insee_code,Code INSEE de la commune,Town INSEE code
-geographical_references_cadastral_parcel_section_prefix,Préfixe de section,Section prefix
+geographical_references_cadastral_parcel_section_prefix,Préfixe,Prefix
 geographical_references_cadastral_parcel_section,Section,Section
 geographical_references_cadastral_parcel_work_number,Numéro,Number
 geographical_references_cadastral_parcel_area,Superficie,Area
+geographical_references_cadastral_parcel_city_code,Code commune,City code
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
 geographical_references_cap_parcel_culture,Culture,Culture
 
 geographical_references_postal_code_title,Codes postaux,Postal codes
-geographical_references_postal_code_code,Code postal,Postal code
-geographical_references_postal_code_city,Ville,City
-geographical_references_postal_code_city_code,Code commune,City code
+
+geographical_references_municipality_title,Communes,Municipalities
+geographical_references_municipality_postal_code,Code postal,Postal code
+geographical_references_municipality_city,Ville,City
+geographical_references_municipality_city_code,Code commune,City code
+geographical_references_municipality_cadastre,Cadastre,Cadastre
+geographical_references_municipality_weather_reports,Relevés météorologiques,Weather reports
 
 production,Production,Production
 production_title,Production,Production

@@ -25,7 +25,7 @@ interface Station {
 
 type Meters = number
 
-const StationTable = Table<Station>({
+export const StationTable = Table<Station>({
   table: "registered_weather_stations",
   primaryKey: "reference_name",
   geometry: ["centroid"],
@@ -228,7 +228,7 @@ export const Weather = new Elysia({
         query: HourlyReportTable(cxt.db)
           .select()
           .where("station_id", "=", cxt.params?.reference)
-          .orderBy("started_at", "DESC"),
+          .orderBy("started_at", "ASC"),
         credits: CreditTable(cxt.db).select().where("datasource", "=", "weather"),
         columns: {
           datetime: cxt.t("common_fields_datetime"),

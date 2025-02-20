@@ -1,6 +1,6 @@
 import { html, Html } from "@elysiajs/html"
 import type { HypermediaType } from "../Hypermedia"
-import { Layout } from "./Layout"
+import { Layout } from "./layouts/Layout"
 import { isObject, match, type Result } from "shulk"
 import type { Translator } from "../Translator"
 import { Error } from "./components/Error"
@@ -192,6 +192,5 @@ const parseHypermedia = (item: HypermediaType["any"]) =>
         item.values
           .map((val) => (isObject(val) && "value" in val ? val.value : val))
           .join(", "),
-      _otherwise: () =>
-        isObject(item) && "value" in item ? item.value : "Error!",
+      _otherwise: () => (isObject(item) && "value" in item ? item.value : "Error!"),
     })

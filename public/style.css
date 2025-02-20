@@ -80,6 +80,21 @@ nav a.active {
   color: #3dc798 !important;
 }
 
+h2 {
+  border-bottom: 1px solid #a2a9b1;
+  padding-bottom: 0.17em;
+}
+
+.spinner {
+  animation: rotateSpinner 800ms linear infinite;
+}
+
+@keyframes rotateSpinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .col {
   text-decoration-line: none;
   background-color: transparent;
@@ -160,8 +175,8 @@ tr:hover {
   font-size: medium;
   text-decoration: none;
   border: none;
-  transition-property: transform, color, background, background-color,
-    border-color, text-decoration-color, fill, stroke, opacity;
+  transition-property: transform, color, background, background-color, border-color,
+    text-decoration-color, fill, stroke, opacity;
   transition-timing-function: ease;
   transition-duration: 0.25s;
   outline: 2px solid transparent;
@@ -243,8 +258,8 @@ tr:hover {
 }
 
 .section-link:hover img {
-  filter: invert(100%) sepia(45%) saturate(97%) hue-rotate(186deg)
-    brightness(113%) contrast(100%);
+  filter: invert(100%) sepia(45%) saturate(97%) hue-rotate(186deg) brightness(113%)
+    contrast(100%);
 }
 
 form {
