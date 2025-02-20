@@ -1,9 +1,9 @@
-import type { Translator } from "../Translator"
-import { Layout } from "./layouts/Layout"
+import type { Translator } from "../../Translator"
+import { Layout } from "../layouts/Layout"
 import { html, Html } from "@elysiajs/html"
-import { Card } from "./components/Card"
-import { Cell, Grid } from "./components/Grid"
-import { SectionLink } from "./components/SectionLink"
+import { Card } from "./../components/Card"
+import { Cell, Grid } from "./../components/Grid"
+import { SectionLink } from "./../components/SectionLink"
 
 interface Props {
   t: Translator

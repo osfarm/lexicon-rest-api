@@ -1,10 +1,6 @@
 import { Html } from "@elysiajs/html"
 import type { Geometry } from "../../types/Geometry"
-
-type Coordinates = {
-  latitude: number
-  longitude: number
-}
+import type { Coordinates } from "../../types/Coordinates"
 
 interface Props {
   center: Coordinates

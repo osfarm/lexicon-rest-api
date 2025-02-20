@@ -2,9 +2,9 @@ import Elysia from "elysia"
 import { Table } from "../Database"
 import { Hypermedia } from "../Hypermedia"
 import { generateTablePage } from "../page-generators/generateTablePage"
-import { AutoTable } from "../templates/AutoTable"
+import { AutoTable } from "../templates/views/AutoTable"
 import { Ok } from "shulk"
-import { AutoList } from "../templates/AutoList"
+import { AutoList } from "../templates/views/AutoList"
 import type { Context } from "../types/Context"
 
 export interface Credit {

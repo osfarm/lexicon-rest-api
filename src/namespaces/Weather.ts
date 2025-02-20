@@ -2,16 +2,18 @@ import Elysia, { t } from "elysia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
-import { AutoList } from "../templates/AutoList"
+import { AutoList } from "../templates/views/AutoList"
 import { Country } from "../types/Country"
 import { CreditTable } from "./Credits"
 import { ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
 import type { Translator } from "../Translator"
 import { match } from "shulk"
-import { MapPage } from "../templates/MapPage"
+import { MapPage } from "../templates/views/MapPage"
 import type { Context } from "../types/Context"
 import type { Point } from "../types/Geometry"
+import { generateMapSection } from "../page-generators/generateMapSection"
+import { pointToCoordinates } from "../types/Coordinates"
 
 interface Station {
   reference_name: string
@@ -157,41 +159,19 @@ export const Weather = new Elysia({
       }),
     }
   )
-  .get("/stations/:reference/location*", async (cxt: Context) => {
+  .get("/stations/:reference/geolocation*", async (cxt: Context) => {
     const readStationResult = await StationTable(cxt.db).read(cxt.params.reference)
 
-    return readStationResult.map((station) =>
-      match(cxt.output)
-        .returnType<any>()
-        .case({
-          geojson: () => station.centroid,
-          _otherwise: () =>
-            MapPage({
-              title: station.station_name,
-              breadcrumbs: [
-                ...Breadcrumbs(cxt.t),
-                Hypermedia.Link({
-                  value: cxt.t("weather_station_title"),
-                  method: "GET",
-                  href: "/weather/stations",
-                }),
-              ],
-              map: {
-                center: {
-                  latitude: station.centroid.coordinates[1],
-                  longitude: station.centroid.coordinates[0],
-                },
-                markers: [
-                  {
-                    latitude: station.centroid.coordinates[1],
-                    longitude: station.centroid.coordinates[0],
-                  },
-                ],
-                shapes: [],
-              },
-            }),
-        })
-    ).val
+    return readStationResult
+      .map((station) => station.centroid)
+      .map(pointToCoordinates)
+      .map((center) => ({
+        output: cxt.output,
+        center: center,
+        markers: [center],
+        shapes: [],
+      }))
+      .map(generateMapSection)
   })
   .get(
     "/stations/:reference/hourly-reports*",

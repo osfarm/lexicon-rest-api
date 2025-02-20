@@ -2,7 +2,7 @@ import Elysia, { t } from "elysia"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
-import { AutoList } from "../templates/AutoList"
+import { AutoList } from "../templates/views/AutoList"
 import { Field } from "../templates/components/Form"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
@@ -109,7 +109,9 @@ export const Viticulture = new Elysia({
           }),
         },
         query: VineVarietyTable(context.db).select().orderBy("short_name", "ASC"),
-        credits: CreditTable(context.db).select().where("datasource", "=", "vine_varieties"),
+        credits: CreditTable(context.db)
+          .select()
+          .where("datasource", "=", "vine_varieties"),
         columns: {
           name: context.t("common_fields_name"),
           category: context.t("common_fields_category"),

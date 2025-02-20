@@ -1,11 +1,11 @@
 import { html, Html } from "@elysiajs/html"
-import type { HypermediaType } from "../Hypermedia"
-import { Layout } from "./layouts/Layout"
+import type { HypermediaType } from "../../Hypermedia"
+import { Layout } from "./../layouts/Layout"
 import { isObject, match, type Result } from "shulk"
-import type { Translator } from "../Translator"
-import { Error } from "./components/Error"
-import { Form, type FieldType } from "./components/Form"
-import { Card } from "./components/Card"
+import type { Translator } from "../../Translator"
+import { Error } from "./../components/Error"
+import { Form, type FieldType } from "./../components/Form"
+import { Card } from "./../components/Card"
 
 export interface AutoTableOkInput {
   title: string

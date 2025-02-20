@@ -1,9 +1,14 @@
 import { Concurrently, match, Ok } from "shulk"
 import type { t_Select } from "../Database"
-import { Hypermedia, hypermedia2csv, hypermedia2json, type HypermediaType } from "../Hypermedia"
+import {
+  Hypermedia,
+  hypermedia2csv,
+  hypermedia2json,
+  type HypermediaType,
+} from "../Hypermedia"
 import type { FieldType } from "../templates/components/Form"
 import { createHref, ObjectMap } from "../utils"
-import { AutoTable, type AutoTableOkInput } from "../templates/AutoTable"
+import { AutoTable, type AutoTableOkInput } from "../templates/views/AutoTable"
 import type { Credit } from "../namespaces/Credits"
 import type { Context } from "../types/Context"
 

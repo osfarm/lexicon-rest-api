@@ -1,6 +1,7 @@
 import type { Pool } from "pg"
 import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
 import { ObjectMap } from "./utils"
+import { NotFound } from "./types/HTTPErrors"
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
 
@@ -13,8 +14,6 @@ type TableDefinition<T extends object> = {
   }
   geometry?: (keyof T)[]
 }
-
-class NotFound extends Error {}
 
 export function Table<T extends object>(definition: TableDefinition<T>) {
   return (db: Pool) => ({

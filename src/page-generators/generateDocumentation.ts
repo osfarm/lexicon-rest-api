@@ -1,13 +1,13 @@
 import { match } from "shulk"
 import packageJson from "../../package.json"
-import { Hypermedia, hypermedia2json } from "../Hypermedia"
+import { Hypermedia } from "../Hypermedia"
 import { ProductState, ProductType } from "../namespaces/Phytosanitary"
 import { VineCategory, VineColor } from "../namespaces/Viticulture"
-import { Documentation } from "../templates/Documentation"
+import { Documentation } from "../templates/pages/Documentation"
 import type { Translator } from "../Translator"
 import { Country } from "../types/Country"
-import type { OutputFormat } from "../utils"
 import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
+import type { OutputFormat } from "../types/OutputFormat"
 
 const Paths = (t: Translator) => ({
   "/geographical-references/postal-codes.json": {
@@ -64,14 +64,12 @@ const Paths = (t: Translator) => ({
       category: t("phytosanitary_title"),
       query: {
         type: {
-          description:
-            "Filters the phytosanitary products by the provided type",
+          description: "Filters the phytosanitary products by the provided type",
           type: "string",
           enum: Object.values(ProductType),
         },
         state: {
-          description:
-            "Filters the phytosanitary products by the provided state",
+          description: "Filters the phytosanitary products by the provided state",
           type: "string",
           enum: Object.values(ProductState),
         },
@@ -160,8 +158,7 @@ const Paths = (t: Translator) => ({
           type: "date",
         },
         end: {
-          description:
-            "Returns the reports collected before the provided date.",
+          description: "Returns the reports collected before the provided date.",
           type: "date",
         },
       },
@@ -336,15 +333,13 @@ type EndpointDoc = {
 }
 
 function TableEndpoint(doc: EndpointDoc) {
-  const pathParameters = Object.entries(doc.params || {}).map(
-    ([field, schema]) => ({
-      name: field,
-      in: "path",
-      description: schema.description,
-      required: true,
-      schema: { type: schema.type },
-    })
-  )
+  const pathParameters = Object.entries(doc.params || {}).map(([field, schema]) => ({
+    name: field,
+    in: "path",
+    description: schema.description,
+    required: true,
+    schema: { type: schema.type },
+  }))
 
   const queryParameters = Object.entries(doc.query).map(([field, schema]) => ({
     name: field,
