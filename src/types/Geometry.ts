@@ -1,3 +1,5 @@
+import type { Coordinates } from "./Coordinates"
+
 export interface Point {
   type: "Point"
   coordinates: GeoJSONCoordinates
@@ -22,3 +24,7 @@ type Latitude = number
 type Longitude = number
 
 export type Geometry = Point | Polygon | MultiPolygon
+
+export function coordinatesToPoint(coord: Coordinates): Point {
+  return { type: "Point", coordinates: [coord.longitude, coord.latitude] }
+}

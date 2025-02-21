@@ -15,7 +15,8 @@ common_fields_city,Ville,City
 common_fields_date,Date,Date
 common_fields_date_start,Date de début,Start date
 common_fields_date_end,Date de fin,End date
-
+common_fields_latitude,Latitude,Latitude
+common_fields_longitude,Longitude,Longitude
 
 common_fields_datetime,Date et heure,Datetime
 
@@ -27,16 +28,24 @@ navigation_next_page,Page suivante,Next page
 home_title,Accueil,Home
 home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
 home_explore,Explorer les jeux de données,Explore datasets
+home_tools,Outils,Tools
 home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
 home_how_to_step1,Explorez et trouvez le jeu de données qui répond à vos besoins,Explore and find the dataset you need
 home_how_to_step2,Filtrez les données à l'aide des formulaires si nécessaire,Filter the data with the forms if you need to
 home_how_to_step3,Trouvez le format de sortie (JSON / CSV) qui vous convient et copiez l'URL ou téléchargez le document,Find the most adapted output format (JSON / CSV) for your usecase and copy the page URL or download the document
 home_full_documentation,Voir la documentation complète,See the complete documentation
 
+tools,Outils,Tools
+tools_parcel_identifier,Identificateur de parcelles,Parcel identifier
+tools_parcel_identifier_information,Informations,Information
+tools_parcel_identifier_cadastre,Cadastre,Cadastre
+tools_parcel_identifier_cap,Informations PAC,CAP information
+
 geographical_references_title,Références géographiques,Geographical references
 
 geographical_references_cadastral_parcel_title,Parcelles cadastrales,Cadastral parcels
 geographical_references_cadastral_parcel_town_insee_code,Code INSEE de la commune,Town INSEE code
+geographical_references_cadastral_parcel_id,Identifiant cadastral,Cadastral identifier
 geographical_references_cadastral_parcel_section_prefix,Préfixe,Prefix
 geographical_references_cadastral_parcel_section,Section,Section
 geographical_references_cadastral_parcel_work_number,Numéro,Number

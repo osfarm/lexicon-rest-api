@@ -8,6 +8,12 @@ export const Field = union<{
     defaultValue?: string
     required: boolean
   }
+  Number: {
+    label: string
+    defaultValue?: number
+    required: boolean
+    unit?: string
+  }
   DateTime: {
     label: string
     defaultValue?: string
@@ -23,9 +29,11 @@ export const Field = union<{
 
 export type FieldType = InferUnion<typeof Field>
 
+export type FormDefinition = Record<string, FieldType["any"]>
+
 interface Props {
   method: "GET"
-  definition: Record<string, FieldType["any"]>
+  definition: FormDefinition
 }
 export function Form(props: Props) {
   const { method, definition } = props
@@ -49,6 +57,23 @@ export function Form(props: Props) {
                     placeholder={field.label}
                     value={field.defaultValue || ""}
                   ></input>
+                </div>
+              ),
+              Number: (field) => (
+                <div class="field">
+                  <label for={name}>{field.label}</label>
+                  <br />
+                  <input
+                    type="number"
+                    step="any"
+                    autocomplete="off"
+                    name={name}
+                    id={name}
+                    required={field.required}
+                    placeholder={field.label}
+                    value={field.defaultValue?.toString() || ""}
+                  ></input>
+                  {field.unit}
                 </div>
               ),
               DateTime: (field) => (

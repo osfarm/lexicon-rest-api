@@ -37,7 +37,7 @@ export function Table<T extends object>(definition: TableDefinition<T>) {
   })
 }
 
-type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN"
+type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN" | "ST_CONTAINS"
 type Condition<T> = {
   field: keyof T
   op: Operator
@@ -81,6 +81,8 @@ class Select<T extends object> {
     return match(condition.op).case({
       ST_WITHIN: () =>
         `postgis.ST_Within(${field}, postgis.ST_GeomFromGeoJSON($${i + 1}))`,
+      ST_CONTAINS: () =>
+        `postgis.ST_Contains(${field}, postgis.ST_GeomFromGeoJSON($${i + 1}))`,
       _otherwise: () => `${field} ${condition.op} $${i + 1}`,
     })
   }
@@ -94,6 +96,7 @@ class Select<T extends object> {
     const params = this.conditions.flatMap((condition) =>
       match(condition.op).case({
         ST_WITHIN: () => [JSON.stringify(condition.value)],
+        ST_CONTAINS: () => [JSON.stringify(condition.value)],
         _otherwise: () => [condition.value],
       })
     )

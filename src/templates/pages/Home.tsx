@@ -58,6 +58,16 @@ export function Home(props: Props) {
         </Cell>
       </Grid>
 
+      <h2>{t("home_tools")}</h2>
+
+      <Grid>
+        <Cell width={6}>
+          <SectionLink href="/tools/parcel-identifier" icon="/public/icons/marker.svg">
+            {t("tools_parcel_identifier")}
+          </SectionLink>
+        </Cell>
+      </Grid>
+
       <h2>{t("home_how_to_use")}</h2>
 
       <div

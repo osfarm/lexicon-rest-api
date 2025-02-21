@@ -4,13 +4,13 @@ import { Layout } from "./../layouts/Layout"
 import { isObject, match, type Result } from "shulk"
 import type { Translator } from "../../Translator"
 import { Error } from "./../components/Error"
-import { Form, type FieldType } from "./../components/Form"
+import { Form, type FieldType, type FormDefinition } from "./../components/Form"
 import { Card } from "./../components/Card"
 
 export interface AutoTableOkInput {
   title: string
   breadcrumbs: HypermediaType["Link"][]
-  form?: Record<string, FieldType["any"]>
+  form?: FormDefinition
   table: {
     columns: Record<string, string>
     rows: Record<string, HypermediaType["any"] | undefined>[]

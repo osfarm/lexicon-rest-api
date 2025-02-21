@@ -257,6 +257,10 @@ tr:hover {
   box-shadow: rgba(39, 174, 96, 0.608) 0px 3px 8px;
 }
 
+.section-link img {
+  transition-duration: 0.25s;
+}
+
 .section-link:hover img {
   filter: invert(100%) sepia(45%) saturate(97%) hue-rotate(186deg) brightness(113%)
     contrast(100%);

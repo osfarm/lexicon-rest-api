@@ -111,7 +111,6 @@ export const CapParcelAPI = new Elysia()
               label: cxt.t("common_fields_city"),
               value: parcel.city_name,
             }),
-
             culture: Hypermedia.Text({
               label: cxt.t("geographical_references_cap_parcel_culture"),
               value: parcel.cap_label,

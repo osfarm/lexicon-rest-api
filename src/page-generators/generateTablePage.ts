@@ -78,12 +78,12 @@ export async function generateTablePage<T extends object, F extends string>(
       ({ items, count, totalPages, credit }): AutoTableOkInput => ({
         title: params.title,
         breadcrumbs: params.breadcrumbs,
-        form:
-          params.form &&
-          ObjectMap(params.form, (key, field) => ({
-            ...field,
-            defaultValue: queryParams ? (queryParams[key] as string) : undefined,
-          })),
+        form: params.form
+          ? ObjectMap(params.form, (key, field) => ({
+              ...field,
+              defaultValue: queryParams ? (queryParams[key] as any) : undefined,
+            }))
+          : undefined,
         table: {
           columns: params.columns,
           rows: items.map(params.handler),
