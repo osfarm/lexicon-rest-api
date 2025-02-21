@@ -22,15 +22,32 @@ export const CreditTable = Table<Credit>({
   primaryKey: "datasource",
 })
 
-const FONTAWESOME_CREDIT = {
-  datasource: "icons",
-  name: "Icones",
-  url: "https://fontawesome.com",
-  provider: "Font Awesome",
-  licence: "CC BY 4.0",
-  licence_url: "https://creativecommons.org/licenses/by/4.0/",
-  updated_at: new Date(),
-}
+const CREDITS = [
+  {
+    provider: "Alpine.js",
+    url: "https://alpinejs.dev/",
+    licence: "MIT",
+    licence_url: "https://github.com/alpinejs/alpine/blob/main/LICENSE.md",
+  },
+  {
+    provider: "Font Awesome",
+    url: "https://fontawesome.com",
+    licence: "CC BY 4.0",
+    licence_url: "https://creativecommons.org/licenses/by/4.0/",
+  },
+  {
+    provider: "HTMX",
+    url: "https://htmx.org/",
+    licence: "Zero-Clause BSD",
+    licence_url: "https://github.com/bigskysoftware/htmx/blob/master/LICENSE",
+  },
+  {
+    provider: "Leaflet",
+    url: "https://leafletjs.com/",
+    licence: "BSD 2-Clause License",
+    licence_url: "https://github.com/Leaflet/Leaflet/blob/main/LICENSE",
+  },
+]
 
 export const Credits = new Elysia({ prefix: "/credits" })
   .get("/", ({ t }: Context) =>
@@ -124,22 +141,20 @@ export const Credits = new Elysia({ prefix: "/credits" })
             name: t("common_fields_name"),
             license: t("credits_license"),
           },
-          rows: [
-            {
-              name: Hypermedia.Link({
-                label: t("common_fields_name"),
-                value: FONTAWESOME_CREDIT.provider,
-                method: "GET",
-                href: FONTAWESOME_CREDIT.url,
-              }),
-              license: Hypermedia.Link({
-                label: t("credits_license"),
-                value: FONTAWESOME_CREDIT.licence,
-                method: "GET",
-                href: FONTAWESOME_CREDIT.licence_url,
-              }),
-            },
-          ],
+          rows: CREDITS.map((credit) => ({
+            name: Hypermedia.Link({
+              label: t("common_fields_name"),
+              value: credit.provider,
+              method: "GET",
+              href: credit.url,
+            }),
+            license: Hypermedia.Link({
+              label: t("credits_license"),
+              value: credit.licence,
+              method: "GET",
+              href: credit.licence_url,
+            }),
+          })),
         },
         navigation: {
           "first-page": undefined,

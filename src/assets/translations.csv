@@ -36,7 +36,7 @@ home_how_to_step3,Trouvez le format de sortie (JSON / CSV) qui vous convient et 
 home_full_documentation,Voir la documentation complète,See the complete documentation
 
 tools,Outils,Tools
-tools_parcel_identifier,Identificateur de parcelles,Parcel identifier
+tools_parcel_identifier,Identificateur de parcelle,Parcel identifier
 tools_parcel_identifier_information,Informations,Information
 tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_cap,Informations PAC,CAP information
@@ -44,6 +44,7 @@ tools_parcel_identifier_cap,Informations PAC,CAP information
 geographical_references_title,Références géographiques,Geographical references
 
 geographical_references_cadastral_parcel_title,Parcelles cadastrales,Cadastral parcels
+geographical_references_cadastral_parcel,Parcelle cadastrale,Cadastral parcel
 geographical_references_cadastral_parcel_town_insee_code,Code INSEE de la commune,Town INSEE code
 geographical_references_cadastral_parcel_id,Identifiant cadastral,Cadastral identifier
 geographical_references_cadastral_parcel_section_prefix,Préfixe,Prefix
@@ -53,6 +54,7 @@ geographical_references_cadastral_parcel_area,Superficie,Area
 geographical_references_cadastral_parcel_city_code,Code commune,City code
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
+geographical_references_cap_parcel,Parcelle enregistrées à la PAC,CAP parcel
 geographical_references_cap_parcel_id,Identifiant PAC,CAP identifier
 geographical_references_cap_parcel_culture,Culture,Culture
 geographical_references_cap_parcel_crop_code,Code culture PAC,CAP crop code
@@ -168,6 +170,10 @@ credits_license,Licence,License
 
 documentation_title,Documentation,Documentation
 documentation_description,La documentation de l'API Lexicon,Documentation of Lexicon API
+documentation_cadastral_parcel_location,Emplacement d'une parcelle cadastrale,Location of a cadastral parcel
+documentation_cap_parcel_location,Emplacement d'une parcelle PAC,Location of a CAP parcel
+documentation_municipality_cadastre,Cadastre d'une commune,Cadastre of a municipality
+documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,Parcels of a municipality which are registered in the CAP
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
 
 country_FR,France,France

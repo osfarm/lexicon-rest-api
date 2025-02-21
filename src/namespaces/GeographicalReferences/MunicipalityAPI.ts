@@ -153,7 +153,7 @@ export const MunicipalityAPI = new Elysia()
                 })
               )
               .unwrapOr(undefined),
-            pac: MunicipalityFilters.hasGeolocation(municipality)
+            cap: MunicipalityFilters.hasGeolocation(municipality)
               .map(() =>
                 Hypermedia.Link({
                   value: cxt.t("geographical_references_municipality_cap"),
