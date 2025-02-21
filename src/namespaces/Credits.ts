@@ -30,6 +30,12 @@ const CREDITS = [
     licence_url: "https://github.com/alpinejs/alpine/blob/main/LICENSE.md",
   },
   {
+    provider: "Bun",
+    url: "https://bun.sh/",
+    licence: "MIT",
+    licence_url: "https://bun.sh/docs/project/licensing",
+  },
+  {
     provider: "Font Awesome",
     url: "https://fontawesome.com",
     licence: "CC BY 4.0",
@@ -46,6 +52,12 @@ const CREDITS = [
     url: "https://leafletjs.com/",
     licence: "BSD 2-Clause License",
     licence_url: "https://github.com/Leaflet/Leaflet/blob/main/LICENSE",
+  },
+  {
+    provider: "node-postgres",
+    url: "https://node-postgres.com/",
+    licence: "MIT",
+    licence_url: "https://github.com/brianc/node-postgres/blob/master/LICENSE",
   },
 ]
 

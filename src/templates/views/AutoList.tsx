@@ -2,6 +2,8 @@ import { html, Html } from "@elysiajs/html"
 import type { HypermediaType } from "../../Hypermedia"
 import { Layout } from "../layouts/Layout"
 import type { Translator } from "../../Translator"
+import { SectionLink } from "../components/SectionLink"
+import { Cell, Grid } from "../components/Grid"
 
 interface PageData {
   page: {
@@ -17,13 +19,20 @@ export function AutoList(props: PageData) {
 
   return (
     <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
-      <ul>
+      <h2>{t("datasets")}</h2>
+      <Grid>
         {page.links.map((link) => (
-          <li>
-            <a href={link.href}>{link.value}</a>
-          </li>
+          <Cell width={6}>
+            <SectionLink
+              href={link.href}
+              icon-left={link.icon}
+              icon-right="/public/icons/chevron-right.svg"
+            >
+              {link.value}
+            </SectionLink>
+          </Cell>
         ))}
-      </ul>
+      </Grid>
     </Layout>
   )
 }

@@ -133,7 +133,7 @@ const Paths = (t: Translator) => ({
 
   "/geographical-references/cap-parcels/{cap_id}/geolocation.geojson": {
     get: ResourceEndpoint({
-      description: t("documentation_cadastral_cap_location"),
+      description: t("documentation_cap_parcel_location"),
       category: t("geographical_references_title"),
       params: {
         cap_id: {

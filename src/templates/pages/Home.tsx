@@ -26,33 +26,36 @@ export function Home(props: Props) {
         <Cell width={6}>
           <SectionLink
             href="/geographical-references"
-            icon="/public/icons/land-parcels.svg"
+            icon-left="/public/icons/land-parcels.svg"
           >
             {t("geographical_references_title")}
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink href="/phytosanitary" icon="/public/icons/chemical-product.svg">
+          <SectionLink
+            href="/phytosanitary"
+            icon-left="/public/icons/chemical-product.svg"
+          >
             {t("phytosanitary_title")}
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink href="/production" icon="/public/icons/farm.svg">
+          <SectionLink href="/production" icon-left="/public/icons/farm.svg">
             {t("production_title")}
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink href="/seeds" icon="/public/icons/seed.svg">
+          <SectionLink href="/seeds" icon-left="/public/icons/seed.svg">
             {t("seeds_title")}
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink href="/viticulture" icon="/public/icons/bottles.svg">
+          <SectionLink href="/viticulture" icon-left="/public/icons/bottles.svg">
             {t("viticulture_title")}
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink href="/weather" icon="/public/icons/cloud.svg">
+          <SectionLink href="/weather" icon-left="/public/icons/cloud.svg">
             {t("weather_title")}
           </SectionLink>
         </Cell>
@@ -62,7 +65,10 @@ export function Home(props: Props) {
 
       <Grid>
         <Cell width={6}>
-          <SectionLink href="/tools/parcel-identifier" icon="/public/icons/marker.svg">
+          <SectionLink
+            href="/tools/parcel-identifier"
+            icon-left="/public/icons/marker.svg"
+          >
             {t("tools_parcel_identifier")}
           </SectionLink>
         </Cell>
@@ -86,16 +92,16 @@ export function Home(props: Props) {
       </div>
 
       <div style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }}>
-        <SectionLink href="/documentation" icon="/public/icons/book.svg" target="_blank">
+        <SectionLink
+          href="/documentation"
+          icon-left="/public/icons/book.svg"
+          target="_blank"
+        >
           {t("home_full_documentation")}
         </SectionLink>
       </div>
 
       <br />
-
-      {/* <div style={{ marginLeft: "auto", marginRight: "auto" }}>
-        <img src="/public/images/osfarm-logo.png" />
-      </div> */}
     </Layout>
   )
 }

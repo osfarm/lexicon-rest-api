@@ -34,6 +34,7 @@ export type FormDefinition = Record<string, FieldType["any"]>
 interface Props {
   method: "GET"
   definition: FormDefinition
+  submitLabel: string
 }
 export function Form(props: Props) {
   const { method, definition } = props
@@ -111,10 +112,10 @@ export function Form(props: Props) {
         <Cell width={2}>
           <button
             type="submit"
-            class="success button"
+            class="success shadow button"
             style={{ height: "54px", width: "100%", fontWeight: "bold" }}
           >
-            Filtrer
+            {props.submitLabel}
           </button>
         </Cell>
       </Grid>

@@ -2,6 +2,7 @@ import { html, Html } from "@elysiajs/html"
 import { Breadcrumbs } from "../components/Breadcrumbs"
 import type { HypermediaType } from "../../Hypermedia"
 import type { Translator } from "../../Translator"
+import packageJson from "../../../package.json"
 
 type Props = {
   title: string
@@ -80,16 +81,26 @@ export function Layout(props: Props) {
         </main>
 
         <footer style={{ textAlign: "center", marginTop: "25px" }}>
-          <a href="/documentation" target="_blank">
-            Documentation
-          </a>
-          {" • "}
-          <a href="/credits">Crédits</a> {" • "}
-          <a href="https://github.com/osfarm/lexicon" target="_blank">
-            GitHub
-          </a>
-          {" • "}
-          <a href="https://www.osfarm.org/">OSFarm</a>
+          <p>
+            <a href="/documentation" target="_blank">
+              Documentation
+            </a>
+            {" • "}
+            <a href="/credits">Crédits</a> {" • "}
+            <a href="https://github.com/osfarm/lexicon-rest-api" target="_blank">
+              GitHub
+            </a>
+          </p>
+
+          <br />
+
+          <div>
+            <i>{"Lexicon v." + packageJson.version}</i>
+            <br />
+            <a href="https://www.osfarm.org/">
+              <img src="/public/images/osfarm-logo.jpg" height="50" />
+            </a>
+          </div>
         </footer>
 
         <script src="https://unpkg.com/htmx.org@2.0.4"></script>

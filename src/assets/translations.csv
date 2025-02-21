@@ -26,7 +26,7 @@ navigation_previous_page,Page précédente,Previous page
 navigation_next_page,Page suivante,Next page
 
 home_title,Accueil,Home
-home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
+home_warning,Lexicon est encore en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,Lexicon is still in development. Some bugs may persist and some translations could still be missing.
 home_explore,Explorer les jeux de données,Explore datasets
 home_tools,Outils,Tools
 home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
@@ -41,6 +41,10 @@ tools_parcel_identifier_information,Informations,Information
 tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_cap,Informations PAC,CAP information
 
+datasets,Jeux de données,Datasets
+filter,Filtrer,Filter
+send,Envoyer,send
+
 geographical_references_title,Références géographiques,Geographical references
 
 geographical_references_cadastral_parcel_title,Parcelles cadastrales,Cadastral parcels
@@ -54,7 +58,7 @@ geographical_references_cadastral_parcel_area,Superficie,Area
 geographical_references_cadastral_parcel_city_code,Code commune,City code
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
-geographical_references_cap_parcel,Parcelle enregistrées à la PAC,CAP parcel
+geographical_references_cap_parcel,Parcelle enregistrée à la PAC,CAP parcel
 geographical_references_cap_parcel_id,Identifiant PAC,CAP identifier
 geographical_references_cap_parcel_culture,Culture,Culture
 geographical_references_cap_parcel_crop_code,Code culture PAC,CAP crop code
@@ -115,7 +119,7 @@ phytosanitary_symbol_pictogram_code,Code pictogramme,Pictogram code
 
 seeds_title,Semences,Seeds
 species,Espèce,Specie
-seeds_variety_title,Varietés,Varieties
+seeds_variety_title,Variétés,Varieties
 variety,Variété,Variety
 seeds_variety_code,Code SEMAE,SEMAE code
 id_specie,Genre,Genus

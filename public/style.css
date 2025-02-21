@@ -39,10 +39,16 @@ nav {
   z-index: 9000;
 }
 
+@font-face {
+  font-family: AvenirNextHeavy;
+  src: url(fonts/avenir-next-heavy.ttf);
+}
+
 nav h1 {
   /* background: linear-gradient(140deg, #fc8080, #fbb800); */
-  color: rgb(17, 17, 17);
+  color: #003434;
   background-clip: text;
+  font-family: AvenirNextHeavy;
   /* -webkit-text-fill-color: transparent; */
 }
 

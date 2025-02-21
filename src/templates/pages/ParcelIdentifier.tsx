@@ -34,7 +34,7 @@ export function ParcelIdentifier(props: Props) {
     Err: ({ val: error }) => <Error error={error} />,
     Ok: ({ val }) => (
       <Layout title={val.title} breadcrumbs={val.breadcrumbs} t={t}>
-        <Form definition={val.form} method="GET" />
+        <Form definition={val.form} method="GET" submitLabel={t("send")} />
 
         {renderSection(t("tools_parcel_identifier_information"), val.information)}
 
