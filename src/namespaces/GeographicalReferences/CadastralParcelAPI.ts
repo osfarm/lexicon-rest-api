@@ -31,7 +31,7 @@ export const CadastralParcelAPI = new Elysia()
       generateTablePage(cxt, {
         title: cxt.t("geographical_references_cadastral_parcel_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
-        query: ParcelTable(cxt.db).select(),
+        query: ParcelTable(cxt.db).select().orderBy("id", "ASC"),
         credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastre"),
         form: {
           code: Field.Text({
