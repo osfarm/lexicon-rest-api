@@ -17,6 +17,8 @@ export function Layout(props: Props) {
       <head>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="/public/style.css" />
+        <link rel="icon" type="image/x-icon" href="/public/images/favicon.ico" />
+
         <title>{props.title}</title>
 
         <link
