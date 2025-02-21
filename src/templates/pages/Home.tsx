@@ -1,9 +1,9 @@
-import type { Translator } from "../Translator"
-import { Layout } from "./Layout"
+import type { Translator } from "../../Translator"
+import { Layout } from "../layouts/Layout"
 import { html, Html } from "@elysiajs/html"
-import { Card } from "./components/Card"
-import { Cell, Grid } from "./components/Grid"
-import { SectionLink } from "./components/SectionLink"
+import { Card } from "./../components/Card"
+import { Cell, Grid } from "./../components/Grid"
+import { SectionLink } from "./../components/SectionLink"
 
 interface Props {
   t: Translator
@@ -16,8 +16,7 @@ export function Home(props: Props) {
     <Layout title={t("home_title")} breadcrumbs={[]} t={t}>
       <Card info>
         <p>
-          <img src={"/public/icons/circle-info.svg"} height={13} />{" "}
-          {t("home_warning")}
+          <img src={"/public/icons/circle-info.svg"} height={13} /> {t("home_warning")}
         </p>
       </Card>
 
@@ -33,10 +32,7 @@ export function Home(props: Props) {
           </SectionLink>
         </Cell>
         <Cell width={6}>
-          <SectionLink
-            href="/phytosanitary"
-            icon="/public/icons/chemical-product.svg"
-          >
+          <SectionLink href="/phytosanitary" icon="/public/icons/chemical-product.svg">
             {t("phytosanitary_title")}
           </SectionLink>
         </Cell>
@@ -62,6 +58,16 @@ export function Home(props: Props) {
         </Cell>
       </Grid>
 
+      <h2>{t("home_tools")}</h2>
+
+      <Grid>
+        <Cell width={6}>
+          <SectionLink href="/tools/parcel-identifier" icon="/public/icons/marker.svg">
+            {t("tools_parcel_identifier")}
+          </SectionLink>
+        </Cell>
+      </Grid>
+
       <h2>{t("home_how_to_use")}</h2>
 
       <div
@@ -80,11 +86,7 @@ export function Home(props: Props) {
       </div>
 
       <div style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }}>
-        <SectionLink
-          href="/documentation"
-          icon="/public/icons/book.svg"
-          target="_blank"
-        >
+        <SectionLink href="/documentation" icon="/public/icons/book.svg" target="_blank">
           {t("home_full_documentation")}
         </SectionLink>
       </div>

@@ -1,14 +1,12 @@
 import Elysia, { t } from "elysia"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
-import { AutoList } from "../templates/AutoList"
+import { generateTablePage } from "../page-generators/generateTablePage"
+import { AutoList } from "../templates/views/AutoList"
 import { Field } from "../templates/components/Form"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
+import type { Context } from "../types/Context"
 
 type VineVariety = {
   id: string
@@ -110,9 +108,7 @@ export const Viticulture = new Elysia({
             required: false,
           }),
         },
-        query: VineVarietyTable(context.db)
-          .select()
-          .orderBy("short_name", "ASC"),
+        query: VineVarietyTable(context.db).select().orderBy("short_name", "ASC"),
         credits: CreditTable(context.db)
           .select()
           .where("datasource", "=", "vine_varieties"),
@@ -129,16 +125,12 @@ export const Viticulture = new Elysia({
           }),
           category: Hypermedia.Text({
             label: context.t("common_fields_category"),
-            value: context.t(
-              "viticulture_vine_variety_category_" + item.category
-            ),
+            value: context.t("viticulture_vine_variety_category_" + item.category),
           }),
           color: item.color
             ? Hypermedia.Text({
                 label: context.t("common_fields_color"),
-                value: context.t(
-                  "viticulture_vine_variety_color_" + item.color
-                ),
+                value: context.t("viticulture_vine_variety_color_" + item.color),
               })
             : undefined,
           utilities: item.utilities

@@ -1,6 +1,6 @@
-import { Hypermedia } from "../Hypermedia"
-import type { Translator } from "../Translator"
-import { Layout } from "./Layout"
+import { Hypermedia } from "../../Hypermedia"
+import type { Translator } from "../../Translator"
+import { Layout } from "../layouts/Layout"
 import { html, Html } from "@elysiajs/html"
 
 interface Props {
@@ -14,15 +14,7 @@ export function Credits(props: Props) {
     { label: t("credits_production"), credited: ["OSFarm"] },
     {
       label: t("credits_data_providers"),
-      credited: [
-        "ANSES",
-        "Ekylibre",
-        "EU",
-        "IGN",
-        "INRAE",
-        "La Poste",
-        "Météo France",
-      ],
+      credited: ["ANSES", "Ekylibre", "EU", "IGN", "INRAE", "La Poste", "Météo France"],
     },
     {
       label: t("credits_open_source_softwares"),
@@ -35,6 +27,7 @@ export function Credits(props: Props) {
       breadcrumbs={[
         Hypermedia.Link({ value: t("home_title"), method: "GET", href: "/" }),
       ]}
+      t={t}
     >
       {CREDITS.map((credit) => (
         <ul>

@@ -1,5 +1,3 @@
-export type OutputFormat = "html" | "json" | "csv"
-
 export function createHref(
   basePath: string,
   query?: { page?: number; [key: string]: unknown }
@@ -21,10 +19,7 @@ export function ObjectMap<T extends object, P>(
   fn: (key: keyof T, value: T[keyof T]) => P
 ): Record<keyof T, P> {
   return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [
-      key,
-      fn(key as keyof T, value as any),
-    ])
+    Object.entries(obj).map(([key, value]) => [key, fn(key as keyof T, value as any)])
   ) as Record<keyof T, P>
 }
 
@@ -41,4 +36,12 @@ export function ObjectFlatMap<T, I>(
     mappedObj = { ...mappedObj, ...fn(key, value) }
   }
   return mappedObj as Record<string, T>
+}
+
+export function isString(val: unknown): val is string {
+  return typeof val === "string"
+}
+
+export function isNumber(val: unknown): val is number {
+  return typeof val === "number" && !Number.isNaN(val)
 }

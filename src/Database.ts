@@ -1,7 +1,18 @@
 import type { Pool } from "pg"
-import { Err, Ok, type AsyncResult } from "shulk"
+import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
+import { ObjectMap } from "./utils"
+import { NotFound } from "./types/HTTPErrors"
+import { Cache } from "./Cache"
+
+const hasher = new Bun.CryptoHasher("sha256")
+const hash = (str: string) => hasher.update(str).digest("base64")
 
 const DB_SCHEMA = import.meta.env.DB_SCHEMA
+
+const MAX_CACHE_ITEMS = 1000
+const ONE_DAY_IN_MS = 86400000
+
+const cache = new Cache({ max: MAX_CACHE_ITEMS })
 
 type TableDefinition<T extends object> = {
   table: string
@@ -10,25 +21,41 @@ type TableDefinition<T extends object> = {
   oneToOne?: {
     [x in keyof T]?: TableDefinition<T>
   }
+  geometry?: (keyof T)[]
 }
 
 export function Table<T extends object>(definition: TableDefinition<T>) {
   return (db: Pool) => ({
     select: () => new Select(db, definition),
-    example: () =>
-      db.query(`SELECT * FROM "${DB_SCHEMA}".${definition.table} LIMIT 1;`),
+
+    read: async (key: string): AsyncResult<NotFound | Error, T> => {
+      const result = await new Select(db, definition)
+        .where(definition.primaryKey, "=", key)
+        .limit(1)
+        .run()
+
+      return result
+        .map((rows) => rows[0])
+        .flatMap(
+          (maybeRow): Result<NotFound, T> =>
+            maybeRow !== undefined ? Ok(maybeRow) : Err(new NotFound())
+        )
+    },
+
+    example: () => db.query(`SELECT * FROM "${DB_SCHEMA}".${definition.table} LIMIT 1;`),
   })
 }
 
-type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE"
+type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN" | "ST_CONTAINS"
+type Condition<T> = {
+  field: keyof T
+  op: Operator
+  value: unknown
+  or: []
+}
 
 class Select<T extends object> {
-  protected conditions: {
-    field: keyof T
-    op: Operator
-    value: unknown
-    or: []
-  }[]
+  protected conditions: Condition<T>[]
   protected orders: { field: keyof T; sort: "ASC" | "DESC" }[] = []
   protected limitValue?: number
   protected offsetValue: number = 0
@@ -57,22 +84,31 @@ class Select<T extends object> {
     return this
   }
 
+  protected makeCondition(condition: Condition<T>, i: number) {
+    const field = String(condition.field)
+
+    return match(condition.op).case({
+      ST_WITHIN: () =>
+        `postgis.ST_Within(${field}, postgis.ST_GeomFromGeoJSON($${i + 1}))`,
+      ST_CONTAINS: () =>
+        `postgis.ST_Contains(${field}, postgis.ST_GeomFromGeoJSON($${i + 1}))`,
+      _otherwise: () => `${field} ${condition.op} $${i + 1}`,
+    })
+  }
+
   protected prepareConditionsAndParams() {
     const conditions =
       this.conditions.length > 0
-        ? `WHERE ${this.conditions
-            .map(
-              (condition, i) =>
-                (condition.field as string) +
-                " " +
-                condition.op +
-                " $" +
-                (i + 1)
-            )
-            .join(" AND ")}`
+        ? `WHERE ${this.conditions.map(this.makeCondition).join(" AND ")}`
         : ""
 
-    const params = this.conditions.flatMap((condition) => [condition.value])
+    const params = this.conditions.flatMap((condition) =>
+      match(condition.op).case({
+        ST_WITHIN: () => [JSON.stringify(condition.value)],
+        ST_CONTAINS: () => [JSON.stringify(condition.value)],
+        _otherwise: () => [condition.value],
+      })
+    )
 
     return { conditions, params }
   }
@@ -82,63 +118,70 @@ class Select<T extends object> {
 
     const { conditions, params } = this.prepareConditionsAndParams()
 
-    try {
-      //   const q = `SELECT * FROM "${DB_SCHEMA}".${this.def.table} ${conditions} ${
-      //     this.orders.length > 0
-      //       ? `ORDER BY ${this.orders.map(
-      //           (order) => `${this.def.map[order.field]} ${order.sort}`
-      //         )}`
-      //       : ``
-      //   } ${this.limitValue ? `LIMIT ${this.limitValue}` : ``} ${
-      //     this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
-      //   };`
+    const tableName = `"${DB_SCHEMA}".${this.def.table}`
 
-      const tableName = `"${DB_SCHEMA}".${this.def.table}`
+    const fields = this.def.geometry
+      ? "*, " +
+        this.def.geometry
+          ?.map(
+            (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`
+          )
+          .join(", ")
+      : "*"
 
-      const sortings =
-        this.orders.length > 0
-          ? `ORDER BY ${this.orders.map(
-              (order) => `${order.field as string} ${order.sort}`
-            )}`
-          : ``
-
-      const joints = this.def.oneToOne
-        ? Object.entries(this.def.oneToOne)
-            .filter(([, value]) => value !== undefined)
-            .map(
-              ([prop, subdef]) =>
-                // @ts-ignore
-                `LEFT JOIN "${DB_SCHEMA}".${subdef.table} ON ${this.def.table}.${prop}=${subdef.table}.${subdef.primaryKey}`
-            )
-            .join(" ")
+    const sortings =
+      this.orders.length > 0
+        ? `ORDER BY ${this.orders.map(
+            (order) => `${order.field as string} ${order.sort}`
+          )}`
         : ``
 
-      const limit = this.limitValue ? `LIMIT ${this.limitValue}` : ``
-      const offset = this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
+    const joints = this.def.oneToOne
+      ? Object.entries(this.def.oneToOne)
+          .filter(([, value]) => value !== undefined)
+          .map(
+            ([prop, subdef]) =>
+              // @ts-ignore
+              `LEFT JOIN "${DB_SCHEMA}".${subdef.table} ON ${this.def.table}.${prop}=${subdef.table}.${subdef.primaryKey}`
+          )
+          .join(" ")
+      : ``
 
-      const q = `SELECT * FROM ${tableName} ${joints} ${conditions} ${sortings} ${limit} ${offset};`
+    const limit = this.limitValue ? `LIMIT ${this.limitValue}` : ``
+    const offset = this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
 
-      const response = await db.query(q, params)
+    const q = `SELECT ${fields} FROM ${tableName} ${joints} ${conditions} ${sortings} ${limit} ${offset};`
 
-      const parsedResponse = response.rows
+    const queryHash = hash(q + "-" + params.toString())
 
-      /*response.rows.map((row) =>
-        Object.fromEntries(
-          Object.entries(this.def.map).map(([field, column]) => [
-            field,
-            row[column as string],
-          ])
-        )
-      )*/
+    const maybeCached = cache.retrieve(queryHash)
 
-      if (!import.meta.env.PRODUCTION) {
-        console.debug(parsedResponse[0])
-      }
+    return match(maybeCached).case({
+      Some: async ({ val }) => Ok(val),
+      None: async () => {
+        try {
+          const response = await db.query(q, params)
 
-      return Ok(parsedResponse as T[])
-    } catch (e) {
-      return Err(e as Error)
-    }
+          const parsedResponse = response.rows.map((row) =>
+            ObjectMap(row, (key, value) =>
+              this.def.geometry && this.def.geometry.includes(key as any)
+                ? JSON.parse(value)
+                : value
+            )
+          )
+
+          if (!import.meta.env.PRODUCTION) {
+            //    console.debug(parsedResponse[0])
+          }
+
+          cache.save(queryHash, parsedResponse, ONE_DAY_IN_MS)
+
+          return Ok(parsedResponse as T[])
+        } catch (e) {
+          return Err(e as Error)
+        }
+      },
+    })
   }
 
   async count(): AsyncResult<Error, number> {
@@ -146,41 +189,29 @@ class Select<T extends object> {
 
     const { conditions, params } = this.prepareConditionsAndParams()
 
-    try {
-      const response = await db.query(
-        `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`,
-        params
-      )
+    const q = `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`
 
-      return Ok(parseInt(response.rows[0].count))
-    } catch (e) {
-      return Err(e as Error)
-    }
+    const queryHash = hash(q + "-" + params.toString())
+
+    const maybeCached = cache.retrieve(queryHash)
+
+    return match(maybeCached).case({
+      Some: async ({ val }) => Ok(val),
+      None: async () => {
+        try {
+          const response = await db.query(q, params)
+
+          const parsedResponse = parseInt(response.rows[0].count)
+
+          cache.save(queryHash, parsedResponse, ONE_DAY_IN_MS)
+
+          return Ok(parsedResponse)
+        } catch (e) {
+          return Err(e as Error)
+        }
+      },
+    })
   }
-
-  //   async credits(): AsyncResult<Error, Credit | undefined> {
-  //     const db = this.db
-
-  //     try {
-  //       const response = await db.query(
-  //         `SELECT * FROM "${DB_SCHEMA}".datasource_credits WHERE datasource LIKE '%${this.def.table}';`
-  //       )
-
-  //       return Ok(response.rows[0])
-  //     } catch (e) {
-  //       return Err(e as Error)
-  //     }
-  //   }
-}
-
-interface Credit {
-  datasource: string
-  name: string
-  url: string
-  provider: string
-  licence?: string
-  licence_url: string
-  updated_at: Date
 }
 
 export type t_Select<T extends object> = Select<T>

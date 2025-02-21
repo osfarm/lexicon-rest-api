@@ -1,6 +1,9 @@
 key,fr,en
 common_undefined,Non renseigné,Not defined
+common_details,Détails,Details
 common_see,Voir,See
+common_see_also,Voir aussi,See also
+common_location,Emplacement,Location
 common_fields_name,Nom,Name
 common_fields_state,État,State
 common_fields_type,Type,Type
@@ -12,7 +15,8 @@ common_fields_city,Ville,City
 common_fields_date,Date,Date
 common_fields_date_start,Date de début,Start date
 common_fields_date_end,Date de fin,End date
-
+common_fields_latitude,Latitude,Latitude
+common_fields_longitude,Longitude,Longitude
 
 common_fields_datetime,Date et heure,Datetime
 
@@ -24,28 +28,47 @@ navigation_next_page,Page suivante,Next page
 home_title,Accueil,Home
 home_warning,Ceci est une version en cours de développement. Des dysfonctionnements peuvent subsister et des traductions peuvent manquer.,This is a development version. Some bugs may persist and some translations could still be missing.
 home_explore,Explorer les jeux de données,Explore datasets
+home_tools,Outils,Tools
 home_how_to_use,Utiliser Lexicon en 3 étapes,How to use
 home_how_to_step1,Explorez et trouvez le jeu de données qui répond à vos besoins,Explore and find the dataset you need
 home_how_to_step2,Filtrez les données à l'aide des formulaires si nécessaire,Filter the data with the forms if you need to
 home_how_to_step3,Trouvez le format de sortie (JSON / CSV) qui vous convient et copiez l'URL ou téléchargez le document,Find the most adapted output format (JSON / CSV) for your usecase and copy the page URL or download the document
 home_full_documentation,Voir la documentation complète,See the complete documentation
 
+tools,Outils,Tools
+tools_parcel_identifier,Identificateur de parcelle,Parcel identifier
+tools_parcel_identifier_information,Informations,Information
+tools_parcel_identifier_cadastre,Cadastre,Cadastre
+tools_parcel_identifier_cap,Informations PAC,CAP information
+
 geographical_references_title,Références géographiques,Geographical references
 
 geographical_references_cadastral_parcel_title,Parcelles cadastrales,Cadastral parcels
+geographical_references_cadastral_parcel,Parcelle cadastrale,Cadastral parcel
 geographical_references_cadastral_parcel_town_insee_code,Code INSEE de la commune,Town INSEE code
-geographical_references_cadastral_parcel_section_prefix,Préfixe de section,Section prefix
+geographical_references_cadastral_parcel_id,Identifiant cadastral,Cadastral identifier
+geographical_references_cadastral_parcel_section_prefix,Préfixe,Prefix
 geographical_references_cadastral_parcel_section,Section,Section
 geographical_references_cadastral_parcel_work_number,Numéro,Number
 geographical_references_cadastral_parcel_area,Superficie,Area
+geographical_references_cadastral_parcel_city_code,Code commune,City code
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
+geographical_references_cap_parcel,Parcelle enregistrées à la PAC,CAP parcel
+geographical_references_cap_parcel_id,Identifiant PAC,CAP identifier
 geographical_references_cap_parcel_culture,Culture,Culture
+geographical_references_cap_parcel_crop_code,Code culture PAC,CAP crop code
 
 geographical_references_postal_code_title,Codes postaux,Postal codes
-geographical_references_postal_code_code,Code postal,Postal code
-geographical_references_postal_code_city,Ville,City
-geographical_references_postal_code_city_code,Code commune,City code
+
+geographical_references_municipality_title,Communes,Municipalities
+geographical_references_municipality,Commune,Municipality
+geographical_references_municipality_postal_code,Code postal,Postal code
+geographical_references_municipality_city,Ville,City
+geographical_references_municipality_city_code,Code commune,City code
+geographical_references_municipality_cadastre,Cadastre,Cadastre
+geographical_references_municipality_cap,Parcelles enregistrées à la PAC,CAP registered parcels
+geographical_references_municipality_weather_reports,Relevés météorologiques,Weather reports
 
 production,Production,Production
 production_title,Production,Production
@@ -122,6 +145,7 @@ viticulture_vine_variety_utility_certified,Certifié,Certified
 
 weather_title,Météorologie,Weather
 weather_station_title,Stations météorologiques,Weather stations
+weather_station,Station météorologique,Weather station
 weather_station_code,Code station,Station code
 weather_station_elevation,Élévation,Elevation
 weather_station_hourly_reports,Relevés horaires,Hourly reports
@@ -146,6 +170,10 @@ credits_license,Licence,License
 
 documentation_title,Documentation,Documentation
 documentation_description,La documentation de l'API Lexicon,Documentation of Lexicon API
+documentation_cadastral_parcel_location,Emplacement d'une parcelle cadastrale,Location of a cadastral parcel
+documentation_cap_parcel_location,Emplacement d'une parcelle PAC,Location of a CAP parcel
+documentation_municipality_cadastre,Cadastre d'une commune,Cadastre of a municipality
+documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,Parcels of a municipality which are registered in the CAP
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
 
 country_FR,France,France

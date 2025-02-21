@@ -1,18 +1,154 @@
 import { match } from "shulk"
 import packageJson from "../../package.json"
-import { Hypermedia, hypermedia2json } from "../Hypermedia"
+import { Hypermedia } from "../Hypermedia"
 import { ProductState, ProductType } from "../namespaces/Phytosanitary"
 import { VineCategory, VineColor } from "../namespaces/Viticulture"
-import { Documentation } from "../templates/Documentation"
+import { Documentation } from "../templates/pages/Documentation"
 import type { Translator } from "../Translator"
 import { Country } from "../types/Country"
-import type { OutputFormat } from "../utils"
 import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
+import type { OutputFormat } from "../types/OutputFormat"
 
 const Paths = (t: Translator) => ({
-  "/geographical-references/postal-codes.json": {
+  "/tools/parcel-identifier.json": {
+    get: ResourceEndpoint({
+      description: t("tools_parcel_identifier") + " (JSON)",
+      category: t("tools"),
+      query: {
+        latitude: {
+          description: "",
+          type: "string",
+        },
+        longitude: {
+          description: "",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/tools/parcel-identifier.geojson": {
+    get: ResourceEndpoint({
+      description: t("tools_parcel_identifier") + " (GeoJSON)",
+      category: t("tools"),
+      query: {
+        latitude: {
+          description: "",
+          type: "string",
+        },
+        longitude: {
+          description: "",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cadastral-parcels.json": {
     get: TableEndpoint({
-      description: t("geographical_references_postal_code_title"),
+      description: t("geographical_references_cadastral_parcel_title"),
+      category: t("geographical_references_title"),
+      query: {
+        code: {
+          description: "City code",
+          type: "string",
+        },
+        prefix: {
+          description: "Cadastre sheet prefix",
+          type: "string",
+        },
+        section: {
+          description: "Cadastre sheet section",
+          type: "string",
+        },
+        number: {
+          description: "Parcel number",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cadastral-parcels/{id}.json": {
+    get: ResourceEndpoint({
+      description: t("geographical_references_cadastral_parcel"),
+      category: t("geographical_references_title"),
+      params: {
+        id: {
+          description: "Id of the parcel",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cadastral-parcels/{id}/geolocation.geojson": {
+    get: ResourceEndpoint({
+      description: t("documentation_cadastral_parcel_location"),
+      category: t("geographical_references_title"),
+      params: {
+        id: {
+          description: "Id of the parcel",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cap-parcels.json": {
+    get: TableEndpoint({
+      description: t("geographical_references_cap_parcel_title"),
+      category: t("geographical_references_title"),
+      query: {
+        city: {
+          description: "Filters the parcels with the provided city name",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cap-parcels/{cap_id}.json": {
+    get: ResourceEndpoint({
+      description: t("geographical_references_cap_parcel"),
+      category: t("geographical_references_title"),
+      params: {
+        cap_id: {
+          description: "CAP identifier of the parcel",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cap-parcels/{cap_id}/geolocation.geojson": {
+    get: ResourceEndpoint({
+      description: t("documentation_cadastral_cap_location"),
+      category: t("geographical_references_title"),
+      params: {
+        cap_id: {
+          description: "CAP identifier of the parcel",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/municipalities.json": {
+    get: TableEndpoint({
+      description: t("geographical_references_municipality_title"),
       category: t("geographical_references_title"),
       query: {
         country: {
@@ -25,6 +161,42 @@ const Paths = (t: Translator) => ({
           type: "string",
         },
       },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/municipalities/{id}.json": {
+    get: ResourceEndpoint({
+      description: t("geographical_references_municipality"),
+      category: t("geographical_references_title"),
+      params: {
+        id: { type: "string", description: "ID of the municipality" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/municipalities/{id}/cadastre.geojson": {
+    get: ResourceEndpoint({
+      description: t("documentation_municipality_cadastre"),
+      category: t("geographical_references_title"),
+      params: {
+        id: { type: "string", description: "ID of the municipality" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/municipalities/{id}/cap-parcels.geojson": {
+    get: ResourceEndpoint({
+      description: t("documentation_municipality_cap"),
+      category: t("geographical_references_title"),
+      params: {
+        id: { type: "string", description: "ID of the municipality" },
+      },
+      query: {},
       resourceSchema: {},
     }),
   },
@@ -64,14 +236,12 @@ const Paths = (t: Translator) => ({
       category: t("phytosanitary_title"),
       query: {
         type: {
-          description:
-            "Filters the phytosanitary products by the provided type",
+          description: "Filters the phytosanitary products by the provided type",
           type: "string",
           enum: Object.values(ProductType),
         },
         state: {
-          description:
-            "Filters the phytosanitary products by the provided state",
+          description: "Filters the phytosanitary products by the provided state",
           type: "string",
           enum: Object.values(ProductState),
         },
@@ -144,6 +314,36 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/weather/stations/{station_code}.json": {
+    get: ResourceEndpoint({
+      description: t("weather_station"),
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  // "/weather/stations/{station_code}/geolocation.geojson": {
+  //   get: ResourceEndpoint({
+  //     description: t("weather_station"),
+  //     category: t("weather_title"),
+  //     params: {
+  //       station_code: {
+  //         description: "The identifier code of the weather station.",
+  //         type: "string",
+  //       },
+  //     },
+  //     query: {},
+  //     resourceSchema: {},
+  //   }),
+  // },
+
   "/weather/stations/{station_code}/hourly-reports.json": {
     get: TableEndpoint({
       description: t("documentation_weather_hourly_reports"),
@@ -160,8 +360,7 @@ const Paths = (t: Translator) => ({
           type: "date",
         },
         end: {
-          description:
-            "Returns the reports collected before the provided date.",
+          description: "Returns the reports collected before the provided date.",
           type: "date",
         },
       },
@@ -331,20 +530,27 @@ type EndpointDoc = {
   description: string
   category: string
   params?: Record<string, { type: string; description: string }>
-  query: Record<string, { type: string; description: string; enum?: unknown[] }>
+  query: Record<
+    string,
+    {
+      type: string
+      description: string
+      enum?: unknown[]
+      default?: unknown
+      minimum?: number
+    }
+  >
   resourceSchema: object
 }
 
-function TableEndpoint(doc: EndpointDoc) {
-  const pathParameters = Object.entries(doc.params || {}).map(
-    ([field, schema]) => ({
-      name: field,
-      in: "path",
-      description: schema.description,
-      required: true,
-      schema: { type: schema.type },
-    })
-  )
+function ResourceEndpoint(doc: EndpointDoc) {
+  const pathParameters = Object.entries(doc.params || {}).map(([field, schema]) => ({
+    name: field,
+    in: "path",
+    description: schema.description,
+    required: true,
+    schema: { type: schema.type },
+  }))
 
   const queryParameters = Object.entries(doc.query).map(([field, schema]) => ({
     name: field,
@@ -354,23 +560,11 @@ function TableEndpoint(doc: EndpointDoc) {
     schema: { type: schema.type, enum: schema.enum },
   }))
 
-  const pageParameter = {
-    name: "page",
-    in: "query",
-    description: "The number of the page you wish to consult.",
-    required: false,
-    schema: {
-      type: "number",
-      default: 1,
-      minimum: 1,
-    },
-  }
-
   return {
     summary: doc.description,
     tags: [doc.category],
-    produces: ["text/html", "application/json", "text/csv"],
-    parameters: [...pathParameters, pageParameter, ...queryParameters],
+    produces: ["text/html", "application/json"],
+    parameters: [...pathParameters, ...queryParameters],
     responses: {
       200: {
         content: {
@@ -381,4 +575,22 @@ function TableEndpoint(doc: EndpointDoc) {
       },
     },
   }
+}
+
+function TableEndpoint(doc: EndpointDoc) {
+  const pageParameter = {
+    description: "The number of the page you wish to consult.",
+    required: false,
+    type: "number",
+    default: 1,
+    minimum: 1,
+  }
+
+  return ResourceEndpoint({
+    description: doc.description,
+    category: doc.category,
+    params: doc.params,
+    query: { page: pageParameter, ...doc.query },
+    resourceSchema: doc.resourceSchema,
+  })
 }

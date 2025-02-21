@@ -1,15 +1,13 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
-import { AutoList } from "../templates/AutoList"
+import { AutoList } from "../templates/views/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
 import { ObjectFlatMap } from "../utils"
+import type { Context } from "../types/Context"
 
 interface Production {
   reference_name: string
@@ -93,9 +91,7 @@ export const Production = new Elysia({ prefix: "/production" })
       generateTablePage(cxt, {
         title: cxt.t("productions_title"),
         breadcrumbs: Breadcrumbs(cxt.t),
-        query: ProductionTable(cxt.db)
-          .select()
-          .orderBy("reference_name", "ASC"),
+        query: ProductionTable(cxt.db).select().orderBy("reference_name", "ASC"),
         columns: {
           name: cxt.t("common_fields_name"),
           family: cxt.t("activity_family"),
@@ -141,9 +137,7 @@ export const Production = new Elysia({ prefix: "/production" })
               })
             : undefined,
         }),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "productions"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "productions"),
       }),
     {
       query: t.Object({

@@ -1,14 +1,12 @@
 import Elysia, { t } from "elysia"
 import { Table } from "../Database"
-import {
-  generateTablePage,
-  type Context,
-} from "../page-generators/generateTablePage"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
 import { Field } from "../templates/components/Form"
-import { AutoList } from "../templates/AutoList"
+import { AutoList } from "../templates/views/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
+import type { Context } from "../types/Context"
 
 interface Variety {
   id: string
@@ -102,9 +100,7 @@ export const Seeds = new Elysia({ prefix: "/seeds" })
               })
             : undefined,
         }),
-        credits: CreditTable(cxt.db)
-          .select()
-          .where("datasource", "=", "seed_varieties"),
+        credits: CreditTable(cxt.db).select().where("datasource", "=", "seed_varieties"),
       }),
     {
       query: t.Object({

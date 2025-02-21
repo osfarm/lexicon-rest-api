@@ -7,34 +7,16 @@ import {
   type HypermediaType,
 } from "../Hypermedia"
 import type { FieldType } from "../templates/components/Form"
-import type { Translator } from "../Translator"
-import { createHref, ObjectMap, type OutputFormat } from "../utils"
-import { AutoTable, type AutoTableOkInput } from "../templates/AutoTable"
-import type { Pool } from "pg"
+import { createHref, ObjectMap } from "../utils"
+import { AutoTable, type AutoTableOkInput } from "../templates/views/AutoTable"
 import type { Credit } from "../namespaces/Credits"
-
-export interface Context {
-  path: string
-  request: Request
-  params?: Record<string, string>
-  query?: Record<string, string | number>
-  t: Translator
-  output: OutputFormat
-  db: Pool
-  dateTimeFormatter: {
-    DateTime: (date: Date) => string
-    Date: (date: Date) => string
-  }
-}
+import type { Context } from "../types/Context"
 
 interface AutoTableParams<T extends object, F extends string> {
   title: string
   breadcrumbs: HypermediaType["Link"][]
   form?: Record<string, FieldType["any"]>
-  formHandler?: (
-    input: Record<string, unknown | undefined>,
-    query: t_Select<T>
-  ) => void
+  formHandler?: (input: Record<string, unknown | undefined>, query: t_Select<T>) => void
   query: t_Select<T>
   credits?: t_Select<Credit>
   columns: Record<F, string>
@@ -57,9 +39,7 @@ export async function generateTablePage<T extends object, F extends string>(
 
   const basePath = path.split("?")[0].split(".")[0]
 
-  const enhancedQuery = params.query
-    .limit(PER_PAGE)
-    .offset((page - 1) * PER_PAGE)
+  const enhancedQuery = params.query.limit(PER_PAGE).offset((page - 1) * PER_PAGE)
 
   if (params.formHandler) {
     params.formHandler(queryParams || {}, enhancedQuery)
@@ -98,14 +78,12 @@ export async function generateTablePage<T extends object, F extends string>(
       ({ items, count, totalPages, credit }): AutoTableOkInput => ({
         title: params.title,
         breadcrumbs: params.breadcrumbs,
-        form:
-          params.form &&
-          ObjectMap(params.form, (key, field) => ({
-            ...field,
-            defaultValue: queryParams
-              ? (queryParams[key] as string)
-              : undefined,
-          })),
+        form: params.form
+          ? ObjectMap(params.form, (key, field) => ({
+              ...field,
+              defaultValue: queryParams ? (queryParams[key] as any) : undefined,
+            }))
+          : undefined,
         table: {
           columns: params.columns,
           rows: items.map(params.handler),
@@ -235,6 +213,7 @@ export async function generateTablePage<T extends object, F extends string>(
     .case({
       html: () => AutoTable({ page: pageData, t }),
       json: () => hypermedia2json(request, pageData.val),
+      geojson: () => hypermedia2json(request, pageData.val),
       csv: () => hypermedia2csv(pageData.val),
     })
 }

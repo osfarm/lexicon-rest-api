@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia"
-import { html, Html } from "@elysiajs/html"
-import { Home } from "./templates/Home"
+import { html } from "@elysiajs/html"
+import { Home } from "./templates/pages/Home"
 import { Credits } from "./namespaces/Credits"
 import { staticPlugin } from "@elysiajs/static"
 import { Phytosanitary } from "./namespaces/Phytosanitary"
@@ -12,6 +12,7 @@ import { generateDocumentation } from "./page-generators/generateDocumentation"
 import { applyRequestConfiguration } from "./applyRequestConfiguration"
 import { Seeds } from "./namespaces/Seeds"
 import { Production } from "./namespaces/Production"
+import { Tools } from "./namespaces/Tools"
 
 const PORT = import.meta.env.PORT as string
 
@@ -25,6 +26,7 @@ new Elysia({ serve: { idleTimeout: 255 } })
   .guard({
     query: t.Object({ page: t.Number({ default: 1 }) }),
   })
+  .use(Tools)
   .use(GeographicalReferences)
   .use(Phytosanitary)
   .use(Production)

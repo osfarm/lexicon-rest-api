@@ -1,16 +1,16 @@
 import { html, Html } from "@elysiajs/html"
-import type { HypermediaType } from "../Hypermedia"
-import { Layout } from "./Layout"
+import type { HypermediaType } from "../../Hypermedia"
+import { Layout } from "./../layouts/Layout"
 import { isObject, match, type Result } from "shulk"
-import type { Translator } from "../Translator"
-import { Error } from "./components/Error"
-import { Form, type FieldType } from "./components/Form"
-import { Card } from "./components/Card"
+import type { Translator } from "../../Translator"
+import { Error } from "./../components/Error"
+import { Form, type FieldType, type FormDefinition } from "./../components/Form"
+import { Card } from "./../components/Card"
 
 export interface AutoTableOkInput {
   title: string
   breadcrumbs: HypermediaType["Link"][]
-  form?: Record<string, FieldType["any"]>
+  form?: FormDefinition
   table: {
     columns: Record<string, string>
     rows: Record<string, HypermediaType["any"] | undefined>[]
@@ -192,6 +192,5 @@ const parseHypermedia = (item: HypermediaType["any"]) =>
         item.values
           .map((val) => (isObject(val) && "value" in val ? val.value : val))
           .join(", "),
-      _otherwise: () =>
-        isObject(item) && "value" in item ? item.value : "Error!",
+      _otherwise: () => (isObject(item) && "value" in item ? item.value : "Error!"),
     })

@@ -127,17 +127,15 @@ function hypermedia2jsonobj(hypermedia: object): object {
   return jsonified
 }
 
-export function hypermedia2json(
-  request: Request,
-  hypermedia: object
-): Response {
+export function hypermedia2json(request: Request, hypermedia: object): Response {
   if (hypermedia instanceof Error) {
     const status = match(hypermedia.name).with({
-      BadRequestError: 400,
-      UnauthorizedError: 401,
-      ForbiddenError: 403,
-      NotFoundError: 404,
+      BadRequest: 400,
+      Unauthorized: 401,
+      Forbidden: 403,
+      NotFound: 404,
       Conflict: 409,
+      Gone: 410,
       _otherwise: 500,
     })
 
@@ -160,8 +158,7 @@ export function hypermedia2json(
       "val" in hypermedia.result &&
       isObject(hypermedia.result.val) &&
       "message" in hypermedia.result.val &&
-      (hypermedia.result._state === "Failed" ||
-        hypermedia.result._state === "Err")
+      (hypermedia.result._state === "Failed" || hypermedia.result._state === "Err")
     ) {
       status = 400
 
