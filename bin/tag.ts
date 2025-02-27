@@ -24,11 +24,11 @@ async function main() {
     await Bun.write(path, JSON.stringify(packageJson, undefined, 2))
 
     await $`git add package.json`
-    await $`git commit -m "Changes current version from ${currentVersion} to ${newVersion} in package.json"`
+    await $`git commit -m "Change current version from ${currentVersion} to ${newVersion} in package.json"`
     await $`git push origin main`
     await $`git tag -a v${newVersion} -m "Production version ${newVersion}"`
     await $`git push origin tag v${newVersion}`
-    await $`git checkout origin main`
+    await $`git checkout main`
 
     return
   }
