@@ -57,7 +57,17 @@ This notion introduces what we call "function coloring", where calling an `async
 An impure function should have an imperative name, informing the user of the side-effects its introduces.
 e.g. `database.read()`
 
-## 5 - Comments
+## 5 - High-level assembly
+
+Even though we use high-level languages, some developers still use low-level unsafe instructions.
+
+If `goto` should be considered harmful, so should be any other instructions that break the flow of execution.
+
+Avoid instructions such as `switch`, `break`, `continue`, as they introduce avoidable mistakes and disorganize the control flow.
+
+Like anything in programming, you may someday need to use these, but until then, you should avoid them as much as you can.
+
+## 6 - Comments
 
 Like naming things, good comments require good taste and judgement too.
 
@@ -65,7 +75,7 @@ Instead of writing comments to explain how your code work, make your code clear 
 
 As a rule of thumb, never write comments to explain **how** the code works, but rather **why** it needs to be this way, and only when it is actually necessary.
 
-## 6 - Git
+## 7 - Git
 
 New features and bud fixes should be developed in their own branch or in forks.
 
@@ -94,7 +104,7 @@ Once the pull-request is validated, the changes are ready to be included in prod
 
 Production versions are created by tagging the `main` branch.
 
-## 7 - User land is sacred
+## 8 - User land is sacred
 
 API versioning is a pain.
 It makes things confusing for users, and it makes things harder for maintainers.
