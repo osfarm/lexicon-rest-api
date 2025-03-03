@@ -25,17 +25,15 @@ interface AutoTableParams<T extends object, F extends string> {
 
 export async function generateTablePage<T extends object, F extends string>(
   context: Context,
-  params: AutoTableParams<T, F>
+  params: AutoTableParams<T, F>,
 ) {
   const PER_PAGE = 150
 
   const { path, request, query: queryParams, t, output } = context
 
-  const page = queryParams?.page || 1
+  console.log(queryParams)
 
-  if (typeof page !== "number") {
-    return new Response("Missing page parameter")
-  }
+  const page = typeof queryParams?.page === "string" ? parseInt(queryParams.page) : 1
 
   const basePath = path.split("?")[0].split(".")[0]
 
@@ -43,18 +41,6 @@ export async function generateTablePage<T extends object, F extends string>(
 
   if (params.formHandler) {
     params.formHandler(queryParams || {}, enhancedQuery)
-  } else {
-    Object.entries(queryParams || {})
-      .filter(([key]) => key !== "page")
-      .filter(([, value]) => value !== undefined)
-      .filter(([, value]) => value !== "")
-      .map(([key, value]) => {
-        if (params.form && params.form[key]._state === "Text") {
-          enhancedQuery.where(key as keyof T, "LIKE", `%${value}%`)
-        } else {
-          enhancedQuery.where(key as keyof T, "=", value)
-        }
-      })
   }
 
   // prettier-ignore
@@ -72,7 +58,7 @@ export async function generateTablePage<T extends object, F extends string>(
           count,
           totalPages: Math.ceil(count / PER_PAGE),
           credit,
-        } as const)
+        } as const),
     )
     .map(
       ({ items, count, totalPages, credit }): AutoTableOkInput => ({
@@ -81,7 +67,7 @@ export async function generateTablePage<T extends object, F extends string>(
         form: params.form
           ? ObjectMap(params.form, (key, field) => ({
               ...field,
-              defaultValue: queryParams ? (queryParams[key] as any) : undefined,
+              defaultValue: queryParams[key] as any,
             }))
           : undefined,
         table: {
@@ -134,7 +120,7 @@ export async function generateTablePage<T extends object, F extends string>(
                 ...context.query,
                 page: p,
               }),
-            })
+            }),
           ),
         navigation: {
           "first-page":
@@ -199,7 +185,7 @@ export async function generateTablePage<T extends object, F extends string>(
             href: createHref(basePath + ".csv", context.query),
           }),
         },
-      })
+      }),
     )
     .mapErr((error) => ({
       title: params.title,
@@ -213,7 +199,7 @@ export async function generateTablePage<T extends object, F extends string>(
     .case({
       html: () => AutoTable({ page: pageData, t }),
       json: () => hypermedia2json(request, pageData.val),
-      geojson: () => hypermedia2json(request, pageData.val),
       csv: () => hypermedia2csv(pageData.val),
+      _otherwise: () => new Response("Output format not supported.", { status: 400 }),
     })
 }

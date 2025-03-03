@@ -1,4 +1,3 @@
-import Elysia from "elysia"
 import { Table } from "../Database"
 import { Hypermedia } from "../Hypermedia"
 import { generateTablePage } from "../page-generators/generateTablePage"
@@ -6,6 +5,7 @@ import { AutoTable } from "../templates/views/AutoTable"
 import { Ok } from "shulk"
 import { AutoList } from "../templates/views/AutoList"
 import type { Context } from "../types/Context"
+import { API } from "../API"
 
 export interface Credit {
   datasource: string
@@ -61,8 +61,8 @@ const CREDITS = [
   },
 ]
 
-export const Credits = new Elysia({ prefix: "/credits" })
-  .get("/", ({ t }: Context) =>
+export const Credits = API.new()
+  .path("/credits", ({ t }) =>
     AutoList({
       page: {
         title: t("credits_title"),
@@ -87,9 +87,9 @@ export const Credits = new Elysia({ prefix: "/credits" })
         ],
       },
       t,
-    })
+    }),
   )
-  .get("/datasources*", async (cxt: Context) =>
+  .path("/credits/datasources", async (cxt: Context) =>
     generateTablePage(cxt, {
       title: cxt.t("credits_datasources_title"),
       breadcrumbs: [
@@ -130,9 +130,9 @@ export const Credits = new Elysia({ prefix: "/credits" })
             })
           : undefined,
       }),
-    })
+    }),
   )
-  .get("/software", ({ t }: Context) =>
+  .path("/credits/software", ({ t }) =>
     AutoTable({
       page: Ok({
         title: t("credits_software_title"),
@@ -183,5 +183,5 @@ export const Credits = new Elysia({ prefix: "/credits" })
         "total-pages": 1,
       }),
       t,
-    })
+    }),
   )

@@ -1,4 +1,3 @@
-import Elysia, { t } from "elysia"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
@@ -6,7 +5,8 @@ import { AutoList } from "../templates/views/AutoList"
 import { Field } from "../templates/components/Form"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
-import type { Context } from "../types/Context"
+import { API } from "../API"
+import { ObjectFlatMap } from "../utils"
 
 type VineVariety = {
   id: string
@@ -55,10 +55,8 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const Viticulture = new Elysia({
-  prefix: "/viticulture",
-})
-  .get("/", ({ t }: Context) =>
+export const Viticulture = API.new()
+  .path("/viticulture", ({ t }) =>
     AutoList({
       page: {
         title: t("viticulture_title"),
@@ -78,76 +76,69 @@ export const Viticulture = new Elysia({
         ],
       },
       t,
-    })
+    }),
   )
-  .get(
-    "/vine-varieties*",
-    (context: Context) =>
-      generateTablePage(context, {
-        title: context.t("viticulture_vine_variety_title"),
-        breadcrumbs: Breadcrumbs(context.t),
-        form: {
-          category: Field.Select({
-            label: context.t("common_fields_category"),
-            options: Object.fromEntries(
-              Object.values(VineCategory).map((category) => [
-                category,
-                context.t("viticulture_vine_variety_category_" + category),
-              ])
-            ),
-            required: false,
-          }),
-          color: Field.Select({
-            label: context.t("common_fields_color"),
-            options: Object.fromEntries(
-              Object.values(VineColor).map((category) => [
-                category,
-                context.t("viticulture_vine_variety_color_" + category),
-              ])
-            ),
-            required: false,
-          }),
-        },
-        query: VineVarietyTable(context.db).select().orderBy("short_name", "ASC"),
-        credits: CreditTable(context.db)
-          .select()
-          .where("datasource", "=", "vine_varieties"),
-        columns: {
-          name: context.t("common_fields_name"),
-          category: context.t("common_fields_category"),
-          color: context.t("common_fields_color"),
-          utilities: context.t("viticulture_vine_variety_utilities"),
-        },
-        handler: (item) => ({
-          name: Hypermedia.Text({
-            label: context.t("common_fields_name"),
-            value: item.long_name ? item.long_name : item.short_name,
-          }),
-          category: Hypermedia.Text({
-            label: context.t("common_fields_category"),
-            value: context.t("viticulture_vine_variety_category_" + item.category),
-          }),
-          color: item.color
-            ? Hypermedia.Text({
-                label: context.t("common_fields_color"),
-                value: context.t("viticulture_vine_variety_color_" + item.color),
-              })
-            : undefined,
-          utilities: item.utilities
-            ? HypermediaList({
-                label: context.t("viticulture_vine_variety_utilities"),
-                values: item.utilities.map((utility: string) =>
-                  context.t("viticulture_vine_variety_utility_" + utility)
-                ),
-              })
-            : undefined,
+  .path("/viticulture/vine-varieties", (context) =>
+    generateTablePage(context, {
+      title: context.t("viticulture_vine_variety_title"),
+      breadcrumbs: Breadcrumbs(context.t),
+      form: {
+        category: Field.Select({
+          label: context.t("common_fields_category"),
+          options: ObjectFlatMap(VineCategory, (_, category) => ({
+            [category]: context.t("viticulture_vine_variety_category_" + category),
+          })),
+          required: false,
         }),
+        color: Field.Select({
+          label: context.t("common_fields_color"),
+          options: ObjectFlatMap(VineColor, (_, color) => ({
+            [color]: context.t("viticulture_vine_variety_color_" + color),
+          })),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.category) {
+          query.where("category", "=", input.category)
+        }
+        if (input.color) {
+          query.where("color", "=", input.color)
+        }
+      },
+      query: VineVarietyTable(context.db).select().orderBy("short_name", "ASC"),
+      credits: CreditTable(context.db)
+        .select()
+        .where("datasource", "=", "vine_varieties"),
+      columns: {
+        name: context.t("common_fields_name"),
+        category: context.t("common_fields_category"),
+        color: context.t("common_fields_color"),
+        utilities: context.t("viticulture_vine_variety_utilities"),
+      },
+      handler: (item) => ({
+        name: Hypermedia.Text({
+          label: context.t("common_fields_name"),
+          value: item.long_name ? item.long_name : item.short_name,
+        }),
+        category: Hypermedia.Text({
+          label: context.t("common_fields_category"),
+          value: context.t("viticulture_vine_variety_category_" + item.category),
+        }),
+        color: item.color
+          ? Hypermedia.Text({
+              label: context.t("common_fields_color"),
+              value: context.t("viticulture_vine_variety_color_" + item.color),
+            })
+          : undefined,
+        utilities: item.utilities
+          ? HypermediaList({
+              label: context.t("viticulture_vine_variety_utilities"),
+              values: item.utilities.map((utility: string) =>
+                context.t("viticulture_vine_variety_utility_" + utility),
+              ),
+            })
+          : undefined,
       }),
-    {
-      query: t.Object({
-        page: t.Number({ minimum: 1, default: 1 }),
-        category: t.Optional(t.String({ default: undefined })),
-        color: t.Optional(t.String({ default: undefined })),
-      }),
-    }
+    }),
   )

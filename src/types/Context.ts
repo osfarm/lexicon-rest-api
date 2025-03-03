@@ -5,8 +5,9 @@ import type { OutputFormat } from "./OutputFormat"
 export interface Context {
   path: string
   request: Request
+  language: string
   params: Record<string, string>
-  query?: Record<string, string | number>
+  query: Record<string, string>
   t: Translator
   output: OutputFormat
   db: Pool

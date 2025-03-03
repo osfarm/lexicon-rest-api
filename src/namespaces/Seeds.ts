@@ -1,4 +1,3 @@
-import Elysia, { t } from "elysia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
@@ -6,7 +5,7 @@ import { Field } from "../templates/components/Form"
 import { AutoList } from "../templates/views/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
-import type { Context } from "../types/Context"
+import { API } from "../API"
 
 interface Variety {
   id: string
@@ -34,8 +33,8 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const Seeds = new Elysia({ prefix: "/seeds" })
-  .get("/", ({ t }: Context) =>
+export const Seeds = API.new()
+  .path("/seeds", ({ t }) =>
     AutoList({
       page: {
         title: t("seeds_title"),
@@ -49,63 +48,55 @@ export const Seeds = new Elysia({ prefix: "/seeds" })
         ],
       },
       t,
-    })
+    }),
   )
-  .get(
-    "/varieties*",
-    async (cxt: Context) =>
-      generateTablePage(cxt, {
-        title: cxt.t("seeds_variety_title"),
-        breadcrumbs: Breadcrumbs(cxt.t),
-        query: VarietyTable(cxt.db)
-          .select()
-          .orderBy("specie_name_fra", "ASC")
-          .orderBy("variety_name", "ASC")
-          .orderBy("id", "ASC"),
-        columns: {
-          code: cxt.t("seeds_variety_code"),
-          species: cxt.t("species"),
-          variety: cxt.t("variety"),
-          registration_date: cxt.t("registration_date"),
-        },
-        form: {
-          species: Field.Text({
-            label: cxt.t("species"),
-            required: false,
-          }),
-        },
-        formHandler: (input, query) => {
-          if (input.species) {
-            query.where("specie_name_fra", "LIKE", "%" + input.species + "%")
-          }
-        },
-        handler: (resource) => ({
-          code: Hypermedia.Text({
-            label: cxt.t("seeds_variety_code"),
-            value: resource.id,
-          }),
-          species: Hypermedia.Text({
-            label: cxt.t("species"),
-            value: resource.specie_name_fra,
-          }),
-          variety: Hypermedia.Text({
-            label: cxt.t("variety"),
-            value: resource.variety_name,
-          }),
-          registration_date: resource.registration_date
-            ? Hypermedia.Date({
-                label: cxt.t("registration_date"),
-                value: cxt.dateTimeFormatter.Date(resource.registration_date),
-                iso: resource.registration_date.toISOString(),
-              })
-            : undefined,
+  .path("/seeds/varieties", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("seeds_variety_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      query: VarietyTable(cxt.db)
+        .select()
+        .orderBy("specie_name_fra", "ASC")
+        .orderBy("variety_name", "ASC")
+        .orderBy("id", "ASC"),
+      columns: {
+        code: cxt.t("seeds_variety_code"),
+        species: cxt.t("species"),
+        variety: cxt.t("variety"),
+        registration_date: cxt.t("registration_date"),
+      },
+      form: {
+        species: Field.Text({
+          label: cxt.t("species"),
+          required: false,
         }),
-        credits: CreditTable(cxt.db).select().where("datasource", "=", "seed_varieties"),
+      },
+      formHandler: (input, query) => {
+        if (input.species) {
+          query.where("specie_name_fra", "LIKE", "%" + input.species + "%")
+        }
+      },
+      handler: (resource) => ({
+        code: Hypermedia.Text({
+          label: cxt.t("seeds_variety_code"),
+          value: resource.id,
+        }),
+        species: Hypermedia.Text({
+          label: cxt.t("species"),
+          value: resource.specie_name_fra,
+        }),
+        variety: Hypermedia.Text({
+          label: cxt.t("variety"),
+          value: resource.variety_name,
+        }),
+        registration_date: resource.registration_date
+          ? Hypermedia.Date({
+              label: cxt.t("registration_date"),
+              value: cxt.dateTimeFormatter.Date(resource.registration_date),
+              iso: resource.registration_date.toISOString(),
+            })
+          : undefined,
       }),
-    {
-      query: t.Object({
-        page: t.Number({ default: 1 }),
-        species: t.Optional(t.String()),
-      }),
-    }
+      credits: CreditTable(cxt.db).select().where("datasource", "=", "seed_varieties"),
+    }),
   )

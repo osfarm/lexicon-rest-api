@@ -1,4 +1,3 @@
-import Elysia, { t } from "elysia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
@@ -7,7 +6,7 @@ import { ObjectFlatMap } from "../utils"
 import { AutoList } from "../templates/views/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
-import type { Context } from "../types/Context"
+import { API } from "../API"
 
 interface Cropset {
   id: string
@@ -93,8 +92,8 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
-  .get("/", ({ t }: Context) =>
+export const Phytosanitary = API.new()
+  .path("/phytosanitary", ({ t }) =>
     AutoList({
       page: {
         title: t("phytosanitary_title"),
@@ -118,9 +117,9 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
         ],
       },
       t,
-    })
+    }),
   )
-  .get("/cropsets*", async (cxt: Context) =>
+  .path("/phytosanitary/cropsets", async (cxt) =>
     generateTablePage(cxt, {
       title: cxt.t("phytosanitary_cropset_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
@@ -139,81 +138,72 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
           values: cropset.crop_labels.fra.split(", "),
         }),
       }),
-    })
+    }),
   )
-  .get(
-    "/products*",
-    async (cxt: Context) =>
-      generateTablePage(cxt, {
-        title: cxt.t("phytosanitary_product_title"),
-        breadcrumbs: Breadcrumbs(cxt.t),
-        form: {
-          type: Field.Select({
-            label: cxt.t("common_fields_type"),
-            options: ObjectFlatMap(ProductType, (_, value) => ({
-              [value]: value,
-            })),
-            required: false,
-          }),
-          state: Field.Select({
-            label: cxt.t("common_fields_state"),
-            options: ObjectFlatMap(ProductState, (_, value) => ({
-              [value]: cxt.t("pytosanitary_product_state_" + value),
-            })),
-            required: false,
-          }),
-        },
-        formHandler: (input, query) => {
-          if (input.type) {
-            query.where("product_type", "=", input.type)
-          }
-          if (input.state) {
-            query.where("state", "=", input.state)
-          }
-        },
-
-        query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
-
-        columns: {
-          name: cxt.t("common_fields_name"),
-          firm: cxt.t("pytosanitary_product_firm"),
-          type: cxt.t("common_fields_type"),
-          "active-compounds": cxt.t("phytosanitary_product_active_compounds"),
-          state: cxt.t("pytosanitary_product_state"),
-        },
-        handler: (product) => ({
-          name: Hypermedia.Text({
-            label: cxt.t("common_fields_name"),
-            value: product.name,
-          }),
-          firm: Hypermedia.Text({
-            label: cxt.t("phytosanitary_product_firm"),
-            value: product.firm_name,
-          }),
-          type: Hypermedia.Text({
-            label: cxt.t("common_fields_type"),
-            value: product.product_type,
-          }),
-          "active-compounds": HypermediaList({
-            label: cxt.t("phytosanitary_product_active_compounds"),
-            values: product.active_compounds,
-          }),
-          state: Hypermedia.Text({
-            label: cxt.t("pytosanitary_product_state"),
-            value: cxt.t("pytosanitary_product_state_" + product.state),
-          }),
+  .path("/phytosanitary/products", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("phytosanitary_product_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      form: {
+        type: Field.Select({
+          label: cxt.t("common_fields_type"),
+          options: ObjectFlatMap(ProductType, (_, value) => ({
+            [value]: value,
+          })),
+          required: false,
         }),
-        credits: CreditTable(cxt.db).select().where("datasource", "=", "phytosanitary"),
+        state: Field.Select({
+          label: cxt.t("common_fields_state"),
+          options: ObjectFlatMap(ProductState, (_, value) => ({
+            [value]: cxt.t("pytosanitary_product_state_" + value),
+          })),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.type) {
+          query.where("product_type", "=", input.type)
+        }
+        if (input.state) {
+          query.where("state", "=", input.state)
+        }
+      },
+
+      query: ProductTable(cxt.db).select().orderBy("name", "ASC"),
+
+      columns: {
+        name: cxt.t("common_fields_name"),
+        firm: cxt.t("pytosanitary_product_firm"),
+        type: cxt.t("common_fields_type"),
+        "active-compounds": cxt.t("phytosanitary_product_active_compounds"),
+        state: cxt.t("pytosanitary_product_state"),
+      },
+      handler: (product) => ({
+        name: Hypermedia.Text({
+          label: cxt.t("common_fields_name"),
+          value: product.name,
+        }),
+        firm: Hypermedia.Text({
+          label: cxt.t("phytosanitary_product_firm"),
+          value: product.firm_name,
+        }),
+        type: Hypermedia.Text({
+          label: cxt.t("common_fields_type"),
+          value: product.product_type,
+        }),
+        "active-compounds": HypermediaList({
+          label: cxt.t("phytosanitary_product_active_compounds"),
+          values: product.active_compounds,
+        }),
+        state: Hypermedia.Text({
+          label: cxt.t("pytosanitary_product_state"),
+          value: cxt.t("pytosanitary_product_state_" + product.state),
+        }),
       }),
-    {
-      query: t.Object({
-        page: t.Optional(t.Number({ default: 1 })),
-        type: t.Optional(t.String()),
-        state: t.Optional(t.String()),
-      }),
-    }
+      credits: CreditTable(cxt.db).select().where("datasource", "=", "phytosanitary"),
+    }),
   )
-  .get("/symbols*", async (cxt: Context) =>
+  .path("/phytosanitary/symbols", async (cxt) =>
     generateTablePage(cxt, {
       title: cxt.t("phytosanitary_symbol_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
@@ -234,5 +224,5 @@ export const Phytosanitary = new Elysia({ prefix: "/phytosanitary" })
             })
           : undefined,
       }),
-    })
+    }),
   )

@@ -1,4 +1,3 @@
-import Elysia, { t } from "elysia"
 import { Table } from "../Database"
 import { generateTablePage } from "../page-generators/generateTablePage"
 import { Hypermedia } from "../Hypermedia"
@@ -7,7 +6,7 @@ import { AutoList } from "../templates/views/AutoList"
 import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
 import { ObjectFlatMap } from "../utils"
-import type { Context } from "../types/Context"
+import { API } from "../API"
 
 interface Production {
   reference_name: string
@@ -68,8 +67,8 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const Production = new Elysia({ prefix: "/production" })
-  .get("/", ({ t }: Context) =>
+export const Production = API.new()
+  .path("/production", ({ t }) =>
     AutoList({
       page: {
         title: t("production_title"),
@@ -83,67 +82,58 @@ export const Production = new Elysia({ prefix: "/production" })
         ],
       },
       t,
-    })
+    }),
   )
-  .get(
-    "/productions*",
-    async (cxt: Context) =>
-      generateTablePage(cxt, {
-        title: cxt.t("productions_title"),
-        breadcrumbs: Breadcrumbs(cxt.t),
-        query: ProductionTable(cxt.db).select().orderBy("reference_name", "ASC"),
-        columns: {
-          name: cxt.t("common_fields_name"),
-          family: cxt.t("activity_family"),
-          usage: cxt.t("usage"),
-        },
-        form: {
-          family: Field.Select({
-            label: cxt.t("activity_family"),
-            required: false,
-            options: ObjectFlatMap(ActivityFamily, (_, val) => ({
-              [val]: cxt.t("productions_family_" + val),
-            })),
-          }),
-          usage: Field.Select({
-            label: cxt.t("usage"),
-            required: false,
-            options: ObjectFlatMap(ProductionUsage, (_, val) => ({
-              [val]: cxt.t("productions_usage_" + val),
-            })),
-          }),
-        },
-        formHandler: (input, query) => {
-          if (input.family) {
-            query.where("activity_family", "=", input.family)
-          }
-          if (input.usage) {
-            query.where("usage", "=", input.usage)
-          }
-        },
-        handler: (resource) => ({
-          name: Hypermedia.Text({
-            label: cxt.t("reference_name"),
-            value: resource.fra,
-          }),
-          family: Hypermedia.Text({
-            label: cxt.t("activity_family"),
-            value: cxt.t("productions_family_" + resource.activity_family),
-          }),
-          usage: resource.usage
-            ? Hypermedia.Text({
-                label: cxt.t("usage"),
-                value: cxt.t("productions_usage_" + resource.usage),
-              })
-            : undefined,
+  .path("/production/productions", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("productions_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      query: ProductionTable(cxt.db).select().orderBy("reference_name", "ASC"),
+      columns: {
+        name: cxt.t("common_fields_name"),
+        family: cxt.t("activity_family"),
+        usage: cxt.t("usage"),
+      },
+      form: {
+        family: Field.Select({
+          label: cxt.t("activity_family"),
+          required: false,
+          options: ObjectFlatMap(ActivityFamily, (_, val) => ({
+            [val]: cxt.t("productions_family_" + val),
+          })),
         }),
-        credits: CreditTable(cxt.db).select().where("datasource", "=", "productions"),
+        usage: Field.Select({
+          label: cxt.t("usage"),
+          required: false,
+          options: ObjectFlatMap(ProductionUsage, (_, val) => ({
+            [val]: cxt.t("productions_usage_" + val),
+          })),
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.family) {
+          query.where("activity_family", "=", input.family)
+        }
+        if (input.usage) {
+          query.where("usage", "=", input.usage)
+        }
+      },
+      handler: (resource) => ({
+        name: Hypermedia.Text({
+          label: cxt.t("reference_name"),
+          value: resource.fra,
+        }),
+        family: Hypermedia.Text({
+          label: cxt.t("activity_family"),
+          value: cxt.t("productions_family_" + resource.activity_family),
+        }),
+        usage: resource.usage
+          ? Hypermedia.Text({
+              label: cxt.t("usage"),
+              value: cxt.t("productions_usage_" + resource.usage),
+            })
+          : undefined,
       }),
-    {
-      query: t.Object({
-        page: t.Number({ default: 1 }),
-        family: t.Optional(t.String()),
-        usage: t.Optional(t.String()),
-      }),
-    }
+      credits: CreditTable(cxt.db).select().where("datasource", "=", "productions"),
+    }),
   )

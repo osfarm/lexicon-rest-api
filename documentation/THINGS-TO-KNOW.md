@@ -4,14 +4,6 @@
 
 ## English
 
-### API engine
-
-Our HTTP server engine is _Elysia_.
-
-It is mostly fine and well conceived, giving us really nice things such as consistant typing, input validation, and JSX templating.
-
-But is also comes with some constraints, such as big method chaining, and difficult to solve type errors sometimes.
-
 ### Error handling
 
 This is a TypeScript project, but there is something people may not realise about TypeScript, even when they work with it: error handling is terrible in this language.

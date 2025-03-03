@@ -2,6 +2,8 @@ import { match } from "shulk"
 import { useTranslator } from "./Translator"
 import { Pool } from "pg"
 import type { OutputFormat } from "./types/OutputFormat"
+import type { Context } from "./types/Context"
+import type { BunRequest } from "bun"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -20,15 +22,14 @@ const pool = new Pool({
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 const DEFAULT_LANGUAGE = "fr"
 
-type BaseRequest = {
-  headers: Record<string, string | undefined>
-  path: string
-}
+export function applyRequestConfiguration(
+  path: string,
+  request: BunRequest<"/:id">,
+): Context {
+  const headers = request.headers.toJSON()
 
-export function applyRequestConfiguration(req: BaseRequest) {
-  const { headers, path } = req
-
-  const clientDesiredLanguage = headers["accept-language"]?.split(",")[0]?.split("-")[0] || ""
+  const clientDesiredLanguage =
+    headers["accept-language"]?.split(",")[0]?.split("-")[0] || ""
 
   const serverLanguage = AVAILABLE_LANGUAGES.includes(clientDesiredLanguage)
     ? clientDesiredLanguage
@@ -65,7 +66,13 @@ export function applyRequestConfiguration(req: BaseRequest) {
       }).format(date),
   }
 
+  const url = new URL(request.url)
+
   return {
+    path: url.pathname,
+    request: request,
+    query: Object.fromEntries(url.searchParams.entries()),
+    params: request.params,
     output,
     language: serverLanguage,
     t: useTranslator(serverLanguage),

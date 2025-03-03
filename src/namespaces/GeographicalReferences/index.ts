@@ -1,11 +1,10 @@
-import Elysia, { t } from "elysia"
 import { Hypermedia } from "../../Hypermedia"
 import { AutoList } from "../../templates/views/AutoList"
 import type { Translator } from "../../Translator"
-import type { Context } from "../../types/Context"
 import { MunicipalityAPI } from "./MunicipalityAPI"
 import { CadastralParcelAPI } from "./CadastralParcelAPI"
 import { CapParcelAPI } from "./CapParcelAPI"
+import { API } from "../../API"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -20,10 +19,8 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const GeographicalReferences = new Elysia({
-  prefix: "/geographical-references",
-})
-  .get("/", ({ t }: Context) =>
+export const GeographicalReferences = API.new()
+  .path("/geographical-references", ({ t }) =>
     AutoList({
       page: {
         title: t("geographical_references_title"),
@@ -47,7 +44,7 @@ export const GeographicalReferences = new Elysia({
         ],
       },
       t,
-    })
+    }),
   )
   .use(MunicipalityAPI)
   .use(CadastralParcelAPI)

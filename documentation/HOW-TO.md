@@ -11,8 +11,8 @@
 2. Add the following dependencies:
 
 ```ts
-import Elysia, { t } from "elysia"
-import { generateTablePage, type Context } from "../page-generators/generateTablePage"
+import { API } from "../API"
+import { generateTablePage } from "../page-generators/generateTablePage"
 import type { Translator } from "../Translator"
 ```
 
@@ -32,24 +32,20 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+export const NewNamespace = API.new()
 ```
 
 4. Add the namespace to the `src/index.ts` file:
 
 ```ts
-import { Elysia, t } from "elysia"
+import { API } from "./API"
 import { NewNamespace } from "./namespaces/Namespace"
 
 // [...]
 
-new Elysia()
-  // [...]
-  .get("/", ({ t }) => Home({ t }))
-  .get("/documentation*", ({ t, output }) => generateDocumentation(t, output))
-  .guard({
-    query: t.Object({ page: t.Number({ default: 1 }) }),
-  })
+API.new()
+  .path("/", ({ t }) => Home({ t }))
+  .path("/documentation", ({ t, output }) => generateDocumentation(t, output))
   .use(NewNamespace) // <-- Add the namespace after the guard
   .use(GeographicalReferences)
   .use(Phytosanitary)
@@ -69,9 +65,9 @@ import { AutoList } from "../templates/AutoList" /// <-- Add this
 
 // [...]
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+export const NewNamespace = API.new()
   // Add the code below
-  .get("/", ({ t }: Context) =>
+  .path("/namespace-slug", ({ t }) =>
     AutoList({
       page: {
         title: t("namespace_title"),
@@ -115,16 +111,15 @@ const MyResourceTable = Table<MyResource>({
 
 ```ts
 // Add these imports
-import { generateTablePage, type Context } from "../generateTablePage"
+import { generateTablePage } from "../generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
 import { CreditTable } from "./Credits"
 
 // [...]
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+export const NewNamespace = API.new()
   // Add the code below
-  // The '*' at the end of the path is necessary to handle multiple output formats
-  .get("/my-resource*", async (cxt: Context) =>
+  .path("/namespace-slug/my-resource", async (cxt) =>
     generateTablePage(cxt, {
       title: cxt.t("namespace_resource_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
@@ -178,44 +173,35 @@ import { Field } from "../templates/components/Form"
 
 // [...]
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+export const NewNamespace = API.new()
   // Add the code below
-  .get("/my-resource*", async (cxt: Context) =>
-    generateTablePage(
-      cxt,
-      {
-        // [...]
-        // Add the code below
-        form: {
-          name: Field.Text({
-            label: cxt.t("common_fields_name"),
-            required: false,
-          }),
-          status: Field.Select({
-            label: cxt.t("namespace_resource_status"),
-            required: false,
-            options: {
-              available: cxt.t("namespace_resource_status_available"),
-              removed: cxt.t("namespace_resource_status_removed"),
-            },
-          }),
-        },
-        formHandler: (input, query) => {
-          if (input.name) {
-            query.where("name", "LIKE", "%" + input.name + "%")
-          }
-          if (input.status) {
-            query.where("status", "=", input.status)
-          }
-        },
+  .path("/namespace-slug/my-resource", async (cxt) =>
+    generateTablePage(cxt, {
+      // [...]
+      // Add the code below
+      form: {
+        name: Field.Text({
+          label: cxt.t("common_fields_name"),
+          required: false,
+        }),
+        status: Field.Select({
+          label: cxt.t("namespace_resource_status"),
+          required: false,
+          options: {
+            available: cxt.t("namespace_resource_status_available"),
+            removed: cxt.t("namespace_resource_status_removed"),
+          },
+        }),
       },
-      // Add the code below, it won't work if you don't
-      {
-        page: t.Number({ default: 1 }), // <-- This one is mandatory for pagination
-        name: t.Optional(t.String()), // <-- This is for our form's name field
-        status: t.Optional(t.String()), // <-- This is for our form's status field
+      formHandler: (input, query) => {
+        if (input.name) {
+          query.where("name", "LIKE", "%" + input.name + "%")
+        }
+        if (input.status) {
+          query.where("status", "=", input.status)
+        }
       },
-    ),
+    }),
   )
 ```
 
@@ -226,13 +212,13 @@ So, here's what we have here:
 
 ### How to add a section in the Home page
 
-Aller dans `src/templates/Home.tsx` et ajouter votre namespace avec une icone de votre choix au format svg (que vous placerez dans `public/icons`)
+Go to `src/templates/Home.tsx` and add the code below, with an icon (which you will save in the `public/icons` directory)
 
 ```tsx
 <Cell width={6}>
-  <a href="/<<namespace>>" style={SECTION_STYLE}>
-    <img src={"/public/icons/<<your-icon.svg>>"} height={16} /> {t("<<namespace_title>>")}
-  </a>
+  <SectionLink href="/<<your namespace>>" icon-left="/public/icons/<<your icon>>.svg">
+    {t("label")}
+  </SectionLink>
 </Cell>
 ```
 
@@ -244,12 +230,12 @@ Aller dans `src/templates/Home.tsx` et ajouter votre namespace avec une icone de
 2. Ajoutez les dépendances :
 
 ```ts
-import Elysia, { t } from "elysia"
-import { generateTablePage, type Context } from "../generateTablePage"
+import { API } from "./API"
+import { generateTablePage } from "../generateTablePage"
 import type { Translator } from "../Translator"
 ```
 
-3. Définissez les breadcrumbs et initialisez le namespace :
+3. Définissez le fil d'Ariane et initialisez le namespace :
 
 ```ts
 const Breadcrumbs = (t: Translator) => [
@@ -261,15 +247,26 @@ const Breadcrumbs = (t: Translator) => [
   }),
 ]
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" })
+export const NewNamespace = API.new()
 ```
 
 4. Enregistrez le namespace dans `src/index.ts` :
 
 ```ts
+import { API } from "./API"
 import { NewNamespace } from "./namespaces/Namespace"
 
-new Elysia().group("", (app) => app.use(NewNamespace))
+// [...]
+
+API.new()
+  .path("/", ({ t }) => Home({ t }))
+  .path("/documentation", ({ t, output }) => generateDocumentation(t, output))
+  .use(NewNamespace) // <-- Add the namespace after the guard
+  .use(GeographicalReferences)
+  .use(Phytosanitary)
+  .use(Viticulture)
+  .use(Weather)
+  .use(Credits)
 ```
 
 ### Ajouter une page de liste
@@ -279,11 +276,13 @@ Une page de liste est utilisée comme table des matières pour un namespace. Il 
 Ajoutons une page de liste à notre namespace :
 
 ```ts
-import { AutoList } from "../templates/AutoList" /// <-- Ajoutez cette ligne
+import { AutoList } from "../templates/AutoList" /// <-- Add this
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
-  "/",
-  ({ t }: Context) =>
+// [...]
+
+export const NewNamespace = API.new()
+  // Add the code below
+  .path("/namespace-slug", ({ t }) =>
     AutoList({
       page: {
         title: t("namespace_title"),
@@ -297,7 +296,7 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
         ],
       },
     }),
-)
+  )
 ```
 
 ### Ajouter une page de table
@@ -324,12 +323,16 @@ const MyResourceTable = Table<MyResource>({
 2. Créez l'endpoint et appelez la fonction de génération de page :
 
 ```ts
-import { generateTablePage, type Context } from "../generateTablePage"
+// Add these imports
+import { generateTablePage } from "../generateTablePage"
 import { Hypermedia, HypermediaList } from "../Hypermedia"
+import { CreditTable } from "./Credits"
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
-  "/my-resource*",
-  async (cxt: Context) =>
+// [...]
+
+export const NewNamespace = API.new()
+  // Add the code below
+  .path("/namespace-slug/my-resource", async (cxt) =>
     generateTablePage(cxt, {
       title: cxt.t("namespace_resource_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
@@ -359,8 +362,9 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
           values: resource.list_of_things,
         }),
       }),
+      credits: CreditTable(cxt.db).select().where("datasource", "=", "resource"),
     }),
-)
+  )
 ```
 
 ### Ajouter un filtrage et un formulaire
@@ -368,44 +372,41 @@ export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
 Vous pouvez ajouter des filtres à votre page de table afin d'aider les utilisateurs à trouver les données dont ils ont besoin.
 
 ```ts
+// Add these imports
 import { Field } from "../templates/components/Form"
 
-export const NewNamespace = new Elysia({ prefix: "/namespace-slug" }).get(
-  "/my-resource*",
-  async (cxt: Context) =>
-    generateTablePage(
-      cxt,
-      {
-        form: {
-          name: Field.Text({
-            label: cxt.t("common_fields_name"),
-            required: false,
-          }),
-          status: Field.Select({
-            label: cxt.t("namespace_resource_status"),
-            required: false,
-            options: {
-              available: cxt.t("namespace_resource_status_available"),
-              removed: cxt.t("namespace_resource_status_removed"),
-            },
-          }),
-        },
-        formHandler: (input, query) => {
-          if (input.name) {
-            query.where("name", "LIKE", "%" + input.name + "%")
-          }
-          if (input.status) {
-            query.where("status", "=", input.status)
-          }
-        },
+// [...]
+
+export const NewNamespace = API.new()
+  // Add the code below
+  .path("/namespace-slug/my-resource", async (cxt) =>
+    generateTablePage(cxt, {
+      // [...]
+      // Add the code below
+      form: {
+        name: Field.Text({
+          label: cxt.t("common_fields_name"),
+          required: false,
+        }),
+        status: Field.Select({
+          label: cxt.t("namespace_resource_status"),
+          required: false,
+          options: {
+            available: cxt.t("namespace_resource_status_available"),
+            removed: cxt.t("namespace_resource_status_removed"),
+          },
+        }),
       },
-      {
-        page: t.Number({ default: 1 }),
-        name: t.Optional(t.String()),
-        status: t.Optional(t.String()),
+      formHandler: (input, query) => {
+        if (input.name) {
+          query.where("name", "LIKE", "%" + input.name + "%")
+        }
+        if (input.status) {
+          query.where("status", "=", input.status)
+        }
       },
-    ),
-)
+    }),
+  )
 ```
 
 ### Ajouter une entrée de menu
@@ -414,9 +415,8 @@ Aller dans `src/templates/Home.tsx` et ajouter votre namespace avec une icone de
 
 ```tsx
 <Cell width={6}>
-  <a href="/<<namespace>>" style={SECTION_STYLE}>
-    <img src={"/public/icons/<<votre_icone.svg>>"} height={16} />{" "}
-    {t("<<namespace_title>>")}
-  </a>{" "}
+  <SectionLink href="/<<your namespace>>" icon-left="/public/icons/<<your icon>>.svg">
+    {t("label")}
+  </SectionLink>
 </Cell>
 ```
