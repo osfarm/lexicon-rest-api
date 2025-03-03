@@ -6,7 +6,7 @@ All code formatting specification are inforced by the `.prettierrc` file. If you
 
 Otherwise, here are the rules we are using:
 
-- **No semicolons.** They are distateful and don't bring anythig to the table.
+- **No semicolons.** They are distateful and don't bring anything to the table.
 - **2 spaces per indentation level.**
 - **Print width of 90.** Most people use 80, but it gets a bit limiting at time, and 100 is defintely too much.
 - **Use trailing commas**
@@ -29,11 +29,11 @@ As for the case conventions:
 
 ## 3 - Mutability
 
-Safe and comprehensible come comes from clear and straightforward execution flows.
+Safe and comprehensible code comes from clear and straightforward execution flows.
 
 Immutability helps us reach this goal.
 
-Use the `const` keyword when declaring a variable. If you think really need mutability, use the `let` keyword. **Never** use `var`.
+Use the `const` keyword when declaring a variable. If you think your code really needs mutability, use the `let` keyword. **Never** use `var`.
 
 When writing object types definitions, use the `Readonly<T>` wrapper to make its properties immutable too.
 
@@ -44,14 +44,14 @@ Use types and functions instead.
 
 In programming, there are 2 types of functions: pure functions, and impure functions.
 
-A pure function is a deterministic function that has no side-effect: what you see is what you get. No IO, no networking, nothing. For a given set of parameters, a pure functions always returnds the same value.
+A pure function is a deterministic function that has no side-effect: what you see is what you get. No IO, no networking, nothing. For a given set of parameters, a pure functions always returns the same value.
 In a way, a pure function can always be replaced by a infinite-sized look-up table.
 
 A pure function should have a declarative name, telling its user what is its utility.
 e.g. we'll prefer `isEmail(): boolean` instead of `validateEmail(): boolean`
 
 On the contrary, impure functions introduce side-effects and rely on IO and networking to work. A database layer is nothing more than a set of impure functions.
-In Typescript, you can often identify an impure function witgh the keyword `async`. Most of the time, async functions rely on I/O operations, this is why they need to be asynchronous.
+In Typescript, you can often identify impure functions thanks to the `async` keyword. Most of the time, async functions rely on I/O operations, this is why they need to be asynchronous.
 This notion introduces what we call "function coloring", where calling an `async` function makes its caller `async` too. The same goes with impure functions, where a function calling an impure function will always be impure too.
 
 An impure function should have an imperative name, informing the user of the side-effects its introduces.
