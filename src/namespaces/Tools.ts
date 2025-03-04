@@ -47,8 +47,6 @@ export const Tools = API.new()
   .path("/tools/parcel-identifier", async (cxt) => {
     const title = cxt.t("tools_parcel_identifier")
 
-    console.log(cxt)
-
     const breadcrumbs = Breadcrumbs(cxt.t)
 
     const form = {

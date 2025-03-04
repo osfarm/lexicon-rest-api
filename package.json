@@ -9,9 +9,9 @@
     "tag": "bun run ./bin/tag.ts"
   },
   "contributors": [
-    "David JOULIN <djoulin@ekylibre.com> (https://ekylibre.com)",
-    "Elliott LÉPINE <elliott@brad.ag>",
-    "Olivier LÉPINE <olivier@brad.ag> (https://wwww.brad.ag)"
+    "David JOULIN <david.joulin@osfarm.org> (https://ekylibre.com)",
+    "Elliott LÉPINE <elliott.lepine@osfarm.org>",
+    "Olivier LÉPINE <olivier.lepine@osfarm.org> (https://wwww.brad.ag)"
   ],
   "devDependencies": {
     "@types/bun": "^1.2.4",
@@ -21,10 +21,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.2.0",
     "@elysiajs/html": "^1.2.0",
-    "@elysiajs/static": "^1.2.0",
-    "@elysiajs/swagger": "^1.2.0",
     "csv-parse": "^5.6.0",
     "pg": "^8.13.1",
     "shulk": "^0.15.0"

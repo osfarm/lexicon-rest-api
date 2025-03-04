@@ -31,8 +31,6 @@ export async function generateTablePage<T extends object, F extends string>(
 
   const { path, request, query: queryParams, t, output } = context
 
-  console.log(queryParams)
-
   const page = typeof queryParams?.page === "string" ? parseInt(queryParams.page) : 1
 
   const basePath = path.split("?")[0].split(".")[0]
