@@ -6,6 +6,7 @@ import { Ok } from "shulk"
 import { AutoList } from "../templates/views/AutoList"
 import type { Context } from "../types/Context"
 import { API } from "../API"
+import { parse } from "csv-parse/sync"
 
 export interface Credit {
   datasource: string
@@ -22,44 +23,21 @@ export const CreditTable = Table<Credit>({
   primaryKey: "datasource",
 })
 
-const CREDITS = [
-  {
-    provider: "Alpine.js",
-    url: "https://alpinejs.dev/",
-    licence: "MIT",
-    licence_url: "https://github.com/alpinejs/alpine/blob/main/LICENSE.md",
-  },
-  {
-    provider: "Bun",
-    url: "https://bun.sh/",
-    licence: "MIT",
-    licence_url: "https://bun.sh/docs/project/licensing",
-  },
-  {
-    provider: "Font Awesome",
-    url: "https://fontawesome.com",
-    licence: "CC BY 4.0",
-    licence_url: "https://creativecommons.org/licenses/by/4.0/",
-  },
-  {
-    provider: "HTMX",
-    url: "https://htmx.org/",
-    licence: "Zero-Clause BSD",
-    licence_url: "https://github.com/bigskysoftware/htmx/blob/master/LICENSE",
-  },
-  {
-    provider: "Leaflet",
-    url: "https://leafletjs.com/",
-    licence: "BSD 2-Clause License",
-    licence_url: "https://github.com/Leaflet/Leaflet/blob/main/LICENSE",
-  },
-  {
-    provider: "node-postgres",
-    url: "https://node-postgres.com/",
-    licence: "MIT",
-    licence_url: "https://github.com/brianc/node-postgres/blob/master/LICENSE",
-  },
-]
+type SoftwareCredit = {
+  name: string
+  url: string
+  license: string
+  license_url: string
+}
+
+const softwareCreditsCSV = await Bun.file("./src/assets/software-credits.csv").text()
+
+const softwareCredits = parse(softwareCreditsCSV, {
+  delimiter: ",",
+  columns: true,
+  skip_empty_lines: true,
+  encoding: "utf8",
+}) as never as SoftwareCredit[]
 
 export const Credits = API.new()
   .path("/credits", ({ t }) =>
@@ -153,18 +131,18 @@ export const Credits = API.new()
             name: t("common_fields_name"),
             license: t("credits_license"),
           },
-          rows: CREDITS.map((credit) => ({
+          rows: softwareCredits.map((credit) => ({
             name: Hypermedia.Link({
               label: t("common_fields_name"),
-              value: credit.provider,
+              value: credit.name,
               method: "GET",
               href: credit.url,
             }),
             license: Hypermedia.Link({
               label: t("credits_license"),
-              value: credit.licence,
+              value: credit.license,
               method: "GET",
-              href: credit.licence_url,
+              href: credit.license_url,
             }),
           })),
         },
