@@ -240,6 +240,7 @@ tr:hover {
 .button.success {
   background-color: #3dc798;
   color: white;
+  font-weight: bold;
 }
 
 .button.success.shadow {

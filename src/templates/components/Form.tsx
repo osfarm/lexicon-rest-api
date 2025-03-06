@@ -113,7 +113,7 @@ export function Form(props: Props) {
           <button
             type="submit"
             class="success shadow button"
-            style={{ height: "54px", width: "100%", fontWeight: "bold" }}
+            style={{ height: "54px", width: "100%" }}
           >
             {props.submitLabel}
           </button>

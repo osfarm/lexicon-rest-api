@@ -17,6 +17,7 @@ export function Grid(props: Props) {
         padding: "10px",
         flexWrap: "wrap",
         flexDirection: "row",
+        flexFlow: "wrap",
       }}
     >
       {props.children}
@@ -47,6 +48,7 @@ export function Cell(props: CellProps) {
         width: percent,
         flexBasis: percent,
         flexWrap: "wrap",
+        alignItems: "baseline",
       }}
     >
       {children}

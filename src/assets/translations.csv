@@ -41,6 +41,8 @@ tools_parcel_identifier_information,Informations,Information
 tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_cap,Informations PAC,CAP information
 
+map_selector_label,Déplacez le curseur ou saisissez des coordonnées géographiques.,Move the cursor or enter geographic coordinates.
+
 datasets,Jeux de données,Datasets
 filter,Filtrer,Filter
 send,Envoyer,send

@@ -1,13 +1,14 @@
 import { Html } from "@elysiajs/html"
 import type { Translator } from "../../Translator"
 import { Layout } from "../layouts/Layout"
-import { Field, Form, type FormDefinition } from "../components/Form"
+import { type FormDefinition } from "../components/Form"
 import { match, type Result } from "shulk"
 import { Error } from "../components/Error"
 import type { Hypermedia, HypermediaType } from "../../Hypermedia"
 import { Map } from "../components/Map"
 import type { Coordinates } from "../../types/Coordinates"
 import type { MultiPolygon } from "../../types/Geometry"
+import { MapSelector } from "../components/MapSelector"
 
 export interface ParcelIdentifierOkPage {
   title: string
@@ -27,6 +28,9 @@ interface Props {
   page: Result<Error, ParcelIdentifierOkPage>
 }
 
+const DEFAULT_LATITUDE = 48.831561189145276
+const DEFAULT_LONGITUDE = 2.2884060615145954
+
 export function ParcelIdentifier(props: Props) {
   const { page, t } = props
 
@@ -34,25 +38,18 @@ export function ParcelIdentifier(props: Props) {
     Err: ({ val: error }) => <Error error={error} />,
     Ok: ({ val }) => (
       <Layout title={val.title} breadcrumbs={val.breadcrumbs} t={t}>
-        <Form definition={val.form} method="GET" submitLabel={t("send")} />
+        <MapSelector
+          center={{ latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE }}
+          t={t}
+          marker={val.geolocation?.coordinates}
+          shape={val.geolocation?.shape}
+        />
 
         {renderSection(t("tools_parcel_identifier_information"), val.information)}
 
         {renderSection(t("tools_parcel_identifier_cadastre"), val.cadastre)}
 
         {renderSection(t("tools_parcel_identifier_cap"), val.cap)}
-
-        {val.geolocation && (
-          <>
-            <h2>{t("common_location")}</h2>
-
-            <Map
-              center={val.geolocation.coordinates}
-              markers={[val.geolocation.coordinates]}
-              shapes={[val.geolocation.shape]}
-            />
-          </>
-        )}
       </Layout>
     ),
   })
