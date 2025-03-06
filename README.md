@@ -42,7 +42,7 @@ DB_SCHEMA=lexicon__6_0_0-ekyviti
 ### 3. Installer les dépendances
 
 ```sh
-$ bun install
+$ bun upgrade && bun install
 ```
 
 ### 4. Démarrer le serveur
@@ -113,7 +113,7 @@ DB_SCHEMA=lexicon__6_0_0-ekyviti
 ### 3. Install dependencies
 
 ```sh
-$ bun install
+$ bun upgrade && bun install
 ```
 
 ### 4. Start the server
