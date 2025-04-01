@@ -5,10 +5,10 @@ import { type FormDefinition } from "../components/Form"
 import { match, type Result } from "shulk"
 import { Error } from "../components/Error"
 import type { Hypermedia, HypermediaType } from "../../Hypermedia"
-import { Map } from "../components/Map"
 import type { Coordinates } from "../../types/Coordinates"
 import type { MultiPolygon } from "../../types/Geometry"
 import { MapSelector } from "../components/MapSelector"
+import { Chart } from "../components/Chart"
 
 export interface ParcelIdentifierOkPage {
   title: string
@@ -17,6 +17,11 @@ export interface ParcelIdentifierOkPage {
   information?: Record<string, Hypermedia>
   cadastre?: Record<string, Hypermedia>
   cap?: Record<string, Hypermedia>
+  "last-year-weather-reports"?: {
+    station: HypermediaType["Link"]
+    legend: {}
+    values: {}
+  }
   geolocation?: {
     coordinates: Coordinates
     shape: MultiPolygon
@@ -44,12 +49,26 @@ export function ParcelIdentifier(props: Props) {
           marker={val.geolocation?.coordinates}
           shape={val.geolocation?.shape}
         />
-
         {renderSection(t("tools_parcel_identifier_information"), val.information)}
-
         {renderSection(t("tools_parcel_identifier_cadastre"), val.cadastre)}
-
         {renderSection(t("tools_parcel_identifier_cap"), val.cap)}
+        {val["last-year-weather-reports"] !== undefined && (
+          <>
+            <h2>{t("tools_station_last_year_reports")}</h2>
+
+            <span>
+              <b>{val["last-year-weather-reports"].station.label}</b>{" "}
+              <a href={val["last-year-weather-reports"].station.href}>
+                {val["last-year-weather-reports"].station.value}
+              </a>
+            </span>
+
+            <Chart
+              legend={val["last-year-weather-reports"].legend}
+              values={val["last-year-weather-reports"].values}
+            />
+          </>
+        )}
       </Layout>
     ),
   })
