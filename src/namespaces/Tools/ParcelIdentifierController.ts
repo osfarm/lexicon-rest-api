@@ -21,6 +21,7 @@ import { ParcelTable } from "../GeographicalReferences/CadastralParcel"
 import { CapParcelTable } from "../GeographicalReferences/CapParcel"
 import type { Pool } from "pg"
 import { HourlyReportTable, StationTable } from "../Weather"
+import { checkUndefined } from "../../utils"
 
 const RED = "#EE6666"
 const BLUE = "#5470C6"
@@ -230,56 +231,41 @@ async function retrieveParcelData(db: Pool, point: Point) {
     .where("shape", "ST_CONTAINS", point)
     .limit(1)
 
-  // HourlyReportTable(db).select().where('')
+  const searchStationQuery = StationTable(db)
+    .select()
+    .orderByCloseness("centroid", point)
+    .limit(1)
 
   // prettier-ignore
-  const queriesResult = await Concurrently
-    .run(() => searchMunicipalityQuery.run())
+  const queriesResult = await Concurrently.run(() => searchMunicipalityQuery.run())
     .and(() => searchCadastralParcelQuery.run())
     .and(() => searchCAPParcelQuery.run())
+    .and(() => searchStationQuery.run())
     .done()
-
-  const searchStationQuery = await queriesResult
-    .map(([municipalities]) => municipalities[0])
-    .flatMap(checkUndefined)
-    .flatMapAsync((municipality) =>
-      StationTable(db)
-        .select()
-        .where("country", "=", municipality.country)
-        .where("centroid", "ST_WITHIN", municipality.city_shape)
-        .run(),
-    )
-
-  const stationResult = searchStationQuery
-    .map((stations) => stations[0])
-    .flatMap(checkUndefined)
 
   const currentDate = new Date()
   currentDate.setFullYear(currentDate.getFullYear() - 1)
   const oneYearAgo = currentDate.toISOString()
 
-  const fetchReportsResult = await stationResult.flatMapAsync((station) =>
-    HourlyReportTable(db)
-      .select()
-      .where("station_id", "=", station.reference_name)
-      .where("started_at", ">=", oneYearAgo)
-      .orderBy("started_at", "ASC")
-      .run(),
+  const fetchReportsResult = await queriesResult
+    .map(([, , , stations]) => stations[0])
+    .flatMap(checkUndefined)
+    .flatMapAsync((station) =>
+      HourlyReportTable(db)
+        .select()
+        .where("station_id", "=", station.reference_name)
+        .where("started_at", ">=", oneYearAgo)
+        .orderBy("started_at", "ASC")
+        .run(),
+    )
+
+  return queriesResult.map(
+    ([municipalities, cadastralParcels, capParcels, stations]) => ({
+      municipality: municipalities[0] || undefined,
+      cadastralParcel: cadastralParcels[0] || undefined,
+      capParcel: capParcels[0] || undefined,
+      lastYearWeatherReports: fetchReportsResult.unwrapOr(undefined),
+      weatherStation: stations[0] || undefined,
+    }),
   )
-
-  return queriesResult.map(([municipalities, cadastralParcels, capParcels]) => ({
-    municipality: municipalities[0] || undefined,
-    cadastralParcel: cadastralParcels[0] || undefined,
-    capParcel: capParcels[0] || undefined,
-    lastYearWeatherReports: fetchReportsResult.unwrapOr(undefined),
-    weatherStation: stationResult.unwrapOr(undefined),
-  }))
-}
-
-function checkUndefined<T>(value: T): Result<Error, T> {
-  if (value === undefined) {
-    return Err(new Error(""))
-  } else {
-    return Ok(value)
-  }
 }

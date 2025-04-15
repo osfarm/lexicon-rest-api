@@ -3,6 +3,7 @@ import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
 import { ObjectMap } from "./utils"
 import { NotFound } from "./types/HTTPErrors"
 import { Cache } from "./Cache"
+import type { Point } from "./types/Geometry"
 
 const hasher = new Bun.CryptoHasher("sha256")
 const hash = (str: string) => hasher.update(str).digest("base64")
@@ -87,6 +88,17 @@ class Select<T extends object> {
 
   orderBy(field: keyof T, sort: "ASC" | "DESC") {
     this.orders.push({ field, sort })
+    return this
+  }
+
+  orderByCloseness(field: keyof T, point: Point) {
+    this.orders.push({
+      field: `postgis.ST_DISTANCE(${
+        field as string
+      }, postgis.ST_GeomFromGeoJSON('${JSON.stringify(point)}'))` as any,
+      sort: "ASC",
+    })
+
     return this
   }
 
