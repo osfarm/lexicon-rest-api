@@ -1,8 +1,9 @@
-import type { Pool } from "pg"
+import type { Pool, QueryResult } from "pg"
 import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
 import { ObjectMap } from "./utils"
 import { NotFound } from "./types/HTTPErrors"
 import { Cache } from "./Cache"
+import type { Point } from "./types/Geometry"
 
 const hasher = new Bun.CryptoHasher("sha256")
 const hash = (str: string) => hasher.update(str).digest("base64")
@@ -24,7 +25,17 @@ type TableDefinition<T extends object> = {
   geometry?: (keyof T)[]
 }
 
-export function Table<T extends object>(definition: TableDefinition<T>) {
+interface Table<T extends object> {
+  select: () => Select<T>
+  read: (key: string) => AsyncResult<NotFound | Error, T>
+  example: () => Promise<QueryResult<T>>
+}
+
+type TableConstructor<T extends object> = (db: Pool) => Table<T>
+
+export function Table<T extends object>(
+  definition: TableDefinition<T>,
+): TableConstructor<T> {
   return (db: Pool) => ({
     select: () => new Select(db, definition),
 
@@ -38,7 +49,7 @@ export function Table<T extends object>(definition: TableDefinition<T>) {
         .map((rows) => rows[0])
         .flatMap(
           (maybeRow): Result<NotFound, T> =>
-            maybeRow !== undefined ? Ok(maybeRow) : Err(new NotFound())
+            maybeRow !== undefined ? Ok(maybeRow) : Err(new NotFound()),
         )
     },
 
@@ -54,6 +65,8 @@ type Condition<T> = {
   or: []
 }
 
+class Join {}
+
 class Select<T extends object> {
   protected conditions: Condition<T>[]
   protected orders: { field: keyof T; sort: "ASC" | "DESC" }[] = []
@@ -64,6 +77,10 @@ class Select<T extends object> {
     this.conditions = []
   }
 
+  join<S extends object>(table: TableConstructor<S>) {
+    return this
+  }
+
   where(field: keyof T, op: Operator, value: unknown) {
     this.conditions.push({ field, op, value, or: [] })
     return this
@@ -71,6 +88,17 @@ class Select<T extends object> {
 
   orderBy(field: keyof T, sort: "ASC" | "DESC") {
     this.orders.push({ field, sort })
+    return this
+  }
+
+  orderByCloseness(field: keyof T, point: Point) {
+    this.orders.push({
+      field: `postgis.ST_DISTANCE(${
+        field as string
+      }, postgis.ST_GeomFromGeoJSON('${JSON.stringify(point)}'))` as any,
+      sort: "ASC",
+    })
+
     return this
   }
 
@@ -107,7 +135,7 @@ class Select<T extends object> {
         ST_WITHIN: () => [JSON.stringify(condition.value)],
         ST_CONTAINS: () => [JSON.stringify(condition.value)],
         _otherwise: () => [condition.value],
-      })
+      }),
     )
 
     return { conditions, params }
@@ -124,7 +152,7 @@ class Select<T extends object> {
       ? "*, " +
         this.def.geometry
           ?.map(
-            (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`
+            (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`,
           )
           .join(", ")
       : "*"
@@ -132,7 +160,7 @@ class Select<T extends object> {
     const sortings =
       this.orders.length > 0
         ? `ORDER BY ${this.orders.map(
-            (order) => `${order.field as string} ${order.sort}`
+            (order) => `${order.field as string} ${order.sort}`,
           )}`
         : ``
 
@@ -142,7 +170,7 @@ class Select<T extends object> {
           .map(
             ([prop, subdef]) =>
               // @ts-ignore
-              `LEFT JOIN "${DB_SCHEMA}".${subdef.table} ON ${this.def.table}.${prop}=${subdef.table}.${subdef.primaryKey}`
+              `LEFT JOIN "${DB_SCHEMA}".${subdef.table} ON ${this.def.table}.${prop}=${subdef.table}.${subdef.primaryKey}`,
           )
           .join(" ")
       : ``
@@ -166,8 +194,8 @@ class Select<T extends object> {
             ObjectMap(row, (key, value) =>
               this.def.geometry && this.def.geometry.includes(key as any)
                 ? JSON.parse(value)
-                : value
-            )
+                : value,
+            ),
           )
 
           if (!import.meta.env.PRODUCTION) {

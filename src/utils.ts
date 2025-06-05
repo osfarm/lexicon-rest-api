@@ -1,6 +1,8 @@
+import { Err, Ok, type Result } from "shulk"
+
 export function createHref(
   basePath: string,
-  query?: { page?: number; [key: string]: unknown }
+  query?: { page?: number; [key: string]: unknown },
 ) {
   if (!query || Object.keys(query).length === 0) {
     return basePath
@@ -16,16 +18,16 @@ export function createHref(
 
 export function ObjectMap<T extends object, P>(
   obj: T,
-  fn: (key: keyof T, value: T[keyof T]) => P
+  fn: (key: keyof T, value: T[keyof T]) => P,
 ): Record<keyof T, P> {
   return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [key, fn(key as keyof T, value as any)])
+    Object.entries(obj).map(([key, value]) => [key, fn(key as keyof T, value as any)]),
   ) as Record<keyof T, P>
 }
 
 export function ObjectFlatMap<T, I>(
   obj: Record<string, I>,
-  fn: (key: string, value: I) => Record<string, T>
+  fn: (key: string, value: I) => Record<string, T>,
 ): Record<string, T> {
   let mappedObj = {}
   const entries = Object.entries(obj)
@@ -44,4 +46,12 @@ export function isString(val: unknown): val is string {
 
 export function isNumber(val: unknown): val is number {
   return typeof val === "number" && !Number.isNaN(val)
+}
+
+export function checkUndefined<T>(value: T | undefined): Result<Error, T> {
+  if (value === undefined) {
+    return Err(new Error("Value is undefined."))
+  } else {
+    return Ok(value)
+  }
 }

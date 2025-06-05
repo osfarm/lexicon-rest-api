@@ -14,6 +14,13 @@ import { pointToCoordinates } from "../types/Coordinates"
 import { generateResourcePage } from "../page-generators/generateResourcePage"
 import { MunicipalityTable } from "./GeographicalReferences/Municipality"
 import { API } from "../API"
+import { Chart } from "../templates/components/Chart"
+import { match } from "shulk"
+import { Error } from "../templates/components/Error"
+
+const RED = "#EE6666"
+const BLUE = "#5470C6"
+const CYAN = "#48dbfb"
 
 interface Station {
   reference_name: string
@@ -49,7 +56,7 @@ type HourlyReport = {
   weather_description?: string
 }
 
-const HourlyReportTable = Table<HourlyReport>({
+export const HourlyReportTable = Table<HourlyReport>({
   table: "registered_hourly_weathers",
   primaryKey: "station_id",
 })
@@ -212,6 +219,16 @@ export const Weather = API.new()
               method: "GET",
               href: `/weather/stations/${reference}/geolocation`,
             }),
+            "last-year-temperature-reports": Hypermedia.Link({
+              value: cxt.t("weather_station_last_year_temperature_reports"),
+              method: "GET",
+              href: `/weather/stations/${reference}/last-year-temperature-reports`,
+            }),
+            "last-year-humidity-reports": Hypermedia.Link({
+              value: cxt.t("weather_station_last_year_humidity_reports"),
+              method: "GET",
+              href: `/weather/stations/${reference}/last-year-humidity-reports`,
+            }),
           },
           links: [
             Hypermedia.Link({
@@ -248,7 +265,107 @@ export const Weather = API.new()
       }))
       .map(generateMapSection).val
   })
-  .path("/weather/stations/:reference/hourly-reports", async (cxt: Context) =>
+  .path("/weather/stations/:reference/last-year-temperature-reports", async (cxt) => {
+    const title = cxt.t("weather_station_hourly_reports")
+
+    const currentDate = new Date()
+
+    //const oneYearAgo =
+
+    currentDate.setFullYear(currentDate.getFullYear() - 1)
+    const oneYearAgo = currentDate.toISOString()
+
+    const fetchReportsResult = await HourlyReportTable(cxt.db)
+      .select()
+      .where("station_id", "=", cxt.params?.reference)
+      .where("started_at", ">=", oneYearAgo)
+      .orderBy("started_at", "ASC")
+      .run()
+
+    return match(fetchReportsResult).case({
+      Err: ({ val: error }) => Error({ error }),
+      Ok: ({ val: reports }) => {
+        const legend = {
+          "temperature-min": {
+            label: cxt.t("weather_station_hourly_report_temperature_min"),
+            unit: "°C",
+            type: `line` as const,
+            color: RED,
+            side: "left" as const,
+          },
+          "temperature-max": {
+            label: cxt.t("weather_station_hourly_report_temperature_max"),
+            unit: "°C",
+            type: `line` as const,
+            color: RED,
+            side: "right" as const,
+            stack: "Total",
+          },
+        }
+
+        const values = reports.reduce((prev, curr) => {
+          const item = {
+            "temperature-min": parseFloat(curr.min_temp as any),
+            "temperature-max": parseFloat(curr.max_temp as any),
+          }
+
+          return { ...prev, [cxt.dateTimeFormatter.DateTime(curr.started_at)]: item }
+        }, {})
+
+        console.log(values)
+
+        return Chart({ legend, values })
+      },
+    })
+  })
+  .path("/weather/stations/:reference/last-year-humidity-reports", async (cxt) => {
+    const title = cxt.t("weather_station_hourly_humidity_eports")
+
+    const currentDate = new Date()
+    currentDate.setFullYear(currentDate.getFullYear() - 1)
+    const oneYearAgo = currentDate.toISOString()
+
+    const fetchReportsResult = await HourlyReportTable(cxt.db)
+      .select()
+      .where("station_id", "=", cxt.params?.reference)
+      .where("started_at", ">=", oneYearAgo)
+      .orderBy("started_at", "ASC")
+      .run()
+
+    return match(fetchReportsResult).case({
+      Err: ({ val: error }) => Error({ error }),
+      Ok: ({ val: reports }) => {
+        const legend = {
+          humidity: {
+            label: cxt.t("weather_station_hourly_report_humidity"),
+            unit: "%",
+            type: "line" as const,
+            color: BLUE,
+            side: "left" as const,
+          },
+          rain: {
+            label: cxt.t("weather_station_hourly_report_rain"),
+            unit: "mm",
+            type: "bar" as const,
+            color: CYAN,
+            side: "right" as const,
+          },
+        }
+
+        const values = reports.reduce((prev, curr) => {
+          const item = {
+            humidity: parseFloat(curr.humidity as any),
+            rain: parseFloat((curr.rain as any) || 0),
+          }
+
+          return { ...prev, [cxt.dateTimeFormatter.DateTime(curr.started_at)]: item }
+        }, {})
+
+        return Chart({ legend, values })
+      },
+    })
+  })
+  .path("/weather/stations/:reference/hourly-reports", async (cxt) =>
     generateTablePage(cxt, {
       title: cxt.t("weather_station_hourly_reports"),
       breadcrumbs: [
