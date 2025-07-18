@@ -1,5 +1,6 @@
 name,url,license,license_url
 Alpine.js,https://alpinejs.dev/,MIT,https://github.com/alpinejs/alpine/blob/main/LICENSE.md
+Apache ECharts,https://echarts.apache.org/en/index.html,"APACHE LICENSE, VERSION 2.0",https://www.apache.org/licenses/LICENSE-2.0
 Bun,https://bun.sh/,MIT,https://bun.sh/docs/project/licensing
 Font Awesome,https://fontawesome.com,CC BY 4.0,https://creativecommons.org/licenses/by/4.0/
 HTMX,https://htmx.org/,Zero-Clause BSD,https://github.com/bigskysoftware/htmx/blob/master/LICENSE

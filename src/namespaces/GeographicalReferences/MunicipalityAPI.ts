@@ -1,10 +1,10 @@
 import { generateTablePage } from "../../page-generators/generateTablePage"
-import { isString, ObjectFlatMap } from "../../utils"
+import { checkUndefined, isString, ObjectFlatMap } from "../../utils"
 import { Field } from "../../templates/components/Form"
 import { MunicipalityTable } from "./Municipality"
 import { CreditTable } from "../Credits"
 import { Hypermedia, hypermedia2json } from "../../Hypermedia"
-import { StationTable } from "../Weather"
+import { HourlyReportTable, StationTable } from "../Weather"
 import { MunicipalityFilters } from "./MunicipalityFilters"
 import { pointToCoordinates } from "../../types/Coordinates"
 import { generateMapSection } from "../../page-generators/generateMapSection"
@@ -15,6 +15,12 @@ import { BadRequest, NotFound } from "../../types/HTTPErrors"
 import { generateResourcePage } from "../../page-generators/generateResourcePage"
 import { CapParcelTable } from "./CapParcel"
 import { API } from "../../API"
+import { match } from "shulk"
+import { Error } from "../../templates/components/Error"
+import { Chart } from "../../templates/components/Chart"
+
+const RED = "#EE6666"
+const BLUE = "#5470C6"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -105,15 +111,20 @@ export const MunicipalityAPI = API.new()
       handler: async (id) => {
         const readMunicipalityResult = await MunicipalityTable(cxt.db).read(id)
 
-        const searchStationsResult = await readMunicipalityResult.flatMapAsync(
-          (municipality) =>
+        const searchStationsResult = await readMunicipalityResult
+          .map((municipality) => municipality.city_centroid)
+          .flatMap(checkUndefined)
+          .flatMapAsync((centroid) =>
             StationTable(cxt.db)
               .select()
-              .where("station_name", "=", municipality.city_name)
+              .orderByCloseness("centroid", centroid)
+              .limit(1)
               .run(),
-        )
+          )
 
-        const associatedStations = searchStationsResult.unwrapOr([])
+        const associatedStation = searchStationsResult
+          .map((stations) => stations[0])
+          .unwrapOr(undefined)
 
         return readMunicipalityResult.map((municipality) => ({
           title: municipality.city_name,
@@ -150,21 +161,31 @@ export const MunicipalityAPI = API.new()
                 }),
               )
               .unwrapOr(undefined),
+            "last-year-weather-reports": associatedStation
+              ? Hypermedia.Link({
+                  value: cxt.t("tools_station_last_year_reports"),
+                  method: "GET",
+                  href: `/geographical-references/municipalities/${municipality.id}/last-year-weather-reports`,
+                })
+              : undefined,
           },
-          links: associatedStations.flatMap((station) => [
-            Hypermedia.Link({
-              value: cxt.t("weather_station") + " " + station.reference_name,
-              method: "GET",
-              href: `/weather/stations/${station.reference_name}`,
-            }),
-            Hypermedia.Link({
-              value:
-                cxt.t("geographical_references_municipality_weather_reports") +
-                ` (${cxt.t("weather_station")} ${station.reference_name})`,
-              method: "GET",
-              href: `/weather/stations/${station.reference_name}/hourly-reports`,
-            }),
-          ]),
+          links: associatedStation
+            ? [
+                Hypermedia.Link({
+                  value:
+                    cxt.t("weather_station") + " " + associatedStation.reference_name,
+                  method: "GET",
+                  href: `/weather/stations/${associatedStation.reference_name}`,
+                }),
+                Hypermedia.Link({
+                  value:
+                    cxt.t("geographical_references_municipality_weather_reports") +
+                    ` (${cxt.t("weather_station")} ${associatedStation.reference_name})`,
+                  method: "GET",
+                  href: `/weather/stations/${associatedStation.reference_name}/hourly-reports`,
+                }),
+              ]
+            : [],
         }))
       },
     }),
@@ -264,3 +285,70 @@ export const MunicipalityAPI = API.new()
         }),
       ).val
   })
+  .path(
+    "/geographical-references/municipalities/:id/last-year-weather-reports",
+    async (cxt) => {
+      const readMunicipalityResult = await MunicipalityTable(cxt.db).read(cxt.params.id)
+
+      const searchStationsResult = await readMunicipalityResult
+        .map((municipality) => municipality.city_centroid)
+        .flatMap(checkUndefined)
+        .flatMapAsync((centroid) =>
+          StationTable(cxt.db)
+            .select()
+            .orderByCloseness("centroid", centroid)
+            .limit(1)
+            .run(),
+        )
+
+      const currentDate = new Date()
+      currentDate.setFullYear(currentDate.getFullYear() - 1)
+      const oneYearAgo = currentDate.toISOString()
+
+      const fetchReportsResult = await searchStationsResult
+        .map((stations) => stations[0])
+        .flatMap(checkUndefined)
+        .flatMapAsync((station) =>
+          HourlyReportTable(cxt.db)
+            .select()
+            .where("station_id", "=", station.reference_name)
+            .where("started_at", ">=", oneYearAgo)
+            .orderBy("started_at", "ASC")
+            .run(),
+        )
+
+      return match(fetchReportsResult).case({
+        Err: ({ val: error }) => Error({ error }),
+        Ok: ({ val: reports }) => {
+          const legend = {
+            "temperature-max": {
+              label: cxt.t("weather_station_hourly_report_temperature_max"),
+              unit: "°C",
+              type: "line" as const,
+              color: RED,
+              side: "left" as const,
+              stack: "Total",
+            },
+            humidity: {
+              label: cxt.t("weather_station_hourly_report_humidity"),
+              unit: "%",
+              type: "line" as const,
+              color: BLUE,
+              side: "right" as const,
+            },
+          }
+
+          const values = reports.reduce((prev, curr) => {
+            const item = {
+              "temperature-max": parseFloat(curr.max_temp as any),
+              humidity: parseFloat(curr.humidity as any),
+            }
+
+            return { ...prev, [cxt.dateTimeFormatter.DateTime(curr.started_at)]: item }
+          }, {})
+
+          return Chart({ legend, values })
+        },
+      })
+    },
+  )
