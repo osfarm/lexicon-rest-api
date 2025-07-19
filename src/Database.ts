@@ -93,7 +93,18 @@ class Select<T extends object> {
 
   orderByCloseness(field: keyof T, point: Point) {
     this.orders.push({
-      field: `postgis.ST_DISTANCE(${
+      field: `postgis.ST_Distance(${
+        field as string
+      }, postgis.ST_GeomFromGeoJSON('${JSON.stringify(point)}'))` as any,
+      sort: "ASC",
+    })
+
+    return this
+  }
+
+  orderByClosenessPoint(field: keyof T, point: Point) {
+    this.orders.push({
+      field: `postgis.ST_ClosestPoint(${
         field as string
       }, postgis.ST_GeomFromGeoJSON('${JSON.stringify(point)}'))` as any,
       sort: "ASC",

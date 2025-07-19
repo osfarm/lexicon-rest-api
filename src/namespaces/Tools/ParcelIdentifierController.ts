@@ -18,6 +18,7 @@ import {
 import { coordinatesToPoint, type Point } from "../../types/Geometry"
 import { MunicipalityTable } from "../GeographicalReferences/Municipality"
 import { ParcelTable } from "../GeographicalReferences/CadastralParcel"
+import { ParcelPriceTable } from "../GeographicalReferences/CadastralParcelPrice"
 import { CapParcelTable } from "../GeographicalReferences/CapParcel"
 import type { Pool } from "pg"
 import { HourlyReportTable, StationTable } from "../Weather"
@@ -89,6 +90,7 @@ export async function ParcelIdentifierController(
           ({
             municipality,
             cadastralParcel,
+            cadastralParcelPrice,
             capParcel,
             lastYearWeatherReports,
             weatherStation,
@@ -145,6 +147,24 @@ export async function ParcelIdentifierController(
                     label: cxt.t("geographical_references_cadastral_parcel_area"),
                     value: cadastralParcel.net_surface_area,
                     unit: "m²",
+                  }),
+                }
+              : undefined,
+            price: cadastralParcelPrice
+              ? {
+                  id: Hypermedia.Link({
+                    label: cxt.t("geographical_references_cadastral_parcel_price_id"),
+                    value: cadastralParcelPrice.id,
+                    method: "GET",
+                    href:
+                      "/geographical-references/cadastral-parcel-prices/" + cadastralParcelPrice.id,
+                  }),
+                  prefix: Hypermedia.Number({
+                    label: cxt.t(
+                      "geographical_references_cadastral_parcel_price_cadastral_price",
+                    ),
+                    value: cadastralParcelPrice.cadastral_price,
+                    unit: "€",
                   }),
                 }
               : undefined,
@@ -225,6 +245,11 @@ async function retrieveParcelData(db: Pool, point: Point) {
     .select()
     .where("shape", "ST_CONTAINS", point)
     .limit(1)
+  
+  const searchCadastralParcelPriceQuery = ParcelPriceTable(db)
+    .select()
+    .orderByClosenessPoint("centroid", point)
+    .limit(1)
 
   const searchCAPParcelQuery = CapParcelTable(db)
     .select()
@@ -239,6 +264,7 @@ async function retrieveParcelData(db: Pool, point: Point) {
   // prettier-ignore
   const queriesResult = await Concurrently.run(() => searchMunicipalityQuery.run())
     .and(() => searchCadastralParcelQuery.run())
+    .and(() => searchCadastralParcelPriceQuery.run())
     .and(() => searchCAPParcelQuery.run())
     .and(() => searchStationQuery.run())
     .done()
@@ -260,9 +286,10 @@ async function retrieveParcelData(db: Pool, point: Point) {
     )
 
   return queriesResult.map(
-    ([municipalities, cadastralParcels, capParcels, stations]) => ({
+    ([municipalities, cadastralParcels, cadastralParcelPrices, capParcels, stations]) => ({
       municipality: municipalities[0] || undefined,
       cadastralParcel: cadastralParcels[0] || undefined,
+      cadastralParcelPrice: cadastralParcelPrices[0] || undefined,
       capParcel: capParcels[0] || undefined,
       lastYearWeatherReports: fetchReportsResult.unwrapOr(undefined),
       weatherStation: stations[0] || undefined,

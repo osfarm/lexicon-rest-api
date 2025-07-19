@@ -3,6 +3,7 @@ import { AutoList } from "../../templates/views/AutoList"
 import type { Translator } from "../../Translator"
 import { MunicipalityAPI } from "./MunicipalityAPI"
 import { CadastralParcelAPI } from "./CadastralParcelAPI"
+import { CadastralParcelPriceAPI } from "./CadastralParcelPriceAPI"
 import { CapParcelAPI } from "./CapParcelAPI"
 import { API } from "../../API"
 
@@ -41,6 +42,11 @@ export const GeographicalReferences = API.new()
             method: "GET",
             href: "/geographical-references/municipalities",
           }),
+          Hypermedia.Link({
+            value: t("geographical_references_cadastral_parcel_price_title"),
+            method: "GET",
+            href: "/geographical-references/cadastral-parcel-prices",
+          }),
         ],
       },
       t,
@@ -48,4 +54,5 @@ export const GeographicalReferences = API.new()
   )
   .use(MunicipalityAPI)
   .use(CadastralParcelAPI)
+  .use(CadastralParcelPriceAPI)
   .use(CapParcelAPI)

@@ -3,7 +3,7 @@ import type { Point } from "../../types/Geometry"
 
 export interface ParcelPrice {
   id: string
-  building_nature: string
+  building_nature?: string
   building_area?: number
   cadastral_parcel_id: string
   cadastral_parcel_area?: number
@@ -11,18 +11,14 @@ export interface ParcelPrice {
   mutation_id: string
   mutation_date: Date
   centroid: Point
+  address: string
   postal_code: string
+  city: string
   department: string
 }
 
 export const ParcelPriceTable = Table<ParcelPrice>({
   table: "registered_cadastral_prices",
   primaryKey: "id",
-  oneToOne: {
-    cadastral_parcel_id: {
-      table: "registered_cadastral_parcels",
-      primaryKey: "id",
-    },
-  },
   geometry: ["centroid"],
 })

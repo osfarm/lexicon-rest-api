@@ -16,6 +16,7 @@ export interface ParcelIdentifierOkPage {
   form: FormDefinition
   information?: Record<string, Hypermedia>
   cadastre?: Record<string, Hypermedia>
+  price?: Record<string, Hypermedia>
   cap?: Record<string, Hypermedia>
   "last-year-weather-reports"?: {
     station: HypermediaType["Link"]
@@ -51,6 +52,7 @@ export function ParcelIdentifier(props: Props) {
         />
         {renderSection(t("tools_parcel_identifier_information"), val.information)}
         {renderSection(t("tools_parcel_identifier_cadastre"), val.cadastre)}
+        {renderSection(t("tools_parcel_identifier_price"), val.price)}
         {renderSection(t("tools_parcel_identifier_cap"), val.cap)}
         {val["last-year-weather-reports"] !== undefined && (
           <>
