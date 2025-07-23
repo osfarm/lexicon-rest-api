@@ -110,36 +110,36 @@ export const Credits = API.new()
       }),
     }),
   )
-  .path("/credits/software", ({ t }) =>
+  .path("/credits/software", (cxt) =>
     AutoTable({
       page: Ok({
-        title: t("credits_software_title"),
+        title: cxt.t("credits_software_title"),
         breadcrumbs: [
           Hypermedia.Link({
-            value: t("home_title"),
+            value: cxt.t("home_title"),
             method: "GET",
             href: "/",
           }),
           Hypermedia.Link({
-            value: t("credits_title"),
+            value: cxt.t("credits_title"),
             method: "GET",
             href: "/credits",
           }),
         ],
         table: {
           columns: {
-            name: t("common_fields_name"),
-            license: t("credits_license"),
+            name: cxt.t("common_fields_name"),
+            license: cxt.t("credits_license"),
           },
           rows: softwareCredits.map((credit) => ({
             name: Hypermedia.Link({
-              label: t("common_fields_name"),
+              label: cxt.t("common_fields_name"),
               value: credit.name,
               method: "GET",
               href: credit.url,
             }),
             license: Hypermedia.Link({
-              label: t("credits_license"),
+              label: cxt.t("credits_license"),
               value: credit.license,
               method: "GET",
               href: credit.license_url,
@@ -160,6 +160,6 @@ export const Credits = API.new()
         pages: [],
         "total-pages": 1,
       }),
-      t,
+      context: cxt,
     }),
   )
