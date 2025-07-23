@@ -4,8 +4,6 @@ import { CreditTable } from "../Credits"
 import { Field } from "../../templates/components/Form"
 import { Hypermedia } from "../../Hypermedia"
 import { MunicipalityTable } from "./Municipality"
-import { pointToCoordinates } from "../../types/Coordinates"
-import { generateMapSection } from "../../page-generators/generateMapSection"
 import type { Translator } from "../../Translator"
 import { generateResourcePage } from "../../page-generators/generateResourcePage"
 import { API } from "../../API"
@@ -52,54 +50,70 @@ export const CadastralParcelPriceAPI = API.new()
           query.where("city", "LIKE", input.city)
         }
         if (input.department) {
-          query.where("department", "=", input.department).orderBy("postal_code", "ASC").orderBy("city", "ASC")
+          query
+            .where("department", "=", input.department)
+            .orderBy("postal_code", "ASC")
+            .orderBy("city", "ASC")
         }
       },
       columns: {
         id: cxt.t("geographical_references_cadastral_parcel_price_id"),
-        cadastral_parcel: cxt.t("geographical_references_cadastral_parcel_price_cadastral_parcel"),
-        mutation_id: cxt.t("geographical_references_cadastral_parcel_price_mutation_id"),
-        building_nature: cxt.t("geographical_references_cadastral_parcel_price_building_nature"),
-        mutation_date: cxt.t("geographical_references_cadastral_parcel_price_mutation_date"),
-        cadastral_price: cxt.t("geographical_references_cadastral_parcel_price_cadastral_price"),
-        postal_code: cxt.t("geographical_references_cadastral_parcel_price_postal_code"),
+        "cadastral-parcel": cxt.t(
+          "geographical_references_cadastral_parcel_price_cadastral_parcel",
+        ),
+        "mutation-id": cxt.t(
+          "geographical_references_cadastral_parcel_price_mutation_id",
+        ),
+        "postal-code": cxt.t(
+          "geographical_references_cadastral_parcel_price_postal_code",
+        ),
         city: cxt.t("geographical_references_cadastral_parcel_price_city"),
+        address: cxt.t("geographical_references_cadastral_parcel_price_address"),
+        "mutation-date": cxt.t(
+          "geographical_references_cadastral_parcel_price_mutation_date",
+        ),
+        "cadastral-price": cxt.t(
+          "geographical_references_cadastral_parcel_price_cadastral_price",
+        ),
       },
       handler: (parcel) => ({
         id: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_price_id"),
+          label: "#",
           value: parcel.id,
         }),
-        cadastral_parcel: Hypermedia.Link({
+        "cadastral-parcel": Hypermedia.Link({
           value: parcel.cadastral_parcel_id,
           method: "GET",
-          href: "/geographical-references/cadastral-parcels/" + parcel.cadastral_parcel_id,
+          href:
+            "/geographical-references/cadastral-parcels/" + parcel.cadastral_parcel_id,
         }),
-        mutation_id: Hypermedia.Text({
+        "mutation-id": Hypermedia.Text({
           label: cxt.t("geographical_references_cadastral_parcel_price_mutation_id"),
           value: parcel.mutation_id,
         }),
-        building_nature: Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_price_building_nature"),
-          value: parcel.building_nature,
-        }),
-        mutation_date: Hypermedia.Date({
-          label: cxt.t("geographical_references_cadastral_parcel_price_mutation_date"),
-          value: cxt.dateTimeFormatter.Date(parcel.mutation_date),
-          iso: parcel.mutation_date.toISOString(),
-        }),
-        cadastral_price: Hypermedia.Number({
-          label: cxt.t("geographical_references_cadastral_parcel_price_cadastral_price"),
-          value: parcel.cadastral_price,
-          unit: "€",
-        }),
-        postal_code: Hypermedia.Text({
+        "postal-code": Hypermedia.Text({
           label: cxt.t("geographical_references_cadastral_parcel_price_postal_code"),
           value: parcel.postal_code,
         }),
         city: Hypermedia.Text({
           label: cxt.t("geographical_references_cadastral_parcel_price_city"),
           value: parcel.city,
+        }),
+        address: parcel.building_nature
+          ? Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_price_address"),
+              value: parcel.address,
+            })
+          : undefined,
+        "mutation-date": Hypermedia.Date({
+          label: cxt.t("geographical_references_cadastral_parcel_price_mutation_date"),
+          value: cxt.dateTimeFormatter.Date(parcel.mutation_date),
+          iso: parcel.mutation_date.toISOString(),
+        }),
+        "cadastral-price": Hypermedia.Number({
+          label: cxt.t("geographical_references_cadastral_parcel_price_cadastral_price"),
+          value: parcel.cadastral_price,
+          unit: "€",
         }),
       }),
     }),
@@ -117,12 +131,13 @@ export const CadastralParcelPriceAPI = API.new()
       handler: async (id) => {
         const readParcelPriceResult = await ParcelPriceTable(cxt.db).read(id)
 
-        const searchMunicipalitiesResult = await readParcelPriceResult.flatMapAsync((parcel) =>
-          MunicipalityTable(cxt.db)
-            .select()
-            .where("postal_code", "=", parcel.postal_code)
-            .limit(1)
-            .run(),
+        const searchMunicipalitiesResult = await readParcelPriceResult.flatMapAsync(
+          (parcel) =>
+            MunicipalityTable(cxt.db)
+              .select()
+              .where("postal_code", "=", parcel.postal_code)
+              .limit(1)
+              .run(),
         )
 
         const associatedMunicipality = searchMunicipalitiesResult
@@ -142,12 +157,38 @@ export const CadastralParcelPriceAPI = API.new()
                   href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
                 })
               : undefined,
+            "postal-code": Hypermedia.Text({
+              label: cxt.t("geographical_references_cadastral_parcel_price_postal_code"),
+              value: parcel.postal_code,
+            }),
+            address: Hypermedia.Text({
+              label: cxt.t("common_fields_address"),
+              value: parcel.address,
+            }),
+            "building-nature": parcel.building_nature
+              ? Hypermedia.Text({
+                  label: cxt.t(
+                    "geographical_references_cadastral_parcel_price_building_nature",
+                  ),
+                  value: parcel.building_nature,
+                })
+              : undefined,
+            "mutation-date": Hypermedia.Date({
+              label: cxt.t(
+                "geographical_references_cadastral_parcel_price_mutation_date",
+              ),
+              value: cxt.dateTimeFormatter.Date(parcel.mutation_date),
+              iso: parcel.mutation_date.toISOString(),
+            }),
             cadastral_price: Hypermedia.Number({
-              label: cxt.t("geographical_references_cadastral_parcel_price_cadastral_price"),
+              label: cxt.t(
+                "geographical_references_cadastral_parcel_price_cadastral_price",
+              ),
               value: parcel.cadastral_price,
               unit: "€",
             }),
           },
+          sections: {},
           links: associatedMunicipality
             ? [
                 Hypermedia.Link({

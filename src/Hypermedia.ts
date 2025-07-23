@@ -101,30 +101,32 @@ function hypermedia2jsonobj(hypermedia: object): object {
     typeof hypermedia === "boolean"
   ) {
     return hypermedia
+  } else if (typeof hypermedia === "object" && hypermedia !== null) {
+    const jsonified: object = Object.entries(hypermedia)
+      .map(([key, value]) => {
+        if (
+          key === "@id" ||
+          typeof value === "string" ||
+          typeof value === "number" ||
+          value === undefined
+        ) {
+          return [key, value]
+        } else {
+          return [key, hypermedia2jsonobj(value)]
+        }
+      })
+      .reduce((previous, [key, value]) => {
+        if (key === "_state") {
+          return { "@type": value, ...previous }
+        } else {
+          return { ...previous, [key]: value }
+        }
+      }, {})
+
+    return jsonified
+  } else {
+    return hypermedia
   }
-
-  const jsonified: object = Object.entries(hypermedia)
-    .map(([key, value]) => {
-      if (
-        key === "@id" ||
-        typeof value === "string" ||
-        typeof value === "number" ||
-        value === undefined
-      ) {
-        return [key, value]
-      } else {
-        return [key, hypermedia2jsonobj(value)]
-      }
-    })
-    .reduce((previous, [key, value]) => {
-      if (key === "_state") {
-        return { "@type": value, ...previous }
-      } else {
-        return { ...previous, [key]: value }
-      }
-    }, {})
-
-  return jsonified
 }
 
 export function hypermedia2json(request: Request, hypermedia: object): Response {
@@ -146,7 +148,7 @@ export function hypermedia2json(request: Request, hypermedia: object): Response 
         name: hypermedia.name,
         message: hypermedia.message,
       }),
-      { status: status }
+      { status: status },
     )
   } else {
     let status = 200
@@ -211,7 +213,7 @@ export function hypermedia2csv(obj: TableCompatible) {
             return ""
           }
         })
-        .join(",")
+        .join(","),
     ),
   ].join("\n")
 

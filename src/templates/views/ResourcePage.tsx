@@ -1,9 +1,9 @@
 import { Html } from "@elysiajs/html"
 import { Layout } from "../layouts/Layout"
-import type { Translator } from "../../Translator"
 import { match, type Result } from "shulk"
 import type { Hypermedia, HypermediaType } from "../../Hypermedia"
 import { Error } from "../components/Error"
+import type { Context } from "../../types/Context"
 
 interface Props {
   page: Result<
@@ -16,22 +16,28 @@ interface Props {
       links: HypermediaType["Link"][]
     }
   >
-  t: Translator
+  context: Context
 }
 
 export function ResourcePage(props: Props) {
-  const { page, t } = props
+  const { page, context } = props
 
   return match(page).case({
     Err: ({ val: error }) => <Error error={error} />,
     Ok: ({ val }) => (
-      <Layout title={val.title} breadcrumbs={val.breadcrumbs} t={t}>
+      <Layout title={val.title} breadcrumbs={val.breadcrumbs} t={context.t}>
         <div>
-          <h2>{t("common_details")}</h2>
+          <h2>{context.t("common_details")}</h2>
 
           {Object.values(val.details)
             .filter((detail) => detail !== undefined)
-            .map((detail) => `<b>${detail.label}</b> ${renderHypermedia(detail)}`)
+            .map(
+              (detail) =>
+                `<b>${detail.label}</b> ${renderHypermedia(
+                  detail,
+                  context.numberFormatter,
+                )}`,
+            )
             .join("<br/>")}
         </div>
 
@@ -73,7 +79,7 @@ export function ResourcePage(props: Props) {
 
         {val.links.length > 0 && (
           <div>
-            <h2>{t("common_see_also")}</h2>
+            <h2>{context.t("common_see_also")}</h2>
 
             <ul>
               {val.links.map((link) => (
@@ -89,11 +95,15 @@ export function ResourcePage(props: Props) {
   })
 }
 
-function renderHypermedia(element: Hypermedia) {
+function renderHypermedia(
+  element: Hypermedia,
+  numberFormatter: Context["numberFormatter"],
+) {
   return match(element).case({
     Text: (h) => h.value,
-    Number: (h) => h.value + " " + h.unit,
+    Number: (h) => numberFormatter(h.value) + " " + h.unit,
     Link: (h) => `<a href="${h.href}">${h.value}</a>`,
+    Date: (h) => h.value,
     _otherwise: () => "Unknown",
   })
 }

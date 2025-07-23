@@ -15,4 +15,5 @@ export interface Context {
     DateTime: (date: Date) => string
     Date: (date: Date) => string
   }
+  numberFormatter: (number: number) => string
 }

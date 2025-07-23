@@ -57,6 +57,7 @@ export class API {
   listen(port: string) {
     const server = Bun.serve({
       port: port,
+      idleTimeout: 30,
 
       routes: {
         ...ObjectMap(this.endpoints, (path, handler) => async (req: BunRequest<any>) => {
@@ -89,7 +90,7 @@ export class API {
 
           const buffer = await Bun.file(parsedPath).bytes()
 
-          return new Response(buffer, {
+          return new Response(buffer as any, {
             headers: {
               ...this.cors(),
               "Content-Type": mime,

@@ -33,7 +33,7 @@ export async function generateResourcePage(cxt: Context, params: ResourcePagePar
     .returnType<any>()
     .case({
       json: () => hypermedia2json(cxt.request, page.val),
-      html: () => ResourcePage({ page, t: cxt.t }),
+      html: () => ResourcePage({ page, context: cxt }),
       _otherwise: () => `This resource is not available in the '${output}' format`,
     })
 }

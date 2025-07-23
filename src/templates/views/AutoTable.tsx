@@ -6,6 +6,7 @@ import type { Translator } from "../../Translator"
 import { Error } from "./../components/Error"
 import { Form, type FieldType, type FormDefinition } from "./../components/Form"
 import { Card } from "./../components/Card"
+import type { Context } from "../../types/Context"
 
 export interface AutoTableOkInput {
   title: string
@@ -46,17 +47,17 @@ interface PageData {
     },
     AutoTableOkInput
   >
-  t: Translator
+  context: Context
 }
 
 export function AutoTable(props: PageData) {
-  const { page, t } = props
+  const { page, context } = props
 
   return match(page).case({
     Err: ({ val: page }) => (
-      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={context.t}>
         {page.form && (
-          <Form method={"GET"} definition={page.form} submitLabel={t("filter")} />
+          <Form method={"GET"} definition={page.form} submitLabel={context.t("filter")} />
         )}
 
         <br />
@@ -65,9 +66,9 @@ export function AutoTable(props: PageData) {
       </Layout>
     ),
     Ok: ({ val: page }) => (
-      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={t}>
+      <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={context.t}>
         {page.form && (
-          <Form method={"GET"} definition={page.form} submitLabel={t("filter")} />
+          <Form method={"GET"} definition={page.form} submitLabel={context.t("filter")} />
         )}
 
         <br />
@@ -87,9 +88,9 @@ export function AutoTable(props: PageData) {
                 {Object.keys(page.table.columns).map((field) => (
                   <td>
                     {item[field] === undefined ? (
-                      <i>{props.t("common_undefined")}</i>
+                      <i>{context.t("common_undefined")}</i>
                     ) : (
-                      parseHypermedia(item[field])
+                      parseHypermedia(item[field], context.numberFormatter)
                     )}
                   </td>
                 ))}
@@ -123,7 +124,7 @@ export function AutoTable(props: PageData) {
                 <a>{link.value}</a>
               ) : (
                 <a href={link.href}>{link.value}</a>
-              )
+              ),
             )
             .join(" • ")}
 
@@ -185,11 +186,14 @@ export function AutoTable(props: PageData) {
   })
 }
 
-const parseHypermedia = (item: HypermediaType["any"]) =>
+const parseHypermedia = (
+  item: HypermediaType["any"],
+  numberFormatter: Context["numberFormatter"],
+) =>
   match(item)
     .returnType<string | number | boolean | JSX.Element>()
     .case({
-      Number: (nb) => <>{nb.value + " " + nb.unit}</>,
+      Number: (nb) => <>{numberFormatter(nb.value) + " " + nb.unit}</>,
       Link: (link) => <a href={link.href}>{link.value}</a>,
       Date: (date) => date.value,
       List: (item) =>

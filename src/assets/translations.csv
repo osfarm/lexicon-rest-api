@@ -17,6 +17,7 @@ common_fields_date_start,Date de début,Start date
 common_fields_date_end,Date de fin,End date
 common_fields_latitude,Latitude,Latitude
 common_fields_longitude,Longitude,Longitude
+common_fields_address,Adresse,Address
 
 common_fields_datetime,Date et heure,Datetime
 
@@ -42,6 +43,9 @@ tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_price,Valeur foncière,Parcel transaction
 tools_parcel_identifier_cap,Informations PAC,CAP information
 tools_station_last_year_reports,Relevés météorologiques de l'année,Weather reports
+tools_transactions,Transactions,Transactions
+tools_price,Prix,Price
+tools_no_transaction,Aucune transaction enregistrée,No registered transaction
 
 map_selector_label,Déplacez le curseur ou saisissez des coordonnées géographiques.,Move the cursor or enter geographic coordinates.
 
@@ -71,6 +75,7 @@ geographical_references_cadastral_parcel_price_postal_code,Code postal,Postal co
 geographical_references_cadastral_parcel_price_city,Ville,City
 geographical_references_cadastral_parcel_price_department,Departement,Department
 geographical_references_cadastral_parcel_price_title,Valeurs foncières,Cadastral values
+geographical_references_cadastral_parcel_price_address,Adresse,Address
 
 geographical_references_cap_parcel_title,Parcelles enregistrées à la PAC,CAP registered parcels
 geographical_references_cap_parcel,Parcelle enregistrée à la PAC,CAP parcel

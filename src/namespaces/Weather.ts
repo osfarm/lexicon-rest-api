@@ -4,7 +4,7 @@ import { Hypermedia } from "../Hypermedia"
 import { AutoList } from "../templates/views/AutoList"
 import { Country } from "../types/Country"
 import { CreditTable } from "./Credits"
-import { ObjectFlatMap } from "../utils"
+import { isString, ObjectFlatMap } from "../utils"
 import { Field } from "../templates/components/Form"
 import type { Translator } from "../Translator"
 import type { Context } from "../types/Context"
@@ -22,7 +22,7 @@ const RED = "#EE6666"
 const BLUE = "#5470C6"
 const CYAN = "#48dbfb"
 
-interface Station {
+export interface Station {
   reference_name: string
   country: Country
   country_zone: string
@@ -112,8 +112,8 @@ export const Weather = API.new()
         if (input.country) {
           query.where("country", "=", input.country)
         }
-        if (input.name) {
-          query.where("station_name", "LIKE", `%${input.name}%`)
+        if (input.name && isString(input.name)) {
+          query.where("station_name", "LIKE", `%${input.name.toUpperCase()}%`)
         }
       },
       query: StationTable(cxt.db)

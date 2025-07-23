@@ -66,6 +66,8 @@ export function applyRequestConfiguration(
       }).format(date),
   }
 
+  const numberFormatter = Intl.NumberFormat(locale).format
+
   const url = new URL(request.url)
 
   return {
@@ -78,5 +80,6 @@ export function applyRequestConfiguration(
     t: useTranslator(serverLanguage),
     db: pool,
     dateTimeFormatter,
+    numberFormatter,
   }
 }

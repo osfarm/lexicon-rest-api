@@ -17,11 +17,11 @@ import {
 } from "../../templates/pages/ParcelIdentifier"
 import { coordinatesToPoint, type Point } from "../../types/Geometry"
 import { MunicipalityTable } from "../GeographicalReferences/Municipality"
-import { ParcelTable } from "../GeographicalReferences/CadastralParcel"
+import { ParcelTable, type Parcel } from "../GeographicalReferences/CadastralParcel"
 import { ParcelPriceTable } from "../GeographicalReferences/CadastralParcelPrice"
 import { CapParcelTable } from "../GeographicalReferences/CapParcel"
 import type { Pool } from "pg"
-import { HourlyReportTable, StationTable } from "../Weather"
+import { HourlyReportTable, StationTable, type Station } from "../Weather"
 import { checkUndefined } from "../../utils"
 
 const RED = "#EE6666"
@@ -90,7 +90,7 @@ export async function ParcelIdentifierController(
           ({
             municipality,
             cadastralParcel,
-            cadastralParcelPrice,
+            cadastralParcelPrices,
             capParcel,
             lastYearWeatherReports,
             weatherStation,
@@ -150,24 +150,59 @@ export async function ParcelIdentifierController(
                   }),
                 }
               : undefined,
-            price: cadastralParcelPrice
-              ? {
-                  id: Hypermedia.Link({
-                    label: cxt.t("geographical_references_cadastral_parcel_price_id"),
-                    value: cadastralParcelPrice.id,
-                    method: "GET",
-                    href:
-                      "/geographical-references/cadastral-parcel-prices/" + cadastralParcelPrice.id,
-                  }),
-                  prefix: Hypermedia.Number({
-                    label: cxt.t(
-                      "geographical_references_cadastral_parcel_price_cadastral_price",
-                    ),
-                    value: cadastralParcelPrice.cadastral_price,
-                    unit: "€",
-                  }),
-                }
-              : undefined,
+            transactions: {
+              label: cxt.t("tools_transactions"),
+              columns: {
+                id: cxt.t("geographical_references_cadastral_parcel_price_id"),
+                date: cxt.t("common_fields_date"),
+                address: cxt.t("common_fields_address"),
+                "building-nature": cxt.t(
+                  "geographical_references_cadastral_parcel_price_building_nature",
+                ),
+                price: cxt.t("tools_price"),
+              },
+              rows: cadastralParcelPrices
+                ? cadastralParcelPrices.map(
+                    (cadastralParcelPrice) =>
+                      ({
+                        id: Hypermedia.Link({
+                          label: cxt.t(
+                            "geographical_references_cadastral_parcel_price_id",
+                          ),
+                          value: cadastralParcelPrice.id,
+                          method: "GET",
+                          href:
+                            "/geographical-references/cadastral-parcel-prices/" +
+                            cadastralParcelPrice.id,
+                        }),
+                        date: Hypermedia.Date({
+                          label: cxt.t("common_fields_date"),
+                          value: cxt.dateTimeFormatter.Date(
+                            new Date(cadastralParcelPrice.mutation_date),
+                          ),
+                          iso: new Date(cadastralParcelPrice.mutation_date).toISOString(),
+                        }),
+                        address: Hypermedia.Text({
+                          label: cxt.t("common_fields_address"),
+                          value: cadastralParcelPrice.address,
+                        }),
+                        "building-nature": cadastralParcelPrice.building_nature
+                          ? Hypermedia.Text({
+                              label: cxt.t(
+                                "geographical_references_cadastral_parcel_price_building_nature",
+                              ),
+                              value: cadastralParcelPrice.building_nature,
+                            })
+                          : undefined,
+                        price: Hypermedia.Number({
+                          label: cxt.t("tools_price"),
+                          value: parseFloat(cadastralParcelPrice.cadastral_price as any),
+                          unit: "€",
+                        }),
+                      } as Record<string, HypermediaType["any"]>),
+                  )
+                : ([] as Record<string, HypermediaType["any"]>[]),
+            },
             cap: capParcel
               ? {
                   id: Hypermedia.Link({
@@ -230,7 +265,7 @@ export async function ParcelIdentifierController(
     .case({
       json: () => hypermedia2json(cxt.request, page.val),
       geojson: () => page.map((page) => page.geolocation?.shape).unwrapOr({}),
-      html: () => ParcelIdentifier({ page, t: cxt.t }),
+      html: () => ParcelIdentifier({ page, context: cxt }),
       _otherwise: () => "Format not supported",
     })
 }
@@ -244,11 +279,6 @@ async function retrieveParcelData(db: Pool, point: Point) {
   const searchCadastralParcelQuery = ParcelTable(db)
     .select()
     .where("shape", "ST_CONTAINS", point)
-    .limit(1)
-  
-  const searchCadastralParcelPriceQuery = ParcelPriceTable(db)
-    .select()
-    .orderByClosenessPoint("centroid", point)
     .limit(1)
 
   const searchCAPParcelQuery = CapParcelTable(db)
@@ -264,7 +294,6 @@ async function retrieveParcelData(db: Pool, point: Point) {
   // prettier-ignore
   const queriesResult = await Concurrently.run(() => searchMunicipalityQuery.run())
     .and(() => searchCadastralParcelQuery.run())
-    .and(() => searchCadastralParcelPriceQuery.run())
     .and(() => searchCAPParcelQuery.run())
     .and(() => searchStationQuery.run())
     .done()
@@ -273,25 +302,44 @@ async function retrieveParcelData(db: Pool, point: Point) {
   currentDate.setFullYear(currentDate.getFullYear() - 1)
   const oneYearAgo = currentDate.toISOString()
 
-  const fetchReportsResult = await queriesResult
-    .map(([, , , stations]) => stations[0])
-    .flatMap(checkUndefined)
-    .flatMapAsync((station) =>
-      HourlyReportTable(db)
+  const fetchReportsAndTransactionsResult = await queriesResult
+    .map(([, cadastralParcels, , stations]) => ({
+      cadastralParcel: cadastralParcels[0],
+      station: stations[0],
+    }))
+    .flatMap<Error, { cadastralParcel: Parcel; station: Station }>(
+      ({ cadastralParcel, station }) =>
+        cadastralParcel && station
+          ? Ok({ cadastralParcel, station })
+          : Err(new Error("No cadastral parcel or station.")),
+    )
+    .map(({ cadastralParcel, station }) => ({
+      hourlyReportsQuery: HourlyReportTable(db)
         .select()
         .where("station_id", "=", station.reference_name)
         .where("started_at", ">=", oneYearAgo)
-        .orderBy("started_at", "ASC")
-        .run(),
+        .orderBy("started_at", "ASC"),
+      cadastralParcelsQuery: ParcelPriceTable(db)
+        .select()
+        .where("cadastral_parcel_id", "=", cadastralParcel.id)
+        .orderBy("mutation_date", "DESC"),
+    }))
+    .flatMapAsync(({ hourlyReportsQuery, cadastralParcelsQuery }) =>
+      Concurrently.run(() => hourlyReportsQuery.run())
+        .and(() => cadastralParcelsQuery.run())
+        .done(),
     )
 
+  const [lastYearWeatherReports, cadastralParcelPrices] =
+    fetchReportsAndTransactionsResult.unwrapOr([undefined, undefined])
+
   return queriesResult.map(
-    ([municipalities, cadastralParcels, cadastralParcelPrices, capParcels, stations]) => ({
+    ([municipalities, cadastralParcels, capParcels, stations]) => ({
       municipality: municipalities[0] || undefined,
       cadastralParcel: cadastralParcels[0] || undefined,
-      cadastralParcelPrice: cadastralParcelPrices[0] || undefined,
+      cadastralParcelPrices: cadastralParcelPrices,
       capParcel: capParcels[0] || undefined,
-      lastYearWeatherReports: fetchReportsResult.unwrapOr(undefined),
+      lastYearWeatherReports: lastYearWeatherReports,
       weatherStation: stations[0] || undefined,
     }),
   )

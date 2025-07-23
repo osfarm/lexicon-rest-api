@@ -195,7 +195,7 @@ export async function generateTablePage<T extends object, F extends string>(
   return match(output)
     .returnType<string | object>()
     .case({
-      html: () => AutoTable({ page: pageData, t }),
+      html: () => AutoTable({ page: pageData, context }),
       json: () => hypermedia2json(request, pageData.val),
       csv: () => hypermedia2csv(pageData.val),
       _otherwise: () => new Response("Output format not supported.", { status: 400 }),
