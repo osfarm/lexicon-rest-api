@@ -1,5 +1,5 @@
 import { generateTablePage } from "../../page-generators/generateTablePage"
-import { ParcelPriceTable } from "./CadastralParcelPrice"
+import { ParcelPriceTable, type ParcelPrice } from "./CadastralParcelPrice"
 import { CreditTable } from "../Credits"
 import { Field } from "../../templates/components/Form"
 import { Hypermedia } from "../../Hypermedia"
@@ -7,6 +7,7 @@ import { MunicipalityTable } from "./Municipality"
 import type { Translator } from "../../Translator"
 import { generateResourcePage } from "../../page-generators/generateResourcePage"
 import { API } from "../../API"
+import { Ok } from "shulk"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -23,10 +24,25 @@ const Breadcrumbs = (t: Translator) => [
 
 export const CadastralParcelPriceAPI = API.new()
   .path("/geographical-references/cadastral-parcel-prices", async (cxt) =>
-    generateTablePage(cxt, {
+    generateTablePage<ParcelPrice, string>(cxt, {
       title: cxt.t("geographical_references_cadastral_parcel_price_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
-      query: ParcelPriceTable(cxt.db).select().orderBy("id", "ASC"),
+      query: ParcelPriceTable(cxt.db)
+        .select(
+          "cadastral_parcel_id",
+          "mutation_id",
+          "postal_code",
+          "city",
+          "address",
+          "mutation_date",
+          "cadastral_price",
+        )
+        .distinct()
+        .orderBy("mutation_id", "ASC"),
+      // .sql(
+      //   "SELECT DISTINCT cadastral_parcel_id, mutation_id, postal_code, city, address, mutation_date, cadastral_price FROM registered_cadastral_prices ORDER BY mutation_id ASC LIMIT 50",
+      // ),
+
       credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastral_prices"),
       form: {
         postal_code: Field.Text({
@@ -39,6 +55,10 @@ export const CadastralParcelPriceAPI = API.new()
         }),
         department: Field.Text({
           label: cxt.t("geographical_references_cadastral_parcel_price_department"),
+          required: false,
+        }),
+        parcel: Field.Text({
+          label: cxt.t("geographical_references_cadastral_parcel_price_cadastral_parcel"),
           required: false,
         }),
       },
@@ -55,15 +75,19 @@ export const CadastralParcelPriceAPI = API.new()
             .orderBy("postal_code", "ASC")
             .orderBy("city", "ASC")
         }
+
+        if (input.parcel) {
+          query.where("cadastral_parcel_id", "=", input.parcel)
+        }
       },
       columns: {
-        id: cxt.t("geographical_references_cadastral_parcel_price_id"),
-        "cadastral-parcel": cxt.t(
-          "geographical_references_cadastral_parcel_price_cadastral_parcel",
-        ),
         "mutation-id": cxt.t(
           "geographical_references_cadastral_parcel_price_mutation_id",
         ),
+        "cadastral-parcel": cxt.t(
+          "geographical_references_cadastral_parcel_price_cadastral_parcel",
+        ),
+
         "postal-code": cxt.t(
           "geographical_references_cadastral_parcel_price_postal_code",
         ),
@@ -77,9 +101,9 @@ export const CadastralParcelPriceAPI = API.new()
         ),
       },
       handler: (parcel) => ({
-        id: Hypermedia.Text({
-          label: "#",
-          value: parcel.id,
+        "mutation-id": Hypermedia.Text({
+          label: cxt.t("geographical_references_cadastral_parcel_price_mutation_id"),
+          value: parcel.mutation_id,
         }),
         "cadastral-parcel": Hypermedia.Link({
           value: parcel.cadastral_parcel_id,
@@ -87,10 +111,7 @@ export const CadastralParcelPriceAPI = API.new()
           href:
             "/geographical-references/cadastral-parcels/" + parcel.cadastral_parcel_id,
         }),
-        "mutation-id": Hypermedia.Text({
-          label: cxt.t("geographical_references_cadastral_parcel_price_mutation_id"),
-          value: parcel.mutation_id,
-        }),
+
         "postal-code": Hypermedia.Text({
           label: cxt.t("geographical_references_cadastral_parcel_price_postal_code"),
           value: parcel.postal_code,

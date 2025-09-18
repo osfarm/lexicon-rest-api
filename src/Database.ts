@@ -26,7 +26,7 @@ type TableDefinition<T extends object> = {
 }
 
 interface Table<T extends object> {
-  select: () => Select<T>
+  select: (...fields: (keyof T)[]) => Select<T>
   read: (key: string) => AsyncResult<NotFound | Error, T>
   example: () => Promise<QueryResult<T>>
 }
@@ -37,10 +37,10 @@ export function Table<T extends object>(
   definition: TableDefinition<T>,
 ): TableConstructor<T> {
   return (db: Pool) => ({
-    select: () => new Select(db, definition),
+    select: (...fields: (keyof T)[]) => new Select(db, definition, fields),
 
     read: async (key: string): AsyncResult<NotFound | Error, T> => {
-      const result = await new Select(db, definition)
+      const result = await new Select(db, definition, [])
         .where(definition.primaryKey, "=", key)
         .limit(1)
         .run()
@@ -68,21 +68,38 @@ type Condition<T> = {
 class Join {}
 
 class Select<T extends object> {
-  protected conditions: Condition<T>[]
+  protected selectedFields: (keyof T)[]
+  protected useDistinct: boolean = false
+  protected conditions: Condition<T>[] = []
+  protected groupby: (keyof T)[] = []
   protected orders: { field: keyof T; sort: "ASC" | "DESC" }[] = []
   protected limitValue?: number
   protected offsetValue: number = 0
 
-  constructor(protected db: Pool, protected def: TableDefinition<T>) {
-    this.conditions = []
+  constructor(
+    protected db: Pool,
+    protected def: TableDefinition<T>,
+    selectedField: (keyof T)[],
+  ) {
+    this.selectedFields = selectedField
   }
 
   join<S extends object>(table: TableConstructor<S>) {
     return this
   }
 
+  distinct() {
+    this.useDistinct = true
+    return this
+  }
+
   where(field: keyof T, op: Operator, value: unknown) {
     this.conditions.push({ field, op, value, or: [] })
+    return this
+  }
+
+  groupBy(...fields: (keyof T)[]) {
+    fields.forEach((field) => this.groupby.push(field))
     return this
   }
 
@@ -159,14 +176,20 @@ class Select<T extends object> {
 
     const tableName = `"${DB_SCHEMA}".${this.def.table}`
 
+    const fieldsToSelect =
+      this.selectedFields.length > 0 ? this.selectedFields.join(", ") : "*"
+
     const fields = this.def.geometry
-      ? "*, " +
+      ? fieldsToSelect +
+        ", " +
         this.def.geometry
           ?.map(
             (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`,
           )
           .join(", ")
-      : "*"
+      : fieldsToSelect
+
+    const groupby = this.groupby.length > 0 ? "GROUP BY " + this.groupby.join(", ") : ""
 
     const sortings =
       this.orders.length > 0
@@ -189,7 +212,9 @@ class Select<T extends object> {
     const limit = this.limitValue ? `LIMIT ${this.limitValue}` : ``
     const offset = this.offsetValue ? `OFFSET ${this.offsetValue}` : ``
 
-    const q = `SELECT ${fields} FROM ${tableName} ${joints} ${conditions} ${sortings} ${limit} ${offset};`
+    const q = `SELECT ${
+      this.useDistinct ? "DISTINCT" : ""
+    } ${fields} FROM ${tableName} ${joints} ${conditions} ${groupby} ${sortings} ${limit} ${offset};`
 
     const queryHash = hash(q + "-" + params.toString())
 
