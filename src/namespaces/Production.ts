@@ -54,6 +54,42 @@ const ProductionTable = Table<Production>({
   },
 })
 
+export interface ProductionYield {
+  department_zone: string
+  specie: string
+  production: string
+  yield_value: number
+  yield_unit: string
+  campaign: number
+}
+
+export const ProductionYieldTable = Table<ProductionYield>({
+  table: "master_production_yields",
+  primaryKey: "department_zone",
+})
+
+export interface ProductionPrice {
+  department_zone: string
+  started_on: Date
+  nature?: string
+  price_duration: unknown
+  specie: string
+  waiting_price: number
+  final_price: number
+  currency: string
+  price_unit: string
+  product_output_specie: string
+  production_reference_name?: string
+  campaign?: number
+  organic?: boolean
+  label?: string
+}
+
+export const ProductionPriceTable = Table<ProductionPrice>({
+  table: "master_production_prices",
+  primaryKey: "department_zone",
+})
+
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
     value: t("home_title"),

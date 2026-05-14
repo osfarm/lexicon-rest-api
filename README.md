@@ -10,7 +10,25 @@ Pour contribuer au Lexicon, voir [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## I. Commencer
 
-[Installez Bun si ce n'est pas déjà fait](https://bun.sh/)
+### Prérequis : installer Bun
+
+Bun s'installe par utilisateur dans `~/.bun` — pas d'écriture système, désinstallable en supprimant ce dossier. Aucune dépendance Node.js, Docker ou gestionnaire de versions n'est requise.
+
+```sh
+# Linux / macOS
+$ curl -fsSL https://bun.sh/install | bash
+
+# Windows (PowerShell)
+$ powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Vérifiez l'installation (rouvrez le terminal si la commande n'est pas trouvée) :
+
+```sh
+$ bun --version
+```
+
+Plus de détails : [bun.sh](https://bun.sh/).
 
 ### 1. Cloner le dépôt
 
@@ -81,7 +99,25 @@ To contribute to Lexicon, see [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## I. Getting Started
 
-[Install Bun if not already installed](https://bun.sh/)
+### Prerequisite: install Bun
+
+Bun installs per-user under `~/.bun` — no system writes, uninstall by removing that directory. No Node.js, Docker or version manager required.
+
+```sh
+# Linux / macOS
+$ curl -fsSL https://bun.sh/install | bash
+
+# Windows (PowerShell)
+$ powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Verify the installation (reopen your terminal if the command is not found):
+
+```sh
+$ bun --version
+```
+
+More details: [bun.sh](https://bun.sh/).
 
 ### 1. Clone the repository
 

@@ -203,3 +203,41 @@ documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,P
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
 
 country_FR,France,France
+tools_soil,Sol,Soil
+tools_soil_depth,Profondeur de sol,Soil depth
+tools_soil_available_water,Réserve utile,Available water capacity
+tools_soil_available_water_min,Réserve utile (min),Available water (min)
+tools_soil_available_water_max,Réserve utile (max),Available water (max)
+tools_owners,Propriétaires,Owners
+tools_owner_denomination,Dénomination,Denomination
+tools_owner_legal_form,Forme juridique,Legal form
+tools_owner_siren,SIREN,SIREN
+tools_owner_suf_area,Surface SUF,SUF area
+tools_owner_culture_nature,Nature de culture,Culture nature
+tools_buildings,Bâtiments à proximité,Nearby buildings
+tools_building_reference,Référence,Reference
+tools_building_nature,Nature,Nature
+tools_natural_zones,Zones naturelles,Natural zones
+tools_zone_nature,Type,Type
+tools_zone_administrative,Zone administrative,Administrative zone
+tools_zone_creator,Producteur,Creator
+tools_protected_water_zones,Zones de protection des eaux,Protected water zones
+tools_area_items,Zonages administratifs,Administrative zoning
+tools_hydrography,Hydrographie à proximité,Nearby hydrography
+tools_hydrography_nature,Nature,Nature
+tools_historical_yields,Rendements historiques du département,Historical yields for department
+tools_production_prices,Prix de production locaux,Local production prices
+tools_production_organic,Bio,Organic
+tools_eu_market_prices,Prix de marché UE,EU market prices
+tools_eu_product,Produit,Product
+tools_eu_sector,Secteur,Sector
+tools_campaign,Campagne,Campaign
+tools_production,Production,Production
+tools_specie,Espèce,Species
+tools_yield,Rendement,Yield
+tools_cap_production,Production PAC,CAP production
+tools_cap_year,Millésime PAC,CAP year
+tools_cap_category,Catégorie PAC,CAP category
+tools_cap_precision,Précision PAC,CAP precision
+tools_cap_is_seed,Semence,Seed
+tools_station_last_30_days_reports,Relevés météorologiques des 30 derniers jours,Last 30 days weather reports

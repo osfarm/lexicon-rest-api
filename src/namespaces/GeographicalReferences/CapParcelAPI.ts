@@ -45,7 +45,9 @@ export const CapParcelAPI = API.new()
           query.where("cap_label", "LIKE", `%${input.culture}%`)
         }
       },
-      query: CapParcelTable(cxt.db).select().orderBy("city_name", "ASC"),
+      query: CapParcelTable(cxt.db)
+        .select("id", "cap_crop_code", "city_name", "cap_label")
+        .orderBy("city_name", "ASC"),
       columns: {
         city: cxt.t("common_fields_city"),
         id: cxt.t("ID"),

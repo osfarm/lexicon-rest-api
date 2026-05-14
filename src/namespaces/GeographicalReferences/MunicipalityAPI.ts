@@ -62,7 +62,7 @@ export const MunicipalityAPI = API.new()
         }
       },
       query: MunicipalityTable(cxt.db)
-        .select()
+        .select("id", "country", "code", "city_name", "postal_code")
         .orderBy("country", "ASC")
         .orderBy("city_name", "ASC"),
       credits: CreditTable(cxt.db).select().where("datasource", "=", "municipalitys"),
