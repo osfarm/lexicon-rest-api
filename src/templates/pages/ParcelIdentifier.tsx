@@ -40,6 +40,8 @@ export interface ParcelIdentifierOkPage {
     values: {}
   }
   "production-prices"?: TableSection
+  "agricultural-enterprises"?: TableSection
+  "msa-populations"?: TableSection
   "last-year-weather-reports"?: {
     station: HypermediaType["Link"]
     legend: {}
@@ -88,9 +90,9 @@ export function ParcelIdentifier(props: Props) {
           )}
           {renderCard(t("tools_parcel_identifier_cap"), numberFormatter, val.cap)}
           {renderCard(t("tools_soil"), numberFormatter, val.soil)}
+          {renderTableCard(val.transactions, context, t("tools_no_transaction"))}
+          {renderTableCard(val.owners, context)}
         </div>
-        {renderTableSection(val.transactions, context, t("tools_no_transaction"))}
-        {renderTableSection(val.owners, context)}
         {renderTableSection(val["natural-zones"], context)}
         {renderTableSection(val["protected-water-zones"], context)}
         {renderTableSection(val["area-items"], context)}
@@ -108,6 +110,8 @@ export function ParcelIdentifier(props: Props) {
           </>
         )}
         {renderTableSection(val["production-prices"], context)}
+        {renderTableSection(val["agricultural-enterprises"], context)}
+        {renderTableSection(val["msa-populations"], context)}
         {val["last-year-weather-reports"] !== undefined && (
           <>
             <h2>{t("tools_station_last_30_days_reports")}</h2>
@@ -184,10 +188,38 @@ function renderTableSection(
   if (!section) {
     return
   }
-  const columnKeys = Object.keys(section.columns)
   return (
     <div>
       <h2>{section.label}</h2>
+      {renderTableBody(section, context, emptyMessage)}
+    </div>
+  )
+}
+
+function renderTableCard(
+  section: TableSection | undefined,
+  context: Context,
+  emptyMessage?: string,
+) {
+  if (!section) {
+    return
+  }
+  return (
+    <Card>
+      <h2>{section.label}</h2>
+      {renderTableBody(section, context, emptyMessage)}
+    </Card>
+  )
+}
+
+function renderTableBody(
+  section: TableSection,
+  context: Context,
+  emptyMessage?: string,
+) {
+  const columnKeys = Object.keys(section.columns)
+  return (
+    <>
       <table>
         <thead>
           <tr>
@@ -215,7 +247,7 @@ function renderTableSection(
       {section.rows.length === 0 && emptyMessage && (
         <p style={{ textAlign: "center", fontStyle: "italic" }}>{emptyMessage}</p>
       )}
-    </div>
+    </>
   )
 }
 

@@ -6,10 +6,12 @@ interface Props {
   center: Coordinates
   markers: Coordinates[]
   shapes: Geometry[]
+  zoom?: number
 }
 
 export function Map(props: Props) {
   const uniqid = Date.now()
+  const zoom = props.zoom ?? 13
 
   const markers = props.markers
     .map(
@@ -23,7 +25,7 @@ export function Map(props: Props) {
       (shape) =>
         `L.geoJSON(${JSON.stringify(
           shape
-        )}, {onEachFeature: onEachFeature}).addTo(map${uniqid})`
+        )}, {onEachFeature: onEachFeature, style: styleFeature}).addTo(map${uniqid})`
     )
     .join(";")
 
@@ -44,14 +46,21 @@ export function Map(props: Props) {
       ></script>
 
       {`
-      <script> 
+      <script>
         function onEachFeature(feature, layer) {
             if (feature.properties && feature.properties.html) {
                 layer.bindPopup(feature.properties.html);
             }
         }
 
-        var map${uniqid} = L.map('map-${uniqid}').setView([${props.center.latitude}, ${props.center.longitude}], 13);
+        function styleFeature(feature) {
+            if (feature.properties && feature.properties.style) {
+                return feature.properties.style;
+            }
+            return {};
+        }
+
+        var map${uniqid} = L.map('map-${uniqid}').setView([${props.center.latitude}, ${props.center.longitude}], ${zoom});
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'

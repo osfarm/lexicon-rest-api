@@ -47,6 +47,13 @@ import {
   type ProductionYield,
   type ProductionPrice,
 } from "../Production"
+import {
+  EnterpriseTable,
+  fetchSubsidiesBySiren,
+  type CapSubsidy,
+  type Enterprise,
+} from "../Enterprise"
+import { MsaPopulationTable, type MsaPopulation } from "../MsaPopulation"
 
 const RED = "#EE6666"
 const BLUE = "#5470C6"
@@ -82,6 +89,9 @@ interface ParcelData {
   }>
   historicalYields?: ProductionYield[]
   productionPrices?: ProductionPrice[]
+  agriculturalEnterprises?: Enterprise[]
+  subsidiesBySiren?: Map<string, CapSubsidy[]>
+  msaPopulations?: MsaPopulation[]
 }
 
 export async function ParcelIdentifierController(
@@ -237,6 +247,18 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     "production-prices":
       data.productionPrices && data.productionPrices.length > 0
         ? buildProductionPricesSection(data.productionPrices, cxt)
+        : undefined,
+    "agricultural-enterprises":
+      data.agriculturalEnterprises && data.agriculturalEnterprises.length > 0
+        ? buildAgriculturalEnterprisesSection(
+            data.agriculturalEnterprises,
+            data.subsidiesBySiren ?? new Map(),
+            cxt,
+          )
+        : undefined,
+    "msa-populations":
+      data.msaPopulations && data.msaPopulations.length > 0
+        ? buildMsaPopulationsSection(data.msaPopulations, cxt)
         : undefined,
     "last-year-weather-reports":
       data.weatherStation && data.lastYearWeatherReports
@@ -397,6 +419,47 @@ async function retrieveParcelData(
         .done()
     : Ok([undefined, undefined] as [undefined, undefined])
 
+  const municipalityDependentResult = municipality
+    ? await Concurrently.run(() =>
+        municipality.code
+          ? EnterpriseTable(db)
+              .select(
+                "establishment_number",
+                "siren",
+                "name",
+                "french_main_activity_code",
+                "address",
+                "postal_code",
+                "city",
+              )
+              .where("insee_code", "=", municipality.code)
+              .where("french_main_activity_code", "LIKE", "01%")
+              .orderBy("name", "ASC")
+              .run()
+          : Ok([] as Enterprise[]),
+      )
+        .and(() =>
+          municipality.code
+            ? MsaPopulationTable(db)
+                .select()
+                .where("insee_code", "=", municipality.code)
+                .orderBy("year", "DESC")
+                .run()
+            : Ok([] as MsaPopulation[]),
+        )
+        .done()
+    : Ok([[] as Enterprise[], [] as MsaPopulation[]] as [Enterprise[], MsaPopulation[]])
+
+  const [agriculturalEnterprises, msaPopulations] = municipalityDependentResult.unwrapOr(
+    [[] as Enterprise[], [] as MsaPopulation[]],
+  )
+
+  const subsidiesResult = await fetchSubsidiesBySiren(
+    db,
+    agriculturalEnterprises.flatMap((e) => (e.siren ? [e.siren] : [])),
+  )
+  const subsidiesBySiren = subsidiesResult.unwrapOr(new Map())
+
   const [cadastralParcelPrices, cadastralParcelOwners] =
     cadastreDependentResult.unwrapOr([undefined, undefined])
   const lastYearWeatherReports = weatherResult.unwrapOr(undefined)
@@ -422,6 +485,9 @@ async function retrieveParcelData(
     lastYearWeatherReports,
     historicalYields,
     productionPrices,
+    agriculturalEnterprises,
+    subsidiesBySiren,
+    msaPopulations,
   })
 }
 
@@ -612,16 +678,6 @@ function buildTransactionsSection(prices: ParcelPrice[], cxt: Context): TableSec
         value: cxt.dateTimeFormatter.Date(new Date(price.mutation_date)),
         iso: new Date(price.mutation_date).toISOString(),
       }),
-      address: Hypermedia.Text({
-        label: cxt.t("common_fields_address"),
-        value: price.address,
-      }),
-      "building-nature": price.building_nature
-        ? Hypermedia.Text({
-            label: cxt.t("geographical_references_cadastral_parcel_price_building_nature"),
-            value: price.building_nature,
-          })
-        : undefined,
       price: Hypermedia.Number({
         label: cxt.t("tools_price"),
         value: parseFloat(price.cadastral_price as any),
@@ -839,6 +895,142 @@ function buildProductionPricesSection(
         label: cxt.t("tools_production_organic"),
         value: p.organic === true,
       }),
+    })),
+  }
+}
+
+function buildAgriculturalEnterprisesSection(
+  enterprises: Enterprise[],
+  subsidiesBySiren: Map<string, CapSubsidy[]>,
+  cxt: Context,
+): TableSection {
+  return {
+    label: cxt.t("tools_agricultural_enterprises"),
+    columns: {
+      siren: cxt.t("tools_enterprise_siren"),
+      name: cxt.t("common_fields_name"),
+      activity: cxt.t("tools_enterprise_activity_code"),
+      address: cxt.t("common_fields_address"),
+      city: cxt.t("common_fields_city"),
+      "subsidy-count": cxt.t("tools_subsidies_count"),
+      "subsidy-amount": cxt.t("tools_subsidies_total_amount"),
+      "subsidy-year": cxt.t("tools_subsidies_year"),
+    },
+    rows: enterprises.map((enterprise) => {
+      const subsidies = enterprise.siren
+        ? subsidiesBySiren.get(enterprise.siren) ?? []
+        : []
+      const totalAmount = subsidies.reduce(
+        (sum, s) =>
+          sum +
+          parseFloat((s.feaga_amount as any) || "0") +
+          parseFloat((s.feader_amount as any) || "0") +
+          parseFloat((s.cofinanced_amount as any) || "0"),
+        0,
+      )
+      const latestYear = subsidies.reduce<number | undefined>(
+        (max, s) => (max === undefined || s.year > max ? s.year : max),
+        undefined,
+      )
+      return {
+        siren: enterprise.siren
+          ? Hypermedia.Text({
+              label: cxt.t("tools_enterprise_siren"),
+              value: enterprise.siren,
+            })
+          : undefined,
+        name: enterprise.name
+          ? Hypermedia.Text({
+              label: cxt.t("common_fields_name"),
+              value: enterprise.name,
+            })
+          : undefined,
+        activity: Hypermedia.Text({
+          label: cxt.t("tools_enterprise_activity_code"),
+          value: enterprise.french_main_activity_code,
+        }),
+        address: enterprise.address
+          ? Hypermedia.Text({
+              label: cxt.t("common_fields_address"),
+              value: enterprise.address,
+            })
+          : undefined,
+        city: enterprise.city
+          ? Hypermedia.Text({
+              label: cxt.t("common_fields_city"),
+              value: enterprise.city,
+            })
+          : undefined,
+        "subsidy-count": Hypermedia.Number({
+          label: cxt.t("tools_subsidies_count"),
+          value: subsidies.length,
+        }),
+        "subsidy-amount":
+          subsidies.length > 0
+            ? Hypermedia.Number({
+                label: cxt.t("tools_subsidies_total_amount"),
+                value: Math.round(totalAmount * 100) / 100,
+                unit: "€",
+              })
+            : undefined,
+        "subsidy-year":
+          latestYear !== undefined
+            ? Hypermedia.Number({
+                label: cxt.t("tools_subsidies_year"),
+                value: latestYear,
+              })
+            : undefined,
+      }
+    }),
+  }
+}
+
+function buildMsaPopulationsSection(
+  populations: MsaPopulation[],
+  cxt: Context,
+): TableSection {
+  return {
+    label: cxt.t("tools_msa_populations"),
+    columns: {
+      year: cxt.t("tools_msa_year"),
+      "new-contracts": cxt.t("tools_msa_new_contracts"),
+      "farm-chiefs": cxt.t("tools_msa_farm_chiefs"),
+      "retired-salaried": cxt.t("tools_msa_retired_salaried"),
+      "retired-non-salaried": cxt.t("tools_msa_retired_non_salaried"),
+    },
+    rows: populations.map((p) => ({
+      year: Hypermedia.Number({
+        label: cxt.t("tools_msa_year"),
+        value: p.year,
+      }),
+      "new-contracts":
+        p.new_contracts !== null && p.new_contracts !== undefined
+          ? Hypermedia.Number({
+              label: cxt.t("tools_msa_new_contracts"),
+              value: p.new_contracts,
+            })
+          : undefined,
+      "farm-chiefs":
+        p.farm_chiefs !== null && p.farm_chiefs !== undefined
+          ? Hypermedia.Number({
+              label: cxt.t("tools_msa_farm_chiefs"),
+              value: p.farm_chiefs,
+            })
+          : undefined,
+      "retired-salaried":
+        p.retired_salaried !== null && p.retired_salaried !== undefined
+          ? Hypermedia.Number({
+              label: cxt.t("tools_msa_retired_salaried"),
+              value: p.retired_salaried,
+            })
+          : undefined,
+      "retired-non-salaried":
+        p.retired_non_salaried !== null && p.retired_non_salaried !== undefined
+          ? Hypermedia.Number({
+              label: cxt.t("tools_msa_retired_non_salaried"),
+              value: p.retired_non_salaried,
+            })
+          : undefined,
     })),
   }
 }

@@ -241,3 +241,41 @@ tools_cap_category,Catégorie PAC,CAP category
 tools_cap_precision,Précision PAC,CAP precision
 tools_cap_is_seed,Semence,Seed
 tools_station_last_30_days_reports,Relevés météorologiques des 30 derniers jours,Last 30 days weather reports
+production_prices_title,Prix de production,Production prices
+production_prices_map_title,Carte des prix de production par département,Production prices map by department
+production_prices_department,Département,Department
+production_prices_price,Prix,Price
+production_prices_label,Label,Label
+production_prices_avg,Prix moyen,Average price
+production_prices_min,Prix minimum,Minimum price
+production_prices_max,Prix maximum,Maximum price
+production_prices_count,Nombre de relevés,Records
+production_prices_unit_ton,tonne,ton
+production_prices_unit_cubic_meter,m³,m³
+production_prices_map_no_data,Aucune donnée disponible pour ces critères.,No data available for these criteria.
+taxonomy_avena_sativa,Avoine cultivée,Oat
+taxonomy_bos_taurus,Bovin commun,Cow
+taxonomy_brassica_napus_napus,Colza,Rapeseed
+taxonomy_glycine_max,Soja,Soybean
+taxonomy_helianthus_annuus,Tournesol,Sunflower
+taxonomy_hordeum_vulgare,Orge commune,Barley
+taxonomy_pisum_sativum,Pois cultivé,Pea
+taxonomy_secale_cereale,Seigle cultivé,Rye
+taxonomy_sorghum,Sorgho,Sorghum
+taxonomy_triticum_aestivum,Blé tendre,Common wheat
+taxonomy_triticum_durum,Blé dur,Durum wheat
+taxonomy_vicia_faba,Fève cultivée,Faba bean
+taxonomy_x_triticosecale,Triticale,Triticale
+taxonomy_zea_mays,Maïs,Corn
+tools_agricultural_enterprises,Entreprises agricoles sur la commune,Agricultural enterprises in the city
+tools_enterprise_siren,SIREN,SIREN
+tools_enterprise_activity_code,Code NAF,NAF code
+tools_subsidies_count,Nombre d'aides PAC,Number of CAP subsidies
+tools_subsidies_total_amount,Montant total des aides,Total subsidies amount
+tools_subsidies_year,Dernière année,Latest year
+tools_msa_populations,Population agricole (MSA),Farming population (MSA)
+tools_msa_year,Année,Year
+tools_msa_new_contracts,Nouveaux installés,New contracts
+tools_msa_farm_chiefs,Chefs d'exploitation,Farm chiefs
+tools_msa_retired_salaried,Retraités salariés,Retired salaried
+tools_msa_retired_non_salaried,Retraités non salariés,Retired non-salaried

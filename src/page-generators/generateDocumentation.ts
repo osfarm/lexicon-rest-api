@@ -16,12 +16,17 @@ const Paths = (t: Translator) => ({
       category: t("tools"),
       query: {
         latitude: {
-          description: "",
+          description: "Latitude of the point to identify (WGS84 degrees).",
           type: "string",
         },
         longitude: {
-          description: "",
+          description: "Longitude of the point to identify (WGS84 degrees).",
           type: "string",
+        },
+        year: {
+          description:
+            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+          type: "number",
         },
       },
       resourceSchema: {},
@@ -34,12 +39,17 @@ const Paths = (t: Translator) => ({
       category: t("tools"),
       query: {
         latitude: {
-          description: "",
+          description: "Latitude of the point to identify (WGS84 degrees).",
           type: "string",
         },
         longitude: {
-          description: "",
+          description: "Longitude of the point to identify (WGS84 degrees).",
           type: "string",
+        },
+        year: {
+          description:
+            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+          type: "number",
         },
       },
       resourceSchema: {},
@@ -146,6 +156,47 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/geographical-references/cadastral-parcel-prices.json": {
+    get: TableEndpoint({
+      description: t("geographical_references_cadastral_parcel_price_title"),
+      category: t("geographical_references_title"),
+      query: {
+        postal_code: {
+          description: "Filters transactions by postal code.",
+          type: "string",
+        },
+        city: {
+          description: "Searches for a matching city name.",
+          type: "string",
+        },
+        department: {
+          description: "Filters transactions by department code.",
+          type: "string",
+        },
+        parcel: {
+          description: "Filters transactions for a specific cadastral parcel id.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cadastral-parcel-prices/{id}.json": {
+    get: ResourceEndpoint({
+      description: t("geographical_references_cadastral_parcel_price_title"),
+      category: t("geographical_references_title"),
+      params: {
+        id: {
+          description: "Id of the parcel price (transaction) record.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
   "/geographical-references/municipalities.json": {
     get: TableEndpoint({
       description: t("geographical_references_municipality_title"),
@@ -215,6 +266,67 @@ const Paths = (t: Translator) => ({
           description: "Filters the productions by usage.",
           type: "string",
           enum: Object.values(ProductionUsage),
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices.json": {
+    get: TableEndpoint({
+      description: t("production_prices_title"),
+      category: t("production_title"),
+      query: {
+        department: {
+          description: "Filters production prices by department code (zone).",
+          type: "string",
+        },
+        specie: {
+          description:
+            "Filters production prices by specie reference (e.g. helianthus_annuus).",
+          type: "string",
+        },
+        campaign: {
+          description: "Filters production prices by campaign year (e.g. 2024).",
+          type: "number",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices/map.json": {
+    get: ResourceEndpoint({
+      description: t("production_prices_map_title"),
+      category: t("production_title"),
+      query: {
+        specie: {
+          description:
+            "Specie reference whose aggregated prices should be plotted on the map.",
+          type: "string",
+        },
+        campaign: {
+          description: "Restricts the aggregation to the provided campaign year.",
+          type: "number",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices/map.geojson": {
+    get: ResourceEndpoint({
+      description: t("production_prices_map_title"),
+      category: t("production_title"),
+      query: {
+        specie: {
+          description:
+            "Specie reference whose aggregated prices should be plotted on the map.",
+          type: "string",
+        },
+        campaign: {
+          description: "Restricts the aggregation to the provided campaign year.",
+          type: "number",
         },
       },
       resourceSchema: {},
@@ -329,20 +441,20 @@ const Paths = (t: Translator) => ({
     }),
   },
 
-  // "/weather/stations/{station_code}/geolocation.geojson": {
-  //   get: ResourceEndpoint({
-  //     description: t("weather_station"),
-  //     category: t("weather_title"),
-  //     params: {
-  //       station_code: {
-  //         description: "The identifier code of the weather station.",
-  //         type: "string",
-  //       },
-  //     },
-  //     query: {},
-  //     resourceSchema: {},
-  //   }),
-  // },
+  "/weather/stations/{station_code}/geolocation.geojson": {
+    get: ResourceEndpoint({
+      description: t("weather_station") + " — " + t("common_location"),
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
 
   "/weather/stations/{station_code}/hourly-reports.json": {
     get: TableEndpoint({
@@ -462,24 +574,44 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
             value: {
               type: "string",
             },
+            color: {
+              type: "string",
+            },
           },
         },
-        Link: {
+        Number: {
           type: "object",
           properties: {
             "@type": {
               type: "string",
-              example: "Link",
+              example: "Number",
+            },
+            label: {
+              type: "string",
             },
             value: {
+              type: "number",
+            },
+            unit: {
               type: "string",
             },
-            method: {
+            icon: {
               type: "string",
-              example: "GET",
             },
-            href: {
+          },
+        },
+        Boolean: {
+          type: "object",
+          properties: {
+            "@type": {
               type: "string",
+              example: "Boolean",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "boolean",
             },
           },
         },
@@ -497,6 +629,146 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
               type: "string",
             },
             iso: {
+              type: "string",
+            },
+          },
+        },
+        Datum: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Datum",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "number",
+            },
+            unit: {
+              type: "string",
+            },
+            timestamp: {
+              type: "number",
+            },
+            interpretation: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            color: {
+              type: "string",
+            },
+          },
+        },
+        Image: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Image",
+            },
+            label: {
+              type: "string",
+            },
+            href: {
+              type: "string",
+            },
+            alt: {
+              type: "string",
+            },
+            width: {
+              type: "number",
+            },
+            height: {
+              type: "number",
+            },
+          },
+        },
+        Link: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Link",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "string",
+            },
+            method: {
+              type: "string",
+              example: "GET",
+              enum: ["GET", "POST"],
+            },
+            href: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            color: {
+              type: "string",
+            },
+            payload: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+        },
+        List: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "List",
+            },
+            label: {
+              type: "string",
+            },
+            values: {
+              type: "array",
+              items: {},
+            },
+          },
+        },
+        Map: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Map",
+            },
+            label: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            values: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+        },
+        Undefined: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Undefined",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "string",
+            },
+            icon: {
               type: "string",
             },
           },
@@ -563,7 +835,12 @@ function ResourceEndpoint(doc: EndpointDoc) {
   return {
     summary: doc.description,
     tags: [doc.category],
-    produces: ["text/html", "application/json"],
+    produces: [
+      "text/html",
+      "application/json",
+      "text/csv",
+      "application/geo+json",
+    ],
     parameters: [...pathParameters, ...queryParameters],
     responses: {
       200: {
