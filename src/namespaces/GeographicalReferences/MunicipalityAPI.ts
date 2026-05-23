@@ -156,17 +156,6 @@ export const MunicipalityAPI = API.new()
                 }),
               )
               .unwrapOr(undefined),
-            cap: MunicipalityFilters.hasGeolocation(municipality)
-              .map(() =>
-                Hypermedia.Link({
-                  value: cxt.t("geographical_references_municipality_cap"),
-                  method: "GET",
-                  href: `/geographical-references/cap-parcels/map?city=${encodeURIComponent(
-                    municipality.city_name,
-                  )}`,
-                }),
-              )
-              .unwrapOr(undefined),
             "last-year-weather-reports": associatedStation
               ? Hypermedia.Link({
                   value: cxt.t("tools_station_last_year_reports"),
@@ -175,23 +164,36 @@ export const MunicipalityAPI = API.new()
                 })
               : undefined,
           },
-          links: associatedStation
-            ? [
+          links: [
+            ...MunicipalityFilters.hasGeolocation(municipality)
+              .map(() => [
                 Hypermedia.Link({
-                  value:
-                    cxt.t("weather_station") + " " + associatedStation.reference_name,
+                  value: cxt.t("geographical_references_municipality_cap"),
                   method: "GET",
-                  href: `/weather/stations/${associatedStation.reference_name}`,
+                  href: `/geographical-references/cap-parcels/map?city=${encodeURIComponent(
+                    municipality.city_name,
+                  )}`,
                 }),
-                Hypermedia.Link({
-                  value:
-                    cxt.t("geographical_references_municipality_weather_reports") +
-                    ` (${cxt.t("weather_station")} ${associatedStation.reference_name})`,
-                  method: "GET",
-                  href: `/weather/stations/${associatedStation.reference_name}/hourly-reports`,
-                }),
-              ]
-            : [],
+              ])
+              .unwrapOr([]),
+            ...(associatedStation
+              ? [
+                  Hypermedia.Link({
+                    value:
+                      cxt.t("weather_station") + " " + associatedStation.reference_name,
+                    method: "GET",
+                    href: `/weather/stations/${associatedStation.reference_name}`,
+                  }),
+                  Hypermedia.Link({
+                    value:
+                      cxt.t("geographical_references_municipality_weather_reports") +
+                      ` (${cxt.t("weather_station")} ${associatedStation.reference_name})`,
+                    method: "GET",
+                    href: `/weather/stations/${associatedStation.reference_name}/hourly-reports`,
+                  }),
+                ]
+              : []),
+          ],
         }))
       },
     }),

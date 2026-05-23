@@ -296,6 +296,33 @@ enterprises_siret,SIRET,SIRET
 enterprises_activity_code_prefix,Préfixe code NAF (01 = agriculture),NAF code prefix (01 = agriculture)
 enterprises_establishments,Établissements,Establishments
 enterprises_establishments_count,Nombre d'établissements,Number of establishments
+enterprises_rica_title,RICA — Réseau d'Information Comptable Agricole,FADN — Farm Accountancy Data Network
+enterprises_rica_idnum,Numéro d'exploitation,Holding number
+enterprises_rica_year,Année,Year
+enterprises_rica_ote_64,OTEX (64 postes),OTE (64 categories)
+enterprises_rica_ote_17,OTEX (17 postes),OTE (17 categories)
+enterprises_rica_region_code,Code région,Region code
+enterprises_rica_new_region_code,Nouveau code région,New region code
+enterprises_rica_region,Région,Region
+enterprises_rica_economic_dimension_class,Classe de dimension économique,Economic dimension class
+enterprises_rica_legal_form,Forme juridique,Legal form
+enterprises_rica_altitude_zone,Zone d'altitude,Altitude zone
+enterprises_rica_less_favoured_zone,Zone défavorisée,Less favoured zone
+enterprises_rica_environmental_zone,Zone environnementale,Environmental zone
+enterprises_rica_closing_date,Date de clôture,Closing date
+enterprises_rica_sau,SAU,UAA
+enterprises_rica_sau_ha,SAU,Utilised agricultural area
+enterprises_rica_total_area_ha,Surface totale,Total area
+enterprises_rica_gross_product,Produit brut,Gross product
+enterprises_rica_gross_operating_surplus,Excédent brut d'exploitation,Gross operating surplus
+enterprises_rica_operating_result,Résultat d'exploitation,Operating result
+enterprises_rica_extrapolation_coefficient,Coefficient d'extrapolation,Extrapolation coefficient
+enterprises_rica_variables_link,Voir toutes les variables RICA,See all RICA variables
+enterprises_rica_variables_title,Variables RICA,RICA variables
+enterprises_rica_variable_code,Code,Code
+enterprises_rica_variable_label,Libellé,Label
+enterprises_rica_variable_value,Valeur,Value
+enterprises_rica_variable_resolved,Modalité,Modality
 tools_subsidies_count,Nombre d'aides PAC,Number of CAP subsidies
 tools_subsidies_total_amount,Montant total des aides,Total subsidies amount
 tools_subsidies_year,Dernière année,Latest year

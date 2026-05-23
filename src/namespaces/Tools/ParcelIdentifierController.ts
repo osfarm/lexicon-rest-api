@@ -271,10 +271,6 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
             cxt,
           )
         : undefined,
-    "production-prices":
-      data.productionPrices && data.productionPrices.length > 0
-        ? buildProductionPricesSection(data.productionPrices, cxt)
-        : undefined,
     "agricultural-enterprises":
       data.agriculturalEnterprises && data.agriculturalEnterprises.length > 0
         ? buildAgriculturalEnterprisesSection(

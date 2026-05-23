@@ -36,6 +36,11 @@ export const Enterprises = API.new()
             method: "GET",
             href: "/enterprises/enterprises",
           }),
+          Hypermedia.Link({
+            value: t("enterprises_rica_title"),
+            method: "GET",
+            href: "/enterprises/rica",
+          }),
         ],
       },
       t,
