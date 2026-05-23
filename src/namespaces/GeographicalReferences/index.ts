@@ -38,6 +38,11 @@ export const GeographicalReferences = API.new()
             href: "/geographical-references/cap-parcels",
           }),
           Hypermedia.Link({
+            value: t("geographical_references_cap_parcel_map_title"),
+            method: "GET",
+            href: "/geographical-references/cap-parcels/map",
+          }),
+          Hypermedia.Link({
             value: t("geographical_references_municipality_title"),
             method: "GET",
             href: "/geographical-references/municipalities",

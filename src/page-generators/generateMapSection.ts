@@ -1,14 +1,16 @@
 import { match } from "shulk"
 import type { OutputFormat } from "../types/OutputFormat"
-import type { MultiPolygon, Polygon } from "../types/Geometry"
+import type { Feature, MultiPolygon, Polygon } from "../types/Geometry"
 import type { Coordinates } from "../types/Coordinates"
 import { Map } from "../templates/components/Map"
+
+type MapShape = Polygon | MultiPolygon | Feature
 
 interface MapSectionParams {
   output: OutputFormat
   center: Coordinates
   markers: Coordinates[]
-  shapes: (Polygon | MultiPolygon)[]
+  shapes: MapShape[]
 }
 
 export function generateMapSection(params: MapSectionParams) {
@@ -17,7 +19,9 @@ export function generateMapSection(params: MapSectionParams) {
     .case({
       geojson: () => ({
         type: "FeatureCollection",
-        features: params.shapes.map((geometry) => ({ type: "Feature", geometry })),
+        features: params.shapes.map((s) =>
+          s.type === "Feature" ? s : { type: "Feature", geometry: s },
+        ),
       }),
       _otherwise: () =>
         Map({

@@ -55,3 +55,34 @@ export function checkUndefined<T>(value: T | undefined): Result<Error, T> {
     return Ok(value)
   }
 }
+
+// Many CAP-related tables store French city names abbreviated as ST/STE
+// (with spaces, no hyphens). Normalize user input to that canonical form for
+// single-query LIKE filters.
+export function normalizeCityForLikeSearch(input: string): string {
+  return input
+    .toUpperCase()
+    .trim()
+    .replace(/-/g, " ")
+    .replace(/\bSAINTE\b/g, "STE")
+    .replace(/\bSAINT\b/g, "ST")
+}
+
+// When multiple round-trips are acceptable, generate all plausible spellings
+// (abbreviated + expanded) so the caller can try them in order.
+export function normalizeCitySearchCandidates(input: string): string[] {
+  const upper = input.toUpperCase().trim()
+  const candidates = new Set<string>([upper])
+  const dashToSpace = upper.replace(/-/g, " ")
+  candidates.add(dashToSpace)
+  const abbreviated = dashToSpace
+    .replace(/\bSAINTE\b/g, "STE")
+    .replace(/\bSAINT\b/g, "ST")
+  candidates.add(abbreviated)
+  const expanded = dashToSpace
+    .replace(/\bSTE\b/g, "SAINTE")
+    .replace(/\bST\b/g, "SAINT")
+  candidates.add(expanded)
+  return Array.from(candidates)
+}
+

@@ -9,18 +9,35 @@ import { Country } from "../types/Country"
 import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
 import type { OutputFormat } from "../types/OutputFormat"
 
+const loadExample = (name: string): Promise<object> =>
+  Bun.file(`./src/assets/examples/${name}`).json()
+
+const examples = {
+  capParcels: await loadExample("cap-parcels-saint-porchaire.json"),
+  capParcel: await loadExample("cap-parcel-463509.json"),
+  capParcelsMap: await loadExample("cap-parcels-map-saint-porchaire.json"),
+  capParcelsMapGeo: await loadExample("cap-parcels-map-saint-porchaire.geojson.json"),
+  municipalities: await loadExample("municipalities-saint-porchaire.json"),
+  municipality: await loadExample("municipality-st-porchaire.json"),
+  parcelIdentifier: await loadExample("parcel-identifier-saint-porchaire.json"),
+}
+
 const Paths = (t: Translator) => ({
   "/tools/parcel-identifier.json": {
     get: ResourceEndpoint({
-      description: t("tools_parcel_identifier") + " (JSON)",
+      description:
+        t("tools_parcel_identifier") +
+        " (JSON). Example uses a point inside Saint-Porchaire (17250).",
       category: t("tools"),
       query: {
         latitude: {
-          description: "Latitude of the point to identify (WGS84 degrees).",
+          description:
+            "Latitude of the point to identify (WGS84 degrees). Example: 45.8275731903227 (Saint-Porchaire).",
           type: "string",
         },
         longitude: {
-          description: "Longitude of the point to identify (WGS84 degrees).",
+          description:
+            "Longitude of the point to identify (WGS84 degrees). Example: -0.783718835725218 (Saint-Porchaire).",
           type: "string",
         },
         year: {
@@ -30,6 +47,7 @@ const Paths = (t: Translator) => ({
         },
       },
       resourceSchema: {},
+      example: examples.parcelIdentifier,
     }),
   },
 
@@ -114,30 +132,80 @@ const Paths = (t: Translator) => ({
 
   "/geographical-references/cap-parcels.json": {
     get: TableEndpoint({
-      description: t("geographical_references_cap_parcel_title"),
+      description:
+        t("geographical_references_cap_parcel_title") +
+        ". Example query: ?city=Saint-Porchaire (postal 17250).",
       category: t("geographical_references_title"),
       query: {
         city: {
-          description: "Filters the parcels with the provided city name",
+          description:
+            "Filters the parcels with the provided city name (case-insensitive ILIKE %city%). Example: Saint-Porchaire.",
           type: "string",
         },
       },
       resourceSchema: {},
+      example: examples.capParcels,
     }),
   },
 
   "/geographical-references/cap-parcels/{cap_id}.json": {
     get: ResourceEndpoint({
-      description: t("geographical_references_cap_parcel"),
+      description:
+        t("geographical_references_cap_parcel") +
+        ". Example: parcel 463509 in Saint-Porchaire.",
       category: t("geographical_references_title"),
       params: {
         cap_id: {
-          description: "CAP identifier of the parcel",
+          description: "CAP identifier of the parcel. Example: 463509.",
           type: "string",
         },
       },
       query: {},
       resourceSchema: {},
+      example: examples.capParcel,
+    }),
+  },
+
+  "/geographical-references/cap-parcels/map.json": {
+    get: ResourceEndpoint({
+      description:
+        "CAP parcels map for a given municipality: per-crop coloring, hectare statistics and a 3D donut breakdown. Example: ?city=Saint-Porchaire.",
+      category: t("geographical_references_title"),
+      query: {
+        city: {
+          description:
+            "Required. Municipality name; accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire, ST PORCHAIRE).",
+          type: "string",
+        },
+        category: {
+          description:
+            "Optional. Filters the rendered parcels by crop label (ILIKE %category%). Example: Maïs.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+      example: examples.capParcelsMap,
+    }),
+  },
+
+  "/geographical-references/cap-parcels/map.geojson": {
+    get: ResourceEndpoint({
+      description:
+        "GeoJSON FeatureCollection of the CAP parcels for a given municipality. Each feature carries style (stroke + crop fill) and a popup HTML in its properties. Example: ?city=Saint-Porchaire.",
+      category: t("geographical_references_title"),
+      query: {
+        city: {
+          description: "Required municipality name (see /cap-parcels/map.json).",
+          type: "string",
+        },
+        category: {
+          description: "Optional crop label filter (see /cap-parcels/map.json).",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+      example: examples.capParcelsMapGeo,
+      exampleMediaType: "application/geo+json",
     }),
   },
 
@@ -199,7 +267,9 @@ const Paths = (t: Translator) => ({
 
   "/geographical-references/municipalities.json": {
     get: TableEndpoint({
-      description: t("geographical_references_municipality_title"),
+      description:
+        t("geographical_references_municipality_title") +
+        ". Example query: ?city=Saint-Porchaire returns the entry for postal 17250.",
       category: t("geographical_references_title"),
       query: {
         country: {
@@ -208,23 +278,31 @@ const Paths = (t: Translator) => ({
           enum: Object.values(Country),
         },
         city: {
-          description: "Searches for a matching city name.",
+          description:
+            "Searches for a matching city name. Accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire).",
           type: "string",
         },
       },
       resourceSchema: {},
+      example: examples.municipalities,
     }),
   },
 
   "/geographical-references/municipalities/{id}.json": {
     get: ResourceEndpoint({
-      description: t("geographical_references_municipality"),
+      description:
+        t("geographical_references_municipality") +
+        ". Example: Saint-Porchaire (id 17387_17250_STPORC_).",
       category: t("geographical_references_title"),
       params: {
-        id: { type: "string", description: "ID of the municipality" },
+        id: {
+          type: "string",
+          description: "ID of the municipality. Example: 17387_17250_STPORC_.",
+        },
       },
       query: {},
       resourceSchema: {},
+      example: examples.municipality,
     }),
   },
 
@@ -485,7 +563,8 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
   const documentation = {
     info: {
       title: "Lexicon API",
-      description: "Documentation of Lexicon.",
+      description:
+        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8275731903227, -0.783718835725218) work for /tools/parcel-identifier.",
       version: packageJson.version,
     },
 
@@ -793,7 +872,10 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
   return match(output)
     .returnType<unknown>()
     .case({
-      json: () => page,
+      json: () =>
+        new Response(JSON.stringify(page), {
+          headers: { "Content-Type": "application/json" },
+        }),
       _otherwise: () => Documentation(page),
     })
 }
@@ -813,6 +895,8 @@ type EndpointDoc = {
     }
   >
   resourceSchema: object
+  example?: object
+  exampleMediaType?: string
 }
 
 function ResourceEndpoint(doc: EndpointDoc) {
@@ -832,6 +916,14 @@ function ResourceEndpoint(doc: EndpointDoc) {
     schema: { type: schema.type, enum: schema.enum },
   }))
 
+  const mediaType = doc.exampleMediaType ?? "application/json"
+  const content: Record<string, { schema: object; example?: object }> = {
+    "application/json": { schema: doc.resourceSchema },
+  }
+  if (doc.example) {
+    content[mediaType] = { schema: doc.resourceSchema, example: doc.example }
+  }
+
   return {
     summary: doc.description,
     tags: [doc.category],
@@ -844,11 +936,7 @@ function ResourceEndpoint(doc: EndpointDoc) {
     parameters: [...pathParameters, ...queryParameters],
     responses: {
       200: {
-        content: {
-          "application/json": {
-            schema: doc.resourceSchema,
-          },
-        },
+        content,
       },
     },
   }
@@ -869,5 +957,7 @@ function TableEndpoint(doc: EndpointDoc) {
     params: doc.params,
     query: { page: pageParameter, ...doc.query },
     resourceSchema: doc.resourceSchema,
+    example: doc.example,
+    exampleMediaType: doc.exampleMediaType,
   })
 }

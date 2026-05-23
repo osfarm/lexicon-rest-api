@@ -28,6 +28,7 @@ export interface ParcelIdentifierOkPage {
   price?: Record<string, Hypermedia>
   cap?: Record<string, Hypermedia>
   soil?: Record<string, Hypermedia>
+  links?: Record<string, HypermediaType["Link"]>
   transactions?: TableSection
   owners?: TableSection
   "natural-zones"?: TableSection
@@ -39,7 +40,6 @@ export interface ParcelIdentifierOkPage {
     legend: {}
     values: {}
   }
-  "production-prices"?: TableSection
   "agricultural-enterprises"?: TableSection
   "msa-populations"?: TableSection
   "last-year-weather-reports"?: {
@@ -59,8 +59,8 @@ interface Props {
   page: Result<Error, ParcelIdentifierOkPage>
 }
 
-const DEFAULT_LATITUDE = 48.831561189145276
-const DEFAULT_LONGITUDE = 2.2884060615145954
+const DEFAULT_LATITUDE = 45.8295169339847
+const DEFAULT_LONGITUDE = -0.786978473820221
 
 export function ParcelIdentifier(props: Props) {
   const { page, context } = props
@@ -109,7 +109,6 @@ export function ParcelIdentifier(props: Props) {
             />
           </>
         )}
-        {renderTableSection(val["production-prices"], context)}
         {renderTableSection(val["agricultural-enterprises"], context)}
         {renderTableSection(val["msa-populations"], context)}
         {val["last-year-weather-reports"] !== undefined && (

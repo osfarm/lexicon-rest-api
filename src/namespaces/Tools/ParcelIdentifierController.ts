@@ -1,4 +1,4 @@
-import { Concurrently, match, None, Ok, Some, type AsyncResult } from "shulk"
+import { Concurrently, Err, match, None, Ok, Some, type AsyncResult } from "shulk"
 import { Hypermedia, hypermedia2json, type HypermediaType } from "../../Hypermedia"
 import { Field } from "../../templates/components/Form"
 import type { Context } from "../../types/Context"
@@ -56,7 +56,10 @@ import {
 import { MsaPopulationTable, type MsaPopulation } from "../MsaPopulation"
 
 const RED = "#EE6666"
+const RED_FADED = "#B85C5C"
 const BLUE = "#5470C6"
+const BLUE_FADED = "#8FA3D9"
+const WEATHER_HISTORY_YEARS = 10
 
 const DEFAULT_CAP_CODE_YEAR = 2025
 const CAP_CODE_YEAR_MIN = 2017
@@ -65,6 +68,13 @@ const CAP_CODE_YEAR_MAX = 2025
 const EXPOSE_OWNERS = import.meta.env.EXPOSE_OWNERS === "true"
 
 type EnrichedParcelOwner = CadastralParcelOwner & Partial<CadastralOwner>
+
+interface HistoricalDailyAggregate {
+  month: number
+  day: number
+  avg_max_temp: number | null
+  avg_rain: number | null
+}
 
 interface ParcelData {
   municipality?: Municipality
@@ -87,6 +97,7 @@ interface ParcelData {
     rain?: string
     humidity?: string
   }>
+  historicalDailyWeather?: HistoricalDailyAggregate[]
   historicalYields?: ProductionYield[]
   productionPrices?: ProductionPrice[]
   agriculturalEnterprises?: Enterprise[]
@@ -136,13 +147,26 @@ export async function ParcelIdentifierController(
       type: "line",
       color: RED,
       side: "left",
-      stack: "Total",
     },
-    humidity: {
-      label: cxt.t("weather_station_hourly_report_humidity"),
-      unit: "%",
+    "temperature-max-avg": {
+      label: cxt.t("weather_station_hourly_report_temperature_max_10y_avg"),
+      unit: "°C",
       type: "line",
+      color: RED_FADED,
+      side: "left",
+    },
+    rain: {
+      label: cxt.t("weather_station_hourly_report_rain"),
+      unit: "mm",
+      type: "bar",
       color: BLUE,
+      side: "right",
+    },
+    "rain-avg": {
+      label: cxt.t("weather_station_hourly_report_rain_10y_avg"),
+      unit: "mm",
+      type: "bar",
+      color: BLUE_FADED,
       side: "right",
     },
   }
@@ -205,6 +229,9 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     information: data.municipality
       ? buildMunicipalitySection(data.municipality, cxt)
       : undefined,
+    links: data.municipality
+      ? buildLinksSection(data.municipality, cxt)
+      : undefined,
     cadastre: data.cadastralParcel
       ? buildCadastreSection(data.cadastralParcel, cxt)
       : undefined,
@@ -265,6 +292,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
         ? buildWeatherReportsSection(
             data.weatherStation,
             data.lastYearWeatherReports,
+            data.historicalDailyWeather,
             cxt,
             legend,
           )
@@ -389,6 +417,10 @@ async function retrieveParcelData(
         .run()
     : Ok(undefined)
 
+  const historicalWeatherResult = station
+    ? await fetchHistoricalDailyWeather(db, station.reference_name)
+    : Ok(undefined)
+
   const capCodeResult = capParcel?.cap_crop_code
     ? await MasterCapCodeTable(db)
         .select()
@@ -463,6 +495,7 @@ async function retrieveParcelData(
   const [cadastralParcelPrices, cadastralParcelOwners] =
     cadastreDependentResult.unwrapOr([undefined, undefined])
   const lastYearWeatherReports = weatherResult.unwrapOr(undefined)
+  const historicalDailyWeather = historicalWeatherResult.unwrapOr(undefined)
   const capCode = capCodeResult.unwrapOr([])[0]
   const [historicalYields, productionPrices] = productionDataResult.unwrapOr([
     undefined,
@@ -483,6 +516,7 @@ async function retrieveParcelData(
     soilWaterCapacity: soilWaterCapacities[0],
     weatherStation: station,
     lastYearWeatherReports,
+    historicalDailyWeather,
     historicalYields,
     productionPrices,
     agriculturalEnterprises,
@@ -529,6 +563,22 @@ function buildMunicipalitySection(
     "postal-code": Hypermedia.Text({
       label: cxt.t("geographical_references_municipality_postal_code"),
       value: municipality.postal_code,
+    }),
+  }
+}
+
+function buildLinksSection(
+  municipality: Municipality,
+  cxt: Context,
+): Record<string, HypermediaType["Link"]> {
+  return {
+    "cap-parcels-map": Hypermedia.Link({
+      label: cxt.t("tools_parcel_identifier_links_cap_parcels_map"),
+      value: cxt.t("tools_parcel_identifier_links_cap_parcels_map"),
+      method: "GET",
+      href:
+        "/geographical-references/cap-parcels/map?city=" +
+        encodeURIComponent(municipality.city_name),
     }),
   }
 }
@@ -660,10 +710,6 @@ function buildTransactionsSection(prices: ParcelPrice[], cxt: Context): TableSec
     columns: {
       id: cxt.t("geographical_references_cadastral_parcel_price_id"),
       date: cxt.t("common_fields_date"),
-      address: cxt.t("common_fields_address"),
-      "building-nature": cxt.t(
-        "geographical_references_cadastral_parcel_price_building_nature",
-      ),
       price: cxt.t("tools_price"),
     },
     rows: prices.map((price) => ({
@@ -697,8 +743,6 @@ function buildOwnersSection(
       denomination: cxt.t("tools_owner_denomination"),
       "legal-form": cxt.t("tools_owner_legal_form"),
       siren: cxt.t("tools_owner_siren"),
-      "suf-area": cxt.t("tools_owner_suf_area"),
-      "culture-nature": cxt.t("tools_owner_culture_nature"),
     },
     rows: owners.map((owner) => ({
       denomination: owner.denomination
@@ -717,19 +761,6 @@ function buildOwnersSection(
         ? Hypermedia.Text({
             label: cxt.t("tools_owner_siren"),
             value: owner.siren,
-          })
-        : undefined,
-      "suf-area": owner.suf_surface_area
-        ? Hypermedia.Number({
-            label: cxt.t("tools_owner_suf_area"),
-            value: owner.suf_surface_area,
-            unit: "m²",
-          })
-        : undefined,
-      "culture-nature": owner.culture_nature_code
-        ? Hypermedia.Text({
-            label: cxt.t("tools_owner_culture_nature"),
-            value: owner.culture_nature_code,
           })
         : undefined,
     })),
@@ -908,10 +939,7 @@ function buildAgriculturalEnterprisesSection(
     label: cxt.t("tools_agricultural_enterprises"),
     columns: {
       siren: cxt.t("tools_enterprise_siren"),
-      name: cxt.t("common_fields_name"),
       activity: cxt.t("tools_enterprise_activity_code"),
-      address: cxt.t("common_fields_address"),
-      city: cxt.t("common_fields_city"),
       "subsidy-count": cxt.t("tools_subsidies_count"),
       "subsidy-amount": cxt.t("tools_subsidies_total_amount"),
       "subsidy-year": cxt.t("tools_subsidies_year"),
@@ -934,33 +962,17 @@ function buildAgriculturalEnterprisesSection(
       )
       return {
         siren: enterprise.siren
-          ? Hypermedia.Text({
+          ? Hypermedia.Link({
               label: cxt.t("tools_enterprise_siren"),
               value: enterprise.siren,
-            })
-          : undefined,
-        name: enterprise.name
-          ? Hypermedia.Text({
-              label: cxt.t("common_fields_name"),
-              value: enterprise.name,
+              method: "GET",
+              href: "/enterprises/enterprises/" + enterprise.siren,
             })
           : undefined,
         activity: Hypermedia.Text({
           label: cxt.t("tools_enterprise_activity_code"),
           value: enterprise.french_main_activity_code,
         }),
-        address: enterprise.address
-          ? Hypermedia.Text({
-              label: cxt.t("common_fields_address"),
-              value: enterprise.address,
-            })
-          : undefined,
-        city: enterprise.city
-          ? Hypermedia.Text({
-              label: cxt.t("common_fields_city"),
-              value: enterprise.city,
-            })
-          : undefined,
         "subsidy-count": Hypermedia.Number({
           label: cxt.t("tools_subsidies_count"),
           value: subsidies.length,
@@ -1035,12 +1047,106 @@ function buildMsaPopulationsSection(
   }
 }
 
+async function fetchHistoricalDailyWeather(
+  db: Pool,
+  stationId: string,
+): AsyncResult<Error, HistoricalDailyAggregate[]> {
+  const schema = import.meta.env.DB_SCHEMA
+  const q = `
+    SELECT
+      EXTRACT(MONTH FROM day)::int AS month,
+      EXTRACT(DAY FROM day)::int AS day,
+      AVG(daily_max_temp)::float AS avg_max_temp,
+      AVG(daily_rain)::float AS avg_rain
+    FROM (
+      SELECT
+        DATE_TRUNC('day', started_at) AS day,
+        MAX(max_temp) AS daily_max_temp,
+        SUM(COALESCE(rain, 0)) AS daily_rain
+      FROM "${schema}".registered_hourly_weathers
+      WHERE station_id = $1
+        AND started_at >= NOW() - INTERVAL '${WEATHER_HISTORY_YEARS} years'
+        AND started_at < NOW() - INTERVAL '30 days'
+      GROUP BY day
+    ) daily
+    GROUP BY month, day
+  `
+  try {
+    const result = await db.query(q, [stationId])
+    return Ok(result.rows as HistoricalDailyAggregate[])
+  } catch (e) {
+    return Err(e as Error)
+  }
+}
+
 function buildWeatherReportsSection(
   station: Station,
   reports: ParcelData["lastYearWeatherReports"] & {},
+  historical: HistoricalDailyAggregate[] | undefined,
   cxt: Context,
   legend: any,
 ) {
+  // Aggregate current 30-day window by day: daily max temp + daily rain sum.
+  type DayAcc = {
+    date: Date
+    max_temp: number
+    rain: number
+    has_max: boolean
+    has_rain: boolean
+  }
+  const dayAccs = new Map<string, DayAcc>()
+  for (const r of reports) {
+    const d = new Date(r.started_at)
+    const dayKey = d.toISOString().slice(0, 10)
+    let acc = dayAccs.get(dayKey)
+    if (!acc) {
+      const date = new Date(dayKey + "T00:00:00Z")
+      acc = { date, max_temp: -Infinity, rain: 0, has_max: false, has_rain: false }
+      dayAccs.set(dayKey, acc)
+    }
+    const mt = parseFloat(r.max_temp as any)
+    if (!Number.isNaN(mt)) {
+      acc.max_temp = Math.max(acc.max_temp, mt)
+      acc.has_max = true
+    }
+    const rn = parseFloat(r.rain as any)
+    if (!Number.isNaN(rn)) {
+      acc.rain += rn
+      acc.has_rain = true
+    }
+  }
+
+  const historicalByKey = new Map<string, HistoricalDailyAggregate>()
+  for (const h of historical ?? []) {
+    historicalByKey.set(`${h.month}-${h.day}`, h)
+  }
+
+  const sortedDays = Array.from(dayAccs.values()).sort(
+    (a, b) => a.date.getTime() - b.date.getTime(),
+  )
+
+  type Row = {
+    "temperature-max"?: number
+    "temperature-max-avg"?: number
+    rain?: number
+    "rain-avg"?: number
+  }
+  const values: Record<string, Row> = {}
+  for (const acc of sortedDays) {
+    const monthDay = `${acc.date.getUTCMonth() + 1}-${acc.date.getUTCDate()}`
+    const hist = historicalByKey.get(monthDay)
+    const row: Row = {}
+    if (acc.has_max) row["temperature-max"] = Number(acc.max_temp.toFixed(1))
+    if (acc.has_rain) row.rain = Number(acc.rain.toFixed(1))
+    if (hist?.avg_max_temp != null) {
+      row["temperature-max-avg"] = Number(Number(hist.avg_max_temp).toFixed(1))
+    }
+    if (hist?.avg_rain != null) {
+      row["rain-avg"] = Number(Number(hist.avg_rain).toFixed(1))
+    }
+    values[cxt.dateTimeFormatter.Date(acc.date)] = row
+  }
+
   return {
     station: Hypermedia.Link({
       label: cxt.t("weather_station"),
@@ -1049,16 +1155,6 @@ function buildWeatherReportsSection(
       href: "/weather/stations/" + station.reference_name,
     }),
     legend,
-    // Mutate the accumulator instead of spreading (was O(N^2) on ~8700 rows).
-    values: reports.reduce<Record<string, { "temperature-max": number; humidity: number }>>(
-      (acc, curr) => {
-        acc[cxt.dateTimeFormatter.DateTime(curr.started_at)] = {
-          "temperature-max": parseFloat(curr.max_temp as any),
-          humidity: parseFloat(curr.humidity as any),
-        }
-        return acc
-      },
-      {},
-    ),
+    values,
   }
 }

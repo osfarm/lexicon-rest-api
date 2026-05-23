@@ -42,6 +42,8 @@ tools_parcel_identifier_information,Informations,Information
 tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_price,Valeur foncière,Parcel transaction
 tools_parcel_identifier_cap,Informations PAC,CAP information
+tools_parcel_identifier_links,Liens,Links
+tools_parcel_identifier_links_cap_parcels_map,Voir les parcelles PAC de la commune sur la carte,See CAP parcels of the municipality on the map
 tools_station_last_year_reports,Relevés météorologiques de l'année,Weather reports
 tools_transactions,Transactions,Transactions
 tools_price,Prix,Price
@@ -82,6 +84,22 @@ geographical_references_cap_parcel,Parcelle enregistrée à la PAC,CAP parcel
 geographical_references_cap_parcel_id,Identifiant PAC,CAP identifier
 geographical_references_cap_parcel_culture,Culture,Culture
 geographical_references_cap_parcel_crop_code,Code culture PAC,CAP crop code
+geographical_references_cap_parcel_map_title,Carte des parcelles PAC par culture,CAP parcels map by crop
+geographical_references_cap_parcel_map_help,Saisissez le nom d'une commune pour afficher la carte des parcelles PAC.,Enter a city name to display the CAP parcels map.
+geographical_references_cap_parcel_map_category,Catégorie de culture,Crop category
+geographical_references_cap_parcel_map_legend,Catégories,Categories
+geographical_references_cap_parcel_map_unknown_category,Catégorie inconnue,Unknown category
+geographical_references_cap_parcel_map_city_not_found,Aucune commune ne correspond à ce nom (ou la commune n'a pas de géométrie).,No municipality matches this name (or it has no geometry).
+geographical_references_cap_parcel_map_no_parcels,Aucune parcelle PAC trouvée sur cette commune pour ces critères.,No CAP parcels found in this city for these filters.
+geographical_references_cap_parcel_map_truncated,Trop de parcelles à afficher — affinez par catégorie pour voir l'ensemble.,Too many parcels to display — filter by category to see them all.
+geographical_references_cap_parcel_map_stats_title,Statistiques de la commune,Municipality statistics
+geographical_references_cap_parcel_map_total_parcels,Nombre de parcelles,Number of parcels
+geographical_references_cap_parcel_map_total_area,Surface totale,Total area
+geographical_references_cap_parcel_map_average_parcel_size,Taille moyenne d'une parcelle,Average parcel size
+geographical_references_cap_parcel_map_crop_count,Cultures différentes,Distinct crops
+geographical_references_cap_parcel_map_hectares_per_crop,Hectares par culture,Hectares per crop
+geographical_references_cap_parcel_map_hectares,Hectares,Hectares
+geographical_references_cap_parcel_map_donut_select,Cliquez pour mettre en avant — décochez pour masquer,Click to highlight — uncheck to hide
 
 geographical_references_postal_code_title,Codes postaux,Postal codes
 
@@ -179,6 +197,8 @@ weather_station_hourly_report_temperature_min,Température min.,Min temperature
 weather_station_hourly_report_temperature_max,Température max.,Max temperature
 weather_station_hourly_report_humidity,Humidité,Humidity
 weather_station_hourly_report_rain,Précipitations,Rain
+weather_station_hourly_report_temperature_max_10y_avg,Température max. moyenne (10 ans),Avg max temperature (10 years)
+weather_station_hourly_report_rain_10y_avg,Précipitations moyennes (10 ans),Avg rainfall (10 years)
 weather_station_hourly_report_wind_speed,Vent,Wind
 weather_station_hourly_report_wind_direction,Direction,Direction
 weather_station_hourly_report_pressure,Pression,Pressure
@@ -270,6 +290,12 @@ taxonomy_zea_mays,Maïs,Corn
 tools_agricultural_enterprises,Entreprises agricoles sur la commune,Agricultural enterprises in the city
 tools_enterprise_siren,SIREN,SIREN
 tools_enterprise_activity_code,Code NAF,NAF code
+enterprises_title,Entreprises,Enterprises
+enterprises_agricultural_title,Entreprises agricoles,Agricultural enterprises
+enterprises_siret,SIRET,SIRET
+enterprises_activity_code_prefix,Préfixe code NAF (01 = agriculture),NAF code prefix (01 = agriculture)
+enterprises_establishments,Établissements,Establishments
+enterprises_establishments_count,Nombre d'établissements,Number of establishments
 tools_subsidies_count,Nombre d'aides PAC,Number of CAP subsidies
 tools_subsidies_total_amount,Montant total des aides,Total subsidies amount
 tools_subsidies_year,Dernière année,Latest year

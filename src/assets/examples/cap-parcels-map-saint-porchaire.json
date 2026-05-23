@@ -1,0 +1,55 @@
+{
+  "@id": "http://localhost:8888/geographical-references/cap-parcels/map.json?city=Saint-Porchaire",
+  "city": "ST PORCHAIRE",
+  "category": null,
+  "truncated": false,
+  "stats": {
+    "totalParcels": 275,
+    "totalHectares": 876.01,
+    "averageParcelHectares": 3.19,
+    "cropCount": 24,
+    "hectaresByCrop": [
+      {
+        "crop": "Tournesol semence",
+        "hectares": 191.08,
+        "color": "Gold"
+      },
+      {
+        "crop": "Maïs",
+        "hectares": 184.24,
+        "color": "Yellow"
+      },
+      {
+        "crop": "Blé tendre d’hiver",
+        "hectares": 148.51,
+        "color": "Wheat"
+      },
+      {
+        "crop": "Colza d’hiver",
+        "hectares": 84.11,
+        "color": "Yellow"
+      },
+      {
+        "crop": "Blé dur d’hiver",
+        "hectares": 49.64,
+        "color": "Wheat"
+      }
+    ]
+  },
+  "parcels": [
+    {
+      "id": "6345595",
+      "cap_crop_code": "JAC",
+      "cap_label": "Jachère (terre arable)",
+      "cap_category": null,
+      "area_ha": 3.022985372734815
+    },
+    {
+      "id": "6009833",
+      "cap_crop_code": "SNE",
+      "cap_label": "Surface agricole temporairement non exploitée",
+      "cap_category": null,
+      "area_ha": 0.0321474297049434
+    }
+  ]
+}

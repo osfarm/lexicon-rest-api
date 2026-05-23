@@ -57,7 +57,16 @@ export function Table<T extends object>(
   })
 }
 
-type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN" | "ST_CONTAINS"
+type Operator =
+  | "="
+  | ">"
+  | ">="
+  | "<"
+  | "<="
+  | "LIKE"
+  | "ILIKE"
+  | "ST_WITHIN"
+  | "ST_CONTAINS"
 type Condition<T> = {
   field: keyof T
   op: Operator

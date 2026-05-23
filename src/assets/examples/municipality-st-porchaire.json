@@ -1,0 +1,75 @@
+{
+    "@id": "http://localhost:8888/geographical-references/municipalities/17387_17250_STPORC_.json",
+    "title": "ST PORCHAIRE",
+    "breadcrumbs": [
+        {
+            "@type": "Link",
+            "value": "Accueil",
+            "method": "GET",
+            "href": "/"
+        },
+        {
+            "@type": "Link",
+            "value": "Références géographiques",
+            "method": "GET",
+            "href": "/geographical-references"
+        },
+        {
+            "@type": "Link",
+            "value": "Communes",
+            "method": "GET",
+            "href": "/geographical-references/municipalities"
+        }
+    ],
+    "details": {
+        "country": {
+            "@type": "Text",
+            "label": "Pays",
+            "value": "France"
+        },
+        "code": {
+            "@type": "Text",
+            "label": "Code commune",
+            "value": "17387"
+        },
+        "postal-code": {
+            "@type": "Text",
+            "label": "Code postal",
+            "value": "17250"
+        }
+    },
+    "sections": {
+        "cadastre": {
+            "@type": "Link",
+            "value": "Cadastre",
+            "method": "GET",
+            "href": "/geographical-references/municipalities/17387_17250_STPORC_/cadastre"
+        },
+        "cap": {
+            "@type": "Link",
+            "value": "Parcelles enregistrées à la PAC",
+            "method": "GET",
+            "href": "/geographical-references/municipalities/17387_17250_STPORC_/cap-parcels"
+        },
+        "last-year-weather-reports": {
+            "@type": "Link",
+            "value": "Relevés météorologiques de l'année",
+            "method": "GET",
+            "href": "/geographical-references/municipalities/17387_17250_STPORC_/last-year-weather-reports"
+        }
+    },
+    "links": [
+        {
+            "@type": "Link",
+            "value": "Station météorologique FR17415003",
+            "method": "GET",
+            "href": "/weather/stations/FR17415003"
+        },
+        {
+            "@type": "Link",
+            "value": "Relevés météorologiques (Station météorologique FR17415003)",
+            "method": "GET",
+            "href": "/weather/stations/FR17415003/hourly-reports"
+        }
+    ]
+}

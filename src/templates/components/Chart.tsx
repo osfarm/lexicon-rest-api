@@ -32,26 +32,38 @@ export function Chart(props: Props) {
     { type: "category", axisTick: { alignWithLabel: true }, data: Object.keys(values) },
   ]
 
-  const echartsY = Object.values(legend).map((item) => ({
-    type: "value",
-    name: item.label,
-    position: item.side,
-    alignTicks: true,
-    axisLine: {
-      show: true,
-      lineStyle: {
-        color: item.color,
-      },
-    },
-    axisLabel: {
-      formatter: `{value} ${item.unit}`,
-    },
-  }))
+  // Deduplicate Y axes by side: series sharing the same side share one axis.
+  // Axis label uses the unit (since multiple series can map to one axis).
+  // Axis line color follows the first series on that side.
+  const sides: ("left" | "right")[] = []
+  for (const item of Object.values(legend)) {
+    if (!sides.includes(item.side)) sides.push(item.side)
+  }
 
-  const echartsSeries = Object.entries(legend).map(([key, item], i) => ({
+  const echartsY = sides.map((side) => {
+    const itemsOnSide = Object.values(legend).filter((i) => i.side === side)
+    const first = itemsOnSide[0]
+    return {
+      type: "value",
+      name: first.unit,
+      position: side,
+      alignTicks: true,
+      axisLine: {
+        show: true,
+        lineStyle: {
+          color: first.color,
+        },
+      },
+      axisLabel: {
+        formatter: `{value} ${first.unit}`,
+      },
+    }
+  })
+
+  const echartsSeries = Object.entries(legend).map(([key, item]) => ({
     name: item.label,
     type: item.type,
-    yAxisIndex: i,
+    yAxisIndex: sides.indexOf(item.side),
     data: Object.values(values).map((entry) => entry[key]),
     stack: item.stack,
   }))
