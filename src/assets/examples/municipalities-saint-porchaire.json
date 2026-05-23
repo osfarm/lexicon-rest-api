@@ -1,0 +1,107 @@
+{
+  "@id": "http://localhost:8888/geographical-references/municipalities.json?city=Saint-Porchaire&page=1",
+  "title": "Communes",
+  "breadcrumbs": [
+    {
+      "@type": "Link",
+      "value": "Accueil",
+      "method": "GET",
+      "href": "/"
+    },
+    {
+      "@type": "Link",
+      "value": "Références géographiques",
+      "method": "GET",
+      "href": "/geographical-references"
+    }
+  ],
+  "form": {
+    "country": {
+      "@type": "Select",
+      "label": "Pays",
+      "options": {
+        "FR": "France"
+      },
+      "required": false
+    },
+    "city": {
+      "@type": "Text",
+      "label": "Ville",
+      "required": false,
+      "defaultValue": "Saint-Porchaire"
+    }
+  },
+  "table": {
+    "columns": {
+      "country": "Pays",
+      "city": "Ville",
+      "city-code": "Code commune",
+      "postal-code": "Code postal",
+      "details": "Détails"
+    },
+    "rows": [
+      {
+        "country": {
+          "@type": "Text",
+          "label": "Pays",
+          "value": "France"
+        },
+        "city": {
+          "@type": "Text",
+          "label": "Code postal",
+          "value": "ST PORCHAIRE"
+        },
+        "city-code": {
+          "@type": "Text",
+          "label": "geographical_references_municipality_postal_code_code",
+          "value": "17387"
+        },
+        "postal-code": {
+          "@type": "Text",
+          "label": "geographical_references_municipality_code",
+          "value": "17250"
+        },
+        "details": {
+          "@type": "Link",
+          "value": "Voir",
+          "method": "GET",
+          "href": "/geographical-references/municipalities/17387_17250_STPORC_"
+        }
+      }
+    ]
+  },
+  "items-per-page": 150,
+  "items-count": 1,
+  "items-total": 1,
+  "page": 1,
+  "total-pages": 1,
+  "pages": [
+    {
+      "@type": "Link",
+      "value": "1",
+      "method": "GET",
+      "href": "/geographical-references/municipalities.json?city=Saint-Porchaire&page=1"
+    }
+  ],
+  "navigation": {},
+  "formats": {
+    "html": {
+      "@type": "Link",
+      "value": "HTML",
+      "method": "GET",
+      "href": "/geographical-references/municipalities?city=Saint-Porchaire&page=1"
+    },
+    "json": {
+      "@type": "Link",
+      "value": "JSON",
+      "method": "GET",
+      "href": "/geographical-references/municipalities.json?city=Saint-Porchaire&page=1"
+    },
+    "csv": {
+      "@type": "Link",
+      "value": "CSV",
+      "method": "GET",
+      "href": "/geographical-references/municipalities.csv?city=Saint-Porchaire&page=1"
+    }
+  }
+}

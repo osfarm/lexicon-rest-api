@@ -25,6 +25,12 @@ type Longitude = number
 
 export type Geometry = Point | Polygon | MultiPolygon
 
+export interface Feature {
+  type: "Feature"
+  geometry: Geometry
+  properties?: Record<string, unknown>
+}
+
 export function coordinatesToPoint(coord: Coordinates): Point {
   return { type: "Point", coordinates: [coord.longitude, coord.latitude] }
 }

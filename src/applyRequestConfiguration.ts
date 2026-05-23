@@ -50,20 +50,18 @@ export function applyRequestConfiguration(
     _otherwise: "html",
   })
 
+  // Instantiate formatters once per request rather than on every .format()
+  // call (was a hot path: ~8700 calls per parcel-identifier response).
+  const dateTimeIntl = Intl.DateTimeFormat(locale, {
+    dateStyle: "short",
+    timeStyle: "short",
+  })
+  const dateIntl = Intl.DateTimeFormat(locale, { dateStyle: "short" })
+  const timeIntl = Intl.DateTimeFormat(locale, { timeStyle: "short" })
   const dateTimeFormatter = {
-    DateTime: (date: Date | number) =>
-      Intl.DateTimeFormat(locale, {
-        dateStyle: "short",
-        timeStyle: "short",
-      }).format(date),
-    Date: (date: Date | number) =>
-      Intl.DateTimeFormat(locale, {
-        dateStyle: "short",
-      }).format(date),
-    Time: (date: Date | number) =>
-      Intl.DateTimeFormat(locale, {
-        timeStyle: "short",
-      }).format(date),
+    DateTime: (date: Date | number) => dateTimeIntl.format(date),
+    Date: (date: Date | number) => dateIntl.format(date),
+    Time: (date: Date | number) => timeIntl.format(date),
   }
 
   const numberFormatter = Intl.NumberFormat(locale).format

@@ -42,6 +42,8 @@ tools_parcel_identifier_information,Informations,Information
 tools_parcel_identifier_cadastre,Cadastre,Cadastre
 tools_parcel_identifier_price,Valeur foncière,Parcel transaction
 tools_parcel_identifier_cap,Informations PAC,CAP information
+tools_parcel_identifier_links,Liens,Links
+tools_parcel_identifier_links_cap_parcels_map,Voir les parcelles PAC de la commune sur la carte,See CAP parcels of the municipality on the map
 tools_station_last_year_reports,Relevés météorologiques de l'année,Weather reports
 tools_transactions,Transactions,Transactions
 tools_price,Prix,Price
@@ -82,6 +84,22 @@ geographical_references_cap_parcel,Parcelle enregistrée à la PAC,CAP parcel
 geographical_references_cap_parcel_id,Identifiant PAC,CAP identifier
 geographical_references_cap_parcel_culture,Culture,Culture
 geographical_references_cap_parcel_crop_code,Code culture PAC,CAP crop code
+geographical_references_cap_parcel_map_title,Carte des parcelles PAC par culture,CAP parcels map by crop
+geographical_references_cap_parcel_map_help,Saisissez le nom d'une commune pour afficher la carte des parcelles PAC.,Enter a city name to display the CAP parcels map.
+geographical_references_cap_parcel_map_category,Catégorie de culture,Crop category
+geographical_references_cap_parcel_map_legend,Catégories,Categories
+geographical_references_cap_parcel_map_unknown_category,Catégorie inconnue,Unknown category
+geographical_references_cap_parcel_map_city_not_found,Aucune commune ne correspond à ce nom (ou la commune n'a pas de géométrie).,No municipality matches this name (or it has no geometry).
+geographical_references_cap_parcel_map_no_parcels,Aucune parcelle PAC trouvée sur cette commune pour ces critères.,No CAP parcels found in this city for these filters.
+geographical_references_cap_parcel_map_truncated,Trop de parcelles à afficher — affinez par catégorie pour voir l'ensemble.,Too many parcels to display — filter by category to see them all.
+geographical_references_cap_parcel_map_stats_title,Statistiques de la commune,Municipality statistics
+geographical_references_cap_parcel_map_total_parcels,Nombre de parcelles,Number of parcels
+geographical_references_cap_parcel_map_total_area,Surface totale,Total area
+geographical_references_cap_parcel_map_average_parcel_size,Taille moyenne d'une parcelle,Average parcel size
+geographical_references_cap_parcel_map_crop_count,Cultures différentes,Distinct crops
+geographical_references_cap_parcel_map_hectares_per_crop,Hectares par culture,Hectares per crop
+geographical_references_cap_parcel_map_hectares,Hectares,Hectares
+geographical_references_cap_parcel_map_donut_select,Cliquez pour mettre en avant — décochez pour masquer,Click to highlight — uncheck to hide
 
 geographical_references_postal_code_title,Codes postaux,Postal codes
 
@@ -179,6 +197,8 @@ weather_station_hourly_report_temperature_min,Température min.,Min temperature
 weather_station_hourly_report_temperature_max,Température max.,Max temperature
 weather_station_hourly_report_humidity,Humidité,Humidity
 weather_station_hourly_report_rain,Précipitations,Rain
+weather_station_hourly_report_temperature_max_10y_avg,Température max. moyenne (10 ans),Avg max temperature (10 years)
+weather_station_hourly_report_rain_10y_avg,Précipitations moyennes (10 ans),Avg rainfall (10 years)
 weather_station_hourly_report_wind_speed,Vent,Wind
 weather_station_hourly_report_wind_direction,Direction,Direction
 weather_station_hourly_report_pressure,Pression,Pressure
@@ -203,3 +223,112 @@ documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,P
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
 
 country_FR,France,France
+tools_soil,Sol,Soil
+tools_soil_depth,Profondeur de sol,Soil depth
+tools_soil_available_water,Réserve utile,Available water capacity
+tools_soil_available_water_min,Réserve utile (min),Available water (min)
+tools_soil_available_water_max,Réserve utile (max),Available water (max)
+tools_owners,Propriétaires,Owners
+tools_owner_denomination,Dénomination,Denomination
+tools_owner_legal_form,Forme juridique,Legal form
+tools_owner_siren,SIREN,SIREN
+tools_owner_suf_area,Surface SUF,SUF area
+tools_owner_culture_nature,Nature de culture,Culture nature
+tools_buildings,Bâtiments à proximité,Nearby buildings
+tools_building_reference,Référence,Reference
+tools_building_nature,Nature,Nature
+tools_natural_zones,Zones naturelles,Natural zones
+tools_zone_nature,Type,Type
+tools_zone_administrative,Zone administrative,Administrative zone
+tools_zone_creator,Producteur,Creator
+tools_protected_water_zones,Zones de protection des eaux,Protected water zones
+tools_area_items,Zonages administratifs,Administrative zoning
+tools_hydrography,Hydrographie à proximité,Nearby hydrography
+tools_hydrography_nature,Nature,Nature
+tools_historical_yields,Rendements historiques du département,Historical yields for department
+tools_production_prices,Prix de production locaux,Local production prices
+tools_production_organic,Bio,Organic
+tools_eu_market_prices,Prix de marché UE,EU market prices
+tools_eu_product,Produit,Product
+tools_eu_sector,Secteur,Sector
+tools_campaign,Campagne,Campaign
+tools_production,Production,Production
+tools_specie,Espèce,Species
+tools_yield,Rendement,Yield
+tools_cap_production,Production PAC,CAP production
+tools_cap_year,Millésime PAC,CAP year
+tools_cap_category,Catégorie PAC,CAP category
+tools_cap_precision,Précision PAC,CAP precision
+tools_cap_is_seed,Semence,Seed
+tools_station_last_30_days_reports,Relevés météorologiques des 30 derniers jours,Last 30 days weather reports
+production_prices_title,Prix de production,Production prices
+production_prices_map_title,Carte des prix de production par département,Production prices map by department
+production_prices_department,Département,Department
+production_prices_price,Prix,Price
+production_prices_label,Label,Label
+production_prices_avg,Prix moyen,Average price
+production_prices_min,Prix minimum,Minimum price
+production_prices_max,Prix maximum,Maximum price
+production_prices_count,Nombre de relevés,Records
+production_prices_unit_ton,tonne,ton
+production_prices_unit_cubic_meter,m³,m³
+production_prices_map_no_data,Aucune donnée disponible pour ces critères.,No data available for these criteria.
+taxonomy_avena_sativa,Avoine cultivée,Oat
+taxonomy_bos_taurus,Bovin commun,Cow
+taxonomy_brassica_napus_napus,Colza,Rapeseed
+taxonomy_glycine_max,Soja,Soybean
+taxonomy_helianthus_annuus,Tournesol,Sunflower
+taxonomy_hordeum_vulgare,Orge commune,Barley
+taxonomy_pisum_sativum,Pois cultivé,Pea
+taxonomy_secale_cereale,Seigle cultivé,Rye
+taxonomy_sorghum,Sorgho,Sorghum
+taxonomy_triticum_aestivum,Blé tendre,Common wheat
+taxonomy_triticum_durum,Blé dur,Durum wheat
+taxonomy_vicia_faba,Fève cultivée,Faba bean
+taxonomy_x_triticosecale,Triticale,Triticale
+taxonomy_zea_mays,Maïs,Corn
+tools_agricultural_enterprises,Entreprises agricoles sur la commune,Agricultural enterprises in the city
+tools_enterprise_siren,SIREN,SIREN
+tools_enterprise_activity_code,Code NAF,NAF code
+enterprises_title,Entreprises,Enterprises
+enterprises_agricultural_title,Entreprises agricoles,Agricultural enterprises
+enterprises_siret,SIRET,SIRET
+enterprises_activity_code_prefix,Préfixe code NAF (01 = agriculture),NAF code prefix (01 = agriculture)
+enterprises_establishments,Établissements,Establishments
+enterprises_establishments_count,Nombre d'établissements,Number of establishments
+enterprises_rica_title,RICA — Réseau d'Information Comptable Agricole,FADN — Farm Accountancy Data Network
+enterprises_rica_idnum,Numéro d'exploitation,Holding number
+enterprises_rica_year,Année,Year
+enterprises_rica_ote_64,OTEX (64 postes),OTE (64 categories)
+enterprises_rica_ote_17,OTEX (17 postes),OTE (17 categories)
+enterprises_rica_region_code,Code région,Region code
+enterprises_rica_new_region_code,Nouveau code région,New region code
+enterprises_rica_region,Région,Region
+enterprises_rica_economic_dimension_class,Classe de dimension économique,Economic dimension class
+enterprises_rica_legal_form,Forme juridique,Legal form
+enterprises_rica_altitude_zone,Zone d'altitude,Altitude zone
+enterprises_rica_less_favoured_zone,Zone défavorisée,Less favoured zone
+enterprises_rica_environmental_zone,Zone environnementale,Environmental zone
+enterprises_rica_closing_date,Date de clôture,Closing date
+enterprises_rica_sau,SAU,UAA
+enterprises_rica_sau_ha,SAU,Utilised agricultural area
+enterprises_rica_total_area_ha,Surface totale,Total area
+enterprises_rica_gross_product,Produit brut,Gross product
+enterprises_rica_gross_operating_surplus,Excédent brut d'exploitation,Gross operating surplus
+enterprises_rica_operating_result,Résultat d'exploitation,Operating result
+enterprises_rica_extrapolation_coefficient,Coefficient d'extrapolation,Extrapolation coefficient
+enterprises_rica_variables_link,Voir toutes les variables RICA,See all RICA variables
+enterprises_rica_variables_title,Variables RICA,RICA variables
+enterprises_rica_variable_code,Code,Code
+enterprises_rica_variable_label,Libellé,Label
+enterprises_rica_variable_value,Valeur,Value
+enterprises_rica_variable_resolved,Modalité,Modality
+tools_subsidies_count,Nombre d'aides PAC,Number of CAP subsidies
+tools_subsidies_total_amount,Montant total des aides,Total subsidies amount
+tools_subsidies_year,Dernière année,Latest year
+tools_msa_populations,Population agricole (MSA),Farming population (MSA)
+tools_msa_year,Année,Year
+tools_msa_new_contracts,Nouveaux installés,New contracts
+tools_msa_farm_chiefs,Chefs d'exploitation,Farm chiefs
+tools_msa_retired_salaried,Retraités salariés,Retired salaried
+tools_msa_retired_non_salaried,Retraités non salariés,Retired non-salaried

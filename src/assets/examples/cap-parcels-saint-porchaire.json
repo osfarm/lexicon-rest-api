@@ -1,0 +1,137 @@
+{
+  "@id": "http://localhost:8888/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=1",
+  "title": "Parcelles enregistrées à la PAC",
+  "breadcrumbs": [
+    {
+      "@type": "Link",
+      "value": "Accueil",
+      "method": "GET",
+      "href": "/"
+    },
+    {
+      "@type": "Link",
+      "value": "Références géographiques",
+      "method": "GET",
+      "href": "/geographical-references"
+    }
+  ],
+  "form": {
+    "city": {
+      "@type": "Text",
+      "label": "Ville",
+      "required": false,
+      "defaultValue": "Saint-Porchaire"
+    }
+  },
+  "table": {
+    "columns": {
+      "city": "Ville",
+      "id": "ID",
+      "culture": "Culture",
+      "details": "Détails"
+    },
+    "rows": [
+      {
+        "city": {
+          "@type": "Text",
+          "label": "Ville",
+          "value": "Saint-Porchaire"
+        },
+        "id": {
+          "@type": "Text",
+          "label": "ID",
+          "value": "463509"
+        },
+        "culture": {
+          "@type": "Text",
+          "label": "Culture",
+          "value": "Autre prairie temporaire de 5 ans ou moins"
+        },
+        "details": {
+          "@type": "Link",
+          "label": "Détails",
+          "value": "Voir",
+          "method": "GET",
+          "href": "/geographical-references/cap-parcels/463509"
+        }
+      },
+      {
+        "city": {
+          "@type": "Text",
+          "label": "Ville",
+          "value": "Saint-Porchaire"
+        },
+        "id": {
+          "@type": "Text",
+          "label": "ID",
+          "value": "463509"
+        },
+        "culture": {
+          "@type": "Text",
+          "label": "Culture",
+          "value": "Autre prairie temporaire de 5 ans ou moins"
+        },
+        "details": {
+          "@type": "Link",
+          "label": "Détails",
+          "value": "Voir",
+          "method": "GET",
+          "href": "/geographical-references/cap-parcels/463509"
+        }
+      }
+    ]
+  },
+  "items-per-page": 150,
+  "items-count": 150,
+  "items-total": 293,
+  "page": 1,
+  "total-pages": 2,
+  "pages": [
+    {
+      "@type": "Link",
+      "value": "1",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=1"
+    },
+    {
+      "@type": "Link",
+      "value": "2",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=2"
+    }
+  ],
+  "navigation": {
+    "next-page": {
+      "@type": "Link",
+      "value": "Page suivante",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=2"
+    },
+    "last-page": {
+      "@type": "Link",
+      "value": "2",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=2"
+    }
+  },
+  "formats": {
+    "html": {
+      "@type": "Link",
+      "value": "HTML",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels?city=Saint-Porchaire&page=1"
+    },
+    "json": {
+      "@type": "Link",
+      "value": "JSON",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.json?city=Saint-Porchaire&page=1"
+    },
+    "csv": {
+      "@type": "Link",
+      "value": "CSV",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels.csv?city=Saint-Porchaire&page=1"
+    }
+  }
+}

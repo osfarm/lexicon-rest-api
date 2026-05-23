@@ -27,8 +27,16 @@ export const CadastralParcelPriceAPI = API.new()
     generateTablePage<ParcelPrice, string>(cxt, {
       title: cxt.t("geographical_references_cadastral_parcel_price_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
+      // Note: we used to add `.distinct()` to dedupe true row duplicates
+      // (about 7.3M out of 20M rows are tuple-duplicates), but combined with
+      // `ORDER BY mutation_id` (no index) it forced a HashAggregate spilling
+      // 1.8GB to disk — ~22s per cold hit. Order by id (PK index) gives a
+      // ~1ms index scan; the remaining duplicates are visible only when the
+      // listing is unfiltered. Deduplication should happen at ingestion
+      // upstream, or with an index on (mutation_id) if DISTINCT is required.
       query: ParcelPriceTable(cxt.db)
         .select(
+          "id",
           "cadastral_parcel_id",
           "mutation_id",
           "postal_code",
@@ -37,11 +45,7 @@ export const CadastralParcelPriceAPI = API.new()
           "mutation_date",
           "cadastral_price",
         )
-        .distinct()
-        .orderBy("mutation_id", "ASC"),
-      // .sql(
-      //   "SELECT DISTINCT cadastral_parcel_id, mutation_id, postal_code, city, address, mutation_date, cadastral_price FROM registered_cadastral_prices ORDER BY mutation_id ASC LIMIT 50",
-      // ),
+        .orderBy("id", "ASC"),
 
       credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastral_prices"),
       form: {

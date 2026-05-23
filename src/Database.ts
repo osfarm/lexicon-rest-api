@@ -57,7 +57,16 @@ export function Table<T extends object>(
   })
 }
 
-type Operator = "=" | ">" | ">=" | "<" | "<=" | "LIKE" | "ST_WITHIN" | "ST_CONTAINS"
+type Operator =
+  | "="
+  | ">"
+  | ">="
+  | "<"
+  | "<="
+  | "LIKE"
+  | "ILIKE"
+  | "ST_WITHIN"
+  | "ST_CONTAINS"
 type Condition<T> = {
   field: keyof T
   op: Operator
@@ -179,15 +188,29 @@ class Select<T extends object> {
     const fieldsToSelect =
       this.selectedFields.length > 0 ? this.selectedFields.join(", ") : "*"
 
-    const fields = this.def.geometry
-      ? fieldsToSelect +
-        ", " +
-        this.def.geometry
-          ?.map(
-            (field) => `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`,
-          )
-          .join(", ")
-      : fieldsToSelect
+    // Add ST_AsGeoJSON projection for geometry columns when:
+    //   - no fields were explicitly selected (SELECT *), OR
+    //   - the caller explicitly listed a geometry column in .select(...).
+    // Skip otherwise to avoid converting heavy polygons on table-list pages
+    // that only render text columns.
+    const explicitFields = this.selectedFields as unknown as string[]
+    const geometryToProject = this.def.geometry
+      ? this.def.geometry.filter((g) =>
+          explicitFields.length === 0 ? true : explicitFields.includes(g as string),
+        )
+      : []
+
+    const fields =
+      geometryToProject.length > 0
+        ? fieldsToSelect +
+          ", " +
+          geometryToProject
+            .map(
+              (field) =>
+                `postgis.ST_AsGeoJSON(${field as string}) AS ${field as string}`,
+            )
+            .join(", ")
+        : fieldsToSelect
 
     const groupby = this.groupby.length > 0 ? "GROUP BY " + this.groupby.join(", ") : ""
 
@@ -253,7 +276,15 @@ class Select<T extends object> {
 
     const { conditions, params } = this.prepareConditionsAndParams()
 
-    const q = `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`
+    // Fast path: unfiltered count on a huge table is dominated by
+    // sequential-scan time (1-2s on tables of 20M+ rows). For pagination
+    // a percent-accurate estimate is enough; use pg_class.reltuples which
+    // is sub-millisecond. Exact COUNT(*) is only worth it when filters
+    // are present.
+    const useEstimate = this.conditions.length === 0
+    const q = useEstimate
+      ? `SELECT reltuples::bigint AS count FROM pg_class WHERE relname = '${this.def.table}' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '${DB_SCHEMA}');`
+      : `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`
 
     const queryHash = hash(q + "-" + params.toString())
 
@@ -263,9 +294,9 @@ class Select<T extends object> {
       Some: async ({ val }) => Ok(val),
       None: async () => {
         try {
-          const response = await db.query(q, params)
+          const response = await db.query(q, useEstimate ? [] : params)
 
-          const parsedResponse = parseInt(response.rows[0].count)
+          const parsedResponse = parseInt(response.rows[0]?.count ?? "0")
 
           cache.save(queryHash, parsedResponse, ONE_DAY_IN_MS)
 

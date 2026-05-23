@@ -28,7 +28,16 @@ export const CadastralParcelAPI = API.new()
     generateTablePage(cxt, {
       title: cxt.t("geographical_references_cadastral_parcel_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
-      query: ParcelTable(cxt.db).select().orderBy("id", "ASC"),
+      query: ParcelTable(cxt.db)
+        .select(
+          "id",
+          "town_insee_code",
+          "section_prefix",
+          "section",
+          "work_number",
+          "net_surface_area",
+        )
+        .orderBy("id", "ASC"),
       credits: CreditTable(cxt.db).select().where("datasource", "=", "cadastre"),
       form: {
         code: Field.Text({

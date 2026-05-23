@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.766325661,
+              45.830916685
+            ],
+            [
+              -0.766732396,
+              45.831104129
+            ],
+            [
+              -0.767024223,
+              45.83123035
+            ],
+            [
+              -0.767205481,
+              45.831311363
+            ],
+            [
+              -0.767374333,
+              45.831360588
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "style": {
+          "color": "#1565C0",
+          "fillColor": "DarkViolet",
+          "fillOpacity": 0.65,
+          "weight": 1.5
+        },
+        "href": "/geographical-references/cap-parcels/7797162",
+        "html": "<b>Autre luzerne</b><br/>\n              0.54 Hectares<br/>\n              <a href=\"/geographical-references/cap-parcels/7797162\">Voir</a>\n              "
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.761383555,
+              45.831586742
+            ],
+            [
+              -0.761351723,
+              45.831809065
+            ],
+            [
+              -0.761135036,
+              45.832307285
+            ],
+            [
+              -0.761096764,
+              45.832319963
+            ],
+            [
+              -0.761042496,
+              45.832322185
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "style": {
+          "color": "#1565C0",
+          "fillColor": "DarkViolet",
+          "fillOpacity": 0.65,
+          "weight": 1.5
+        },
+        "href": "/geographical-references/cap-parcels/6646359",
+        "html": "<b>Autre luzerne</b><br/>\n              1.47 Hectares<br/>\n              <a href=\"/geographical-references/cap-parcels/6646359\">Voir</a>\n              "
+      }
+    }
+  ]
+}

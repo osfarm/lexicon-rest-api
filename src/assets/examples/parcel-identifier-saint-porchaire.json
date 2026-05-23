@@ -1,0 +1,524 @@
+{
+  "@id": "http://localhost:8888/tools/parcel-identifier.json?latitude=45.8275731903227&longitude=-0.783718835725218",
+  "title": "Identificateur de parcelle",
+  "breadcrumbs": [
+    {
+      "@type": "Link",
+      "value": "Accueil",
+      "method": "GET",
+      "href": "/"
+    },
+    {
+      "@type": "Link",
+      "value": "Outils",
+      "method": "GET",
+      "href": "/tools"
+    }
+  ],
+  "form": {
+    "latitude": {
+      "@type": "Number",
+      "label": "Latitude",
+      "required": true,
+      "unit": "°",
+      "defaultValue": 45.8275731903227
+    },
+    "longitude": {
+      "@type": "Number",
+      "label": "Longitude",
+      "required": true,
+      "unit": "°",
+      "defaultValue": -0.783718835725218
+    }
+  },
+  "information": {
+    "country": {
+      "@type": "Text",
+      "label": "Pays",
+      "value": "France"
+    },
+    "city": {
+      "@type": "Link",
+      "label": "Ville",
+      "value": "ST PORCHAIRE",
+      "method": "GET",
+      "href": "/geographical-references/municipalities/17387_17250_STPORC_"
+    },
+    "city-code": {
+      "@type": "Text",
+      "label": "Code commune",
+      "value": "17387"
+    },
+    "postal-code": {
+      "@type": "Text",
+      "label": "Code postal",
+      "value": "17250"
+    }
+  },
+  "links": {
+    "cap-parcels-map": {
+      "@type": "Link",
+      "label": "tools_parcel_identifier_links_cap_parcels_map",
+      "value": "tools_parcel_identifier_links_cap_parcels_map",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels/map?city=ST%20PORCHAIRE"
+    }
+  },
+  "cadastre": {
+    "id": {
+      "@type": "Link",
+      "label": "Identifiant cadastral",
+      "value": "17387000AH0248",
+      "method": "GET",
+      "href": "/geographical-references/cadastral-parcels/17387000AH0248"
+    },
+    "prefix": {
+      "@type": "Text",
+      "label": "Préfixe",
+      "value": "000"
+    },
+    "section": {
+      "@type": "Text",
+      "label": "Section",
+      "value": "AH"
+    },
+    "number": {
+      "@type": "Text",
+      "label": "Numéro",
+      "value": "248"
+    },
+    "area": {
+      "@type": "Number",
+      "label": "Superficie",
+      "value": 5619,
+      "unit": "m²"
+    }
+  },
+  "soil": {
+    "depth": {
+      "@type": "Number",
+      "label": "Profondeur de sol",
+      "value": 30,
+      "unit": "cm"
+    },
+    "available-water": {
+      "@type": "Text",
+      "label": "Réserve utile",
+      "value": "< 50 mm"
+    },
+    "available-water-min": {
+      "@type": "Number",
+      "label": "Réserve utile (min)",
+      "value": 0,
+      "unit": "mm"
+    },
+    "available-water-max": {
+      "@type": "Number",
+      "label": "Réserve utile (max)",
+      "value": 50,
+      "unit": "mm"
+    }
+  },
+  "transactions": {
+    "label": "Transactions",
+    "columns": {
+      "id": "ID Bien",
+      "date": "Date",
+      "address": "Adresse",
+      "building-nature": "Type de bien",
+      "price": "Prix"
+    },
+    "rows": []
+  },
+  "owners": {
+    "label": "Propriétaires",
+    "columns": {
+      "denomination": "Dénomination",
+      "legal-form": "Forme juridique",
+      "siren": "SIREN",
+      "suf-area": "Surface SUF",
+      "culture-nature": "Nature de culture"
+    },
+    "rows": [
+      {
+        "denomination": {
+          "@type": "Text",
+          "label": "Dénomination",
+          "value": "LES CHENES VERTS"
+        },
+        "legal-form": {
+          "@type": "Text",
+          "label": "Forme juridique",
+          "value": "SCI"
+        },
+        "siren": {
+          "@type": "Text",
+          "label": "SIREN",
+          "value": "840968499"
+        },
+        "suf-area": {
+          "@type": "Number",
+          "label": "Surface SUF",
+          "value": 2809,
+          "unit": "m²"
+        },
+        "culture-nature": {
+          "@type": "Text",
+          "label": "Nature de culture",
+          "value": "L"
+        }
+      },
+      {
+        "denomination": {
+          "@type": "Text",
+          "label": "Dénomination",
+          "value": "LES CHENES VERTS"
+        },
+        "legal-form": {
+          "@type": "Text",
+          "label": "Forme juridique",
+          "value": "SCI"
+        },
+        "siren": {
+          "@type": "Text",
+          "label": "SIREN",
+          "value": "840968499"
+        },
+        "suf-area": {
+          "@type": "Number",
+          "label": "Surface SUF",
+          "value": 2810,
+          "unit": "m²"
+        },
+        "culture-nature": {
+          "@type": "Text",
+          "label": "Nature de culture",
+          "value": "S"
+        }
+      }
+    ]
+  },
+  "natural-zones": {
+    "label": "Zones naturelles",
+    "columns": {
+      "name": "Nom",
+      "nature": "Type",
+      "id": "ID"
+    },
+    "rows": [
+      {
+        "name": {
+          "@type": "Text",
+          "label": "Nom",
+          "value": "Estuaire et basse vallée de la Charente"
+        },
+        "nature": {
+          "@type": "Text",
+          "label": "Type",
+          "value": "zps"
+        },
+        "id": {
+          "@type": "Text",
+          "label": "ID",
+          "value": "FR5412025"
+        }
+      },
+      {
+        "name": {
+          "@type": "Text",
+          "label": "Nom",
+          "value": "Vallée de la Charente (basse vallée)"
+        },
+        "nature": {
+          "@type": "Text",
+          "label": "Type",
+          "value": "sic"
+        },
+        "id": {
+          "@type": "Text",
+          "label": "ID",
+          "value": "FR5400430"
+        }
+      }
+    ]
+  },
+  "agricultural-enterprises": {
+    "label": "Entreprises agricoles sur la commune",
+    "columns": {
+      "siren": "SIREN",
+      "name": "Nom",
+      "activity": "Code NAF",
+      "address": "Adresse",
+      "city": "Ville",
+      "subsidy-count": "Nombre d'aides PAC",
+      "subsidy-amount": "Montant total des aides",
+      "subsidy-year": "Dernière année"
+    },
+    "rows": [
+      {
+        "siren": {
+          "@type": "Text",
+          "label": "SIREN",
+          "value": "529174575"
+        },
+        "name": {
+          "@type": "Text",
+          "label": "Nom",
+          "value": "ATLANTIQUE TAILLE DE HAIES"
+        },
+        "activity": {
+          "@type": "Text",
+          "label": "Code NAF",
+          "value": "01.61Z"
+        },
+        "address": {
+          "@type": "Text",
+          "label": "Adresse",
+          "value": "5CHEDES PRES"
+        },
+        "city": {
+          "@type": "Text",
+          "label": "Ville",
+          "value": "SAINT-PORCHAIRE"
+        },
+        "subsidy-count": {
+          "@type": "Number",
+          "label": "Nombre d'aides PAC",
+          "value": 0
+        }
+      },
+      {
+        "siren": {
+          "@type": "Text",
+          "label": "SIREN",
+          "value": "752816967"
+        },
+        "name": {
+          "@type": "Text",
+          "label": "Nom",
+          "value": "HAPPY MIEL"
+        },
+        "activity": {
+          "@type": "Text",
+          "label": "Code NAF",
+          "value": "01.49Z"
+        },
+        "address": {
+          "@type": "Text",
+          "label": "Adresse",
+          "value": "5RUEDES COUDRAIES"
+        },
+        "city": {
+          "@type": "Text",
+          "label": "Ville",
+          "value": "SAINT-PORCHAIRE"
+        },
+        "subsidy-count": {
+          "@type": "Number",
+          "label": "Nombre d'aides PAC",
+          "value": 0
+        }
+      }
+    ]
+  },
+  "msa-populations": {
+    "label": "Population agricole (MSA)",
+    "columns": {
+      "year": "Année",
+      "new-contracts": "Nouveaux installés",
+      "farm-chiefs": "Chefs d'exploitation",
+      "retired-salaried": "Retraités salariés",
+      "retired-non-salaried": "Retraités non salariés"
+    },
+    "rows": [
+      {
+        "year": {
+          "@type": "Number",
+          "label": "Année",
+          "value": 2019
+        },
+        "farm-chiefs": {
+          "@type": "Number",
+          "label": "Chefs d'exploitation",
+          "value": 10
+        },
+        "retired-salaried": {
+          "@type": "Number",
+          "label": "Retraités salariés",
+          "value": 130
+        },
+        "retired-non-salaried": {
+          "@type": "Number",
+          "label": "Retraités non salariés",
+          "value": 79
+        }
+      }
+    ]
+  },
+  "last-year-weather-reports": {
+    "station": {
+      "@type": "Link",
+      "label": "Station météorologique",
+      "value": "SAINTES 17415003",
+      "method": "GET",
+      "href": "/weather/stations/FR17415003"
+    },
+    "legend": {
+      "temperature-max": {
+        "label": "Température max.",
+        "unit": "°C",
+        "type": "line",
+        "color": "#EE6666",
+        "side": "left",
+        "stack": "Total"
+      },
+      "humidity": {
+        "label": "Humidité",
+        "unit": "%",
+        "type": "line",
+        "color": "#5470C6",
+        "side": "right"
+      }
+    },
+    "values": {
+      "23/04/2026 12:00": {
+        "temperature-max": 23.6,
+        "humidity": 59
+      },
+      "23/04/2026 13:00": {
+        "temperature-max": 25.1,
+        "humidity": 52
+      }
+    }
+  },
+  "geolocation": {
+    "coordinates": {
+      "latitude": 45.8275731903227,
+      "longitude": -0.783718835725218
+    },
+    "marker": {
+      "type": "Point",
+      "coordinates": [
+        -0.783718835725218,
+        45.8275731903227
+      ]
+    },
+    "shape": {
+      "type": "MultiPolygon",
+      "coordinates": [
+        [
+          [
+            [
+              -0.7839855,
+              45.8272083
+            ],
+            [
+              -0.7835305,
+              45.8272496
+            ],
+            [
+              -0.7832562,
+              45.8276959
+            ],
+            [
+              -0.7832828,
+              45.8277344
+            ],
+            [
+              -0.7833134,
+              45.8277714
+            ],
+            [
+              -0.7833261,
+              45.8277852
+            ],
+            [
+              -0.7833815,
+              45.8278914
+            ],
+            [
+              -0.7834216,
+              45.8280919
+            ],
+            [
+              -0.7834328,
+              45.8283003
+            ],
+            [
+              -0.7834752,
+              45.8283604
+            ],
+            [
+              -0.7835153,
+              45.82839
+            ],
+            [
+              -0.7836061,
+              45.8284209
+            ],
+            [
+              -0.783894,
+              45.8284968
+            ],
+            [
+              -0.7839309,
+              45.8284577
+            ],
+            [
+              -0.7840852,
+              45.8285432
+            ],
+            [
+              -0.7840148,
+              45.8284388
+            ],
+            [
+              -0.7839501,
+              45.8282804
+            ],
+            [
+              -0.7838904,
+              45.8281529
+            ],
+            [
+              -0.7838348,
+              45.8280245
+            ],
+            [
+              -0.7838026,
+              45.8279448
+            ],
+            [
+              -0.7838695,
+              45.8278396
+            ],
+            [
+              -0.7838839,
+              45.8276887
+            ],
+            [
+              -0.7839592,
+              45.8275325
+            ],
+            [
+              -0.7839936,
+              45.8274769
+            ],
+            [
+              -0.7841063,
+              45.8273607
+            ],
+            [
+              -0.7840109,
+              45.8272705
+            ],
+            [
+              -0.7839855,
+              45.8272083
+            ]
+          ]
+        ]
+      ]
+    }
+  }
+}

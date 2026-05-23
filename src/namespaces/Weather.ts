@@ -303,16 +303,15 @@ export const Weather = API.new()
           },
         }
 
-        const values = reports.reduce((prev, curr) => {
-          const item = {
+        const values = reports.reduce<
+          Record<string, { "temperature-min": number; "temperature-max": number }>
+        >((acc, curr) => {
+          acc[cxt.dateTimeFormatter.DateTime(curr.started_at)] = {
             "temperature-min": parseFloat(curr.min_temp as any),
             "temperature-max": parseFloat(curr.max_temp as any),
           }
-
-          return { ...prev, [cxt.dateTimeFormatter.DateTime(curr.started_at)]: item }
+          return acc
         }, {})
-
-        console.log(values)
 
         return Chart({ legend, values })
       },
@@ -352,14 +351,16 @@ export const Weather = API.new()
           },
         }
 
-        const values = reports.reduce((prev, curr) => {
-          const item = {
-            humidity: parseFloat(curr.humidity as any),
-            rain: parseFloat((curr.rain as any) || 0),
-          }
-
-          return { ...prev, [cxt.dateTimeFormatter.DateTime(curr.started_at)]: item }
-        }, {})
+        const values = reports.reduce<Record<string, { humidity: number; rain: number }>>(
+          (acc, curr) => {
+            acc[cxt.dateTimeFormatter.DateTime(curr.started_at)] = {
+              humidity: parseFloat(curr.humidity as any),
+              rain: parseFloat((curr.rain as any) || 0),
+            }
+            return acc
+          },
+          {},
+        )
 
         return Chart({ legend, values })
       },

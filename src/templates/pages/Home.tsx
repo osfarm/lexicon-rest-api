@@ -45,6 +45,11 @@ export function Home(props: Props) {
           </SectionLink>
         </Cell>
         <Cell width={6}>
+          <SectionLink href="/enterprises" icon-left="/public/icons/farm.svg">
+            {t("enterprises_title")}
+          </SectionLink>
+        </Cell>
+        <Cell width={6}>
           <SectionLink href="/seeds" icon-left="/public/icons/seed.svg">
             {t("seeds_title")}
           </SectionLink>

@@ -9,6 +9,8 @@ import { Tools } from "./namespaces/Tools"
 import { API } from "./API"
 import { Production } from "./namespaces/Production"
 import { Seeds } from "./namespaces/Seeds"
+import { Enterprises } from "./namespaces/Enterprises"
+import { Rica } from "./namespaces/Rica"
 
 const PORT = import.meta.env.PORT as string
 
@@ -19,6 +21,8 @@ API.new()
   .use(GeographicalReferences)
   .use(Phytosanitary)
   .use(Production)
+  .use(Enterprises)
+  .use(Rica)
   .use(Seeds)
   .use(Viticulture)
   .use(Weather)

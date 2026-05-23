@@ -102,27 +102,28 @@ function hypermedia2jsonobj(hypermedia: object): object {
   ) {
     return hypermedia
   } else if (typeof hypermedia === "object" && hypermedia !== null) {
-    const jsonified: object = Object.entries(hypermedia)
-      .map(([key, value]) => {
-        if (
-          key === "@id" ||
-          typeof value === "string" ||
-          typeof value === "number" ||
-          value === undefined
-        ) {
-          return [key, value]
-        } else {
-          return [key, hypermedia2jsonobj(value)]
-        }
-      })
-      .reduce((previous, [key, value]) => {
-        if (key === "_state") {
-          return { "@type": value, ...previous }
-        } else {
-          return { ...previous, [key]: value }
-        }
-      }, {})
-
+    // Mutate instead of repeated spreads (was O(N^2) on big maps like the
+    // 8700-key weather `values` object).
+    const jsonified: Record<string, unknown> = {}
+    let stateValue: unknown = undefined
+    for (const [key, value] of Object.entries(hypermedia)) {
+      const transformed =
+        key === "@id" ||
+        typeof value === "string" ||
+        typeof value === "number" ||
+        value === undefined
+          ? value
+          : hypermedia2jsonobj(value)
+      if (key === "_state") {
+        stateValue = transformed
+      } else {
+        jsonified[key] = transformed
+      }
+    }
+    // Preserve the original behavior of placing `@type` first.
+    if (stateValue !== undefined) {
+      return { "@type": stateValue, ...jsonified }
+    }
     return jsonified
   } else {
     return hypermedia

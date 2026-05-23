@@ -9,22 +9,45 @@ import { Country } from "../types/Country"
 import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
 import type { OutputFormat } from "../types/OutputFormat"
 
+const loadExample = (name: string): Promise<object> =>
+  Bun.file(`./src/assets/examples/${name}`).json()
+
+const examples = {
+  capParcels: await loadExample("cap-parcels-saint-porchaire.json"),
+  capParcel: await loadExample("cap-parcel-463509.json"),
+  capParcelsMap: await loadExample("cap-parcels-map-saint-porchaire.json"),
+  capParcelsMapGeo: await loadExample("cap-parcels-map-saint-porchaire.geojson.json"),
+  municipalities: await loadExample("municipalities-saint-porchaire.json"),
+  municipality: await loadExample("municipality-st-porchaire.json"),
+  parcelIdentifier: await loadExample("parcel-identifier-saint-porchaire.json"),
+}
+
 const Paths = (t: Translator) => ({
   "/tools/parcel-identifier.json": {
     get: ResourceEndpoint({
-      description: t("tools_parcel_identifier") + " (JSON)",
+      description:
+        t("tools_parcel_identifier") +
+        " (JSON). Example uses a point inside Saint-Porchaire (17250).",
       category: t("tools"),
       query: {
         latitude: {
-          description: "",
+          description:
+            "Latitude of the point to identify (WGS84 degrees). Example: 45.8275731903227 (Saint-Porchaire).",
           type: "string",
         },
         longitude: {
-          description: "",
+          description:
+            "Longitude of the point to identify (WGS84 degrees). Example: -0.783718835725218 (Saint-Porchaire).",
           type: "string",
+        },
+        year: {
+          description:
+            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+          type: "number",
         },
       },
       resourceSchema: {},
+      example: examples.parcelIdentifier,
     }),
   },
 
@@ -34,12 +57,17 @@ const Paths = (t: Translator) => ({
       category: t("tools"),
       query: {
         latitude: {
-          description: "",
+          description: "Latitude of the point to identify (WGS84 degrees).",
           type: "string",
         },
         longitude: {
-          description: "",
+          description: "Longitude of the point to identify (WGS84 degrees).",
           type: "string",
+        },
+        year: {
+          description:
+            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+          type: "number",
         },
       },
       resourceSchema: {},
@@ -104,30 +132,80 @@ const Paths = (t: Translator) => ({
 
   "/geographical-references/cap-parcels.json": {
     get: TableEndpoint({
-      description: t("geographical_references_cap_parcel_title"),
+      description:
+        t("geographical_references_cap_parcel_title") +
+        ". Example query: ?city=Saint-Porchaire (postal 17250).",
       category: t("geographical_references_title"),
       query: {
         city: {
-          description: "Filters the parcels with the provided city name",
+          description:
+            "Filters the parcels with the provided city name (case-insensitive ILIKE %city%). Example: Saint-Porchaire.",
           type: "string",
         },
       },
       resourceSchema: {},
+      example: examples.capParcels,
     }),
   },
 
   "/geographical-references/cap-parcels/{cap_id}.json": {
     get: ResourceEndpoint({
-      description: t("geographical_references_cap_parcel"),
+      description:
+        t("geographical_references_cap_parcel") +
+        ". Example: parcel 463509 in Saint-Porchaire.",
       category: t("geographical_references_title"),
       params: {
         cap_id: {
-          description: "CAP identifier of the parcel",
+          description: "CAP identifier of the parcel. Example: 463509.",
           type: "string",
         },
       },
       query: {},
       resourceSchema: {},
+      example: examples.capParcel,
+    }),
+  },
+
+  "/geographical-references/cap-parcels/map.json": {
+    get: ResourceEndpoint({
+      description:
+        "CAP parcels map for a given municipality: per-crop coloring, hectare statistics and a 3D donut breakdown. Example: ?city=Saint-Porchaire.",
+      category: t("geographical_references_title"),
+      query: {
+        city: {
+          description:
+            "Required. Municipality name; accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire, ST PORCHAIRE).",
+          type: "string",
+        },
+        category: {
+          description:
+            "Optional. Filters the rendered parcels by crop label (ILIKE %category%). Example: Maïs.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+      example: examples.capParcelsMap,
+    }),
+  },
+
+  "/geographical-references/cap-parcels/map.geojson": {
+    get: ResourceEndpoint({
+      description:
+        "GeoJSON FeatureCollection of the CAP parcels for a given municipality. Each feature carries style (stroke + crop fill) and a popup HTML in its properties. Example: ?city=Saint-Porchaire.",
+      category: t("geographical_references_title"),
+      query: {
+        city: {
+          description: "Required municipality name (see /cap-parcels/map.json).",
+          type: "string",
+        },
+        category: {
+          description: "Optional crop label filter (see /cap-parcels/map.json).",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+      example: examples.capParcelsMapGeo,
+      exampleMediaType: "application/geo+json",
     }),
   },
 
@@ -146,9 +224,52 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/geographical-references/cadastral-parcel-prices.json": {
+    get: TableEndpoint({
+      description: t("geographical_references_cadastral_parcel_price_title"),
+      category: t("geographical_references_title"),
+      query: {
+        postal_code: {
+          description: "Filters transactions by postal code.",
+          type: "string",
+        },
+        city: {
+          description: "Searches for a matching city name.",
+          type: "string",
+        },
+        department: {
+          description: "Filters transactions by department code.",
+          type: "string",
+        },
+        parcel: {
+          description: "Filters transactions for a specific cadastral parcel id.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/cadastral-parcel-prices/{id}.json": {
+    get: ResourceEndpoint({
+      description: t("geographical_references_cadastral_parcel_price_title"),
+      category: t("geographical_references_title"),
+      params: {
+        id: {
+          description: "Id of the parcel price (transaction) record.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
   "/geographical-references/municipalities.json": {
     get: TableEndpoint({
-      description: t("geographical_references_municipality_title"),
+      description:
+        t("geographical_references_municipality_title") +
+        ". Example query: ?city=Saint-Porchaire returns the entry for postal 17250.",
       category: t("geographical_references_title"),
       query: {
         country: {
@@ -157,23 +278,31 @@ const Paths = (t: Translator) => ({
           enum: Object.values(Country),
         },
         city: {
-          description: "Searches for a matching city name.",
+          description:
+            "Searches for a matching city name. Accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire).",
           type: "string",
         },
       },
       resourceSchema: {},
+      example: examples.municipalities,
     }),
   },
 
   "/geographical-references/municipalities/{id}.json": {
     get: ResourceEndpoint({
-      description: t("geographical_references_municipality"),
+      description:
+        t("geographical_references_municipality") +
+        ". Example: Saint-Porchaire (id 17387_17250_STPORC_).",
       category: t("geographical_references_title"),
       params: {
-        id: { type: "string", description: "ID of the municipality" },
+        id: {
+          type: "string",
+          description: "ID of the municipality. Example: 17387_17250_STPORC_.",
+        },
       },
       query: {},
       resourceSchema: {},
+      example: examples.municipality,
     }),
   },
 
@@ -215,6 +344,67 @@ const Paths = (t: Translator) => ({
           description: "Filters the productions by usage.",
           type: "string",
           enum: Object.values(ProductionUsage),
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices.json": {
+    get: TableEndpoint({
+      description: t("production_prices_title"),
+      category: t("production_title"),
+      query: {
+        department: {
+          description: "Filters production prices by department code (zone).",
+          type: "string",
+        },
+        specie: {
+          description:
+            "Filters production prices by specie reference (e.g. helianthus_annuus).",
+          type: "string",
+        },
+        campaign: {
+          description: "Filters production prices by campaign year (e.g. 2024).",
+          type: "number",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices/map.json": {
+    get: ResourceEndpoint({
+      description: t("production_prices_map_title"),
+      category: t("production_title"),
+      query: {
+        specie: {
+          description:
+            "Specie reference whose aggregated prices should be plotted on the map.",
+          type: "string",
+        },
+        campaign: {
+          description: "Restricts the aggregation to the provided campaign year.",
+          type: "number",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/production/prices/map.geojson": {
+    get: ResourceEndpoint({
+      description: t("production_prices_map_title"),
+      category: t("production_title"),
+      query: {
+        specie: {
+          description:
+            "Specie reference whose aggregated prices should be plotted on the map.",
+          type: "string",
+        },
+        campaign: {
+          description: "Restricts the aggregation to the provided campaign year.",
+          type: "number",
         },
       },
       resourceSchema: {},
@@ -329,20 +519,20 @@ const Paths = (t: Translator) => ({
     }),
   },
 
-  // "/weather/stations/{station_code}/geolocation.geojson": {
-  //   get: ResourceEndpoint({
-  //     description: t("weather_station"),
-  //     category: t("weather_title"),
-  //     params: {
-  //       station_code: {
-  //         description: "The identifier code of the weather station.",
-  //         type: "string",
-  //       },
-  //     },
-  //     query: {},
-  //     resourceSchema: {},
-  //   }),
-  // },
+  "/weather/stations/{station_code}/geolocation.geojson": {
+    get: ResourceEndpoint({
+      description: t("weather_station") + " — " + t("common_location"),
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
 
   "/weather/stations/{station_code}/hourly-reports.json": {
     get: TableEndpoint({
@@ -373,7 +563,8 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
   const documentation = {
     info: {
       title: "Lexicon API",
-      description: "Documentation of Lexicon.",
+      description:
+        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8275731903227, -0.783718835725218) work for /tools/parcel-identifier.",
       version: packageJson.version,
     },
 
@@ -462,24 +653,44 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
             value: {
               type: "string",
             },
+            color: {
+              type: "string",
+            },
           },
         },
-        Link: {
+        Number: {
           type: "object",
           properties: {
             "@type": {
               type: "string",
-              example: "Link",
+              example: "Number",
+            },
+            label: {
+              type: "string",
             },
             value: {
+              type: "number",
+            },
+            unit: {
               type: "string",
             },
-            method: {
+            icon: {
               type: "string",
-              example: "GET",
             },
-            href: {
+          },
+        },
+        Boolean: {
+          type: "object",
+          properties: {
+            "@type": {
               type: "string",
+              example: "Boolean",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "boolean",
             },
           },
         },
@@ -497,6 +708,146 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
               type: "string",
             },
             iso: {
+              type: "string",
+            },
+          },
+        },
+        Datum: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Datum",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "number",
+            },
+            unit: {
+              type: "string",
+            },
+            timestamp: {
+              type: "number",
+            },
+            interpretation: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            color: {
+              type: "string",
+            },
+          },
+        },
+        Image: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Image",
+            },
+            label: {
+              type: "string",
+            },
+            href: {
+              type: "string",
+            },
+            alt: {
+              type: "string",
+            },
+            width: {
+              type: "number",
+            },
+            height: {
+              type: "number",
+            },
+          },
+        },
+        Link: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Link",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "string",
+            },
+            method: {
+              type: "string",
+              example: "GET",
+              enum: ["GET", "POST"],
+            },
+            href: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            color: {
+              type: "string",
+            },
+            payload: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+        },
+        List: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "List",
+            },
+            label: {
+              type: "string",
+            },
+            values: {
+              type: "array",
+              items: {},
+            },
+          },
+        },
+        Map: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Map",
+            },
+            label: {
+              type: "string",
+            },
+            icon: {
+              type: "string",
+            },
+            values: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+        },
+        Undefined: {
+          type: "object",
+          properties: {
+            "@type": {
+              type: "string",
+              example: "Undefined",
+            },
+            label: {
+              type: "string",
+            },
+            value: {
+              type: "string",
+            },
+            icon: {
               type: "string",
             },
           },
@@ -521,7 +872,10 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
   return match(output)
     .returnType<unknown>()
     .case({
-      json: () => page,
+      json: () =>
+        new Response(JSON.stringify(page), {
+          headers: { "Content-Type": "application/json" },
+        }),
       _otherwise: () => Documentation(page),
     })
 }
@@ -541,6 +895,8 @@ type EndpointDoc = {
     }
   >
   resourceSchema: object
+  example?: object
+  exampleMediaType?: string
 }
 
 function ResourceEndpoint(doc: EndpointDoc) {
@@ -560,18 +916,27 @@ function ResourceEndpoint(doc: EndpointDoc) {
     schema: { type: schema.type, enum: schema.enum },
   }))
 
+  const mediaType = doc.exampleMediaType ?? "application/json"
+  const content: Record<string, { schema: object; example?: object }> = {
+    "application/json": { schema: doc.resourceSchema },
+  }
+  if (doc.example) {
+    content[mediaType] = { schema: doc.resourceSchema, example: doc.example }
+  }
+
   return {
     summary: doc.description,
     tags: [doc.category],
-    produces: ["text/html", "application/json"],
+    produces: [
+      "text/html",
+      "application/json",
+      "text/csv",
+      "application/geo+json",
+    ],
     parameters: [...pathParameters, ...queryParameters],
     responses: {
       200: {
-        content: {
-          "application/json": {
-            schema: doc.resourceSchema,
-          },
-        },
+        content,
       },
     },
   }
@@ -592,5 +957,7 @@ function TableEndpoint(doc: EndpointDoc) {
     params: doc.params,
     query: { page: pageParameter, ...doc.query },
     resourceSchema: doc.resourceSchema,
+    example: doc.example,
+    exampleMediaType: doc.exampleMediaType,
   })
 }

@@ -1,0 +1,55 @@
+{
+    "@id": "http://localhost:8888/geographical-references/cap-parcels/463509.json",
+    "title": "463509",
+    "breadcrumbs": [
+        {
+            "@type": "Link",
+            "value": "Accueil",
+            "method": "GET",
+            "href": "/"
+        },
+        {
+            "@type": "Link",
+            "value": "Références géographiques",
+            "method": "GET",
+            "href": "/geographical-references"
+        },
+        {
+            "@type": "Link",
+            "value": "Parcelles enregistrées à la PAC",
+            "method": "GET",
+            "href": "/geographical-references/cap-parcels"
+        }
+    ],
+    "details": {
+        "id": {
+            "@type": "Text",
+            "label": "Identifiant PAC",
+            "value": "463509"
+        },
+        "crop-code": {
+            "@type": "Text",
+            "label": "Code culture PAC",
+            "value": "PTR"
+        },
+        "city": {
+            "@type": "Text",
+            "label": "Ville",
+            "value": "Saint-Porchaire"
+        },
+        "culture": {
+            "@type": "Text",
+            "label": "Culture",
+            "value": "Autre prairie temporaire de 5 ans ou moins"
+        }
+    },
+    "sections": {
+        "geolocation": {
+            "@type": "Link",
+            "value": "Emplacement",
+            "method": "GET",
+            "href": "/geographical-references/cap-parcels/463509/geolocation"
+        }
+    },
+    "links": []
+}
