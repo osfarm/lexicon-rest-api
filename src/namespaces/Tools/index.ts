@@ -3,6 +3,7 @@ import type { Translator } from "../../Translator"
 import { AutoList } from "../../templates/views/AutoList"
 import { API } from "../../API"
 import { ParcelIdentifierController } from "./ParcelIdentifierController"
+import { askAssistant, AssistantPage } from "./AssistantController"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -30,6 +31,11 @@ export const Tools = API.new()
             method: "GET",
             href: "/tools/parcel-identifier",
           }),
+          Hypermedia.Link({
+            value: cxt.t("tools_assistant"),
+            method: "GET",
+            href: "/tools/assistant",
+          }),
         ],
       },
     }),
@@ -37,3 +43,5 @@ export const Tools = API.new()
   .path("/tools/parcel-identifier", (cxt) =>
     ParcelIdentifierController(cxt, Breadcrumbs(cxt.t)),
   )
+  .path("/tools/assistant", (cxt) => AssistantPage(cxt, Breadcrumbs(cxt.t)))
+  .path("/tools/assistant/ask", askAssistant)

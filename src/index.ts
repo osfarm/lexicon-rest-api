@@ -16,6 +16,7 @@ import { Bundles } from "./namespaces/Bundles"
 import { Catalog } from "./namespaces/Catalog"
 import { Links } from "./namespaces/Links"
 import { Mcp } from "./namespaces/Mcp"
+import { RdAgri } from "./namespaces/RdAgri"
 
 const PORT = import.meta.env.PORT as string
 
@@ -37,4 +38,5 @@ API.new()
   .use(Catalog)
   .use(Links)
   .use(Mcp)
+  .use(RdAgri)
   .listen(PORT)
