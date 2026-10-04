@@ -148,6 +148,28 @@ export function MyTemplate(props: Props) {
 }
 ```
 
+### Postgres schema permissions when upgrading the Lexicon version
+
+When `DB_SCHEMA` is pointed at a newly imported Lexicon schema (e.g. switching from `lexicon__6_0_0-ekyviti` to `lexicon__6_0_2-full`), the API will crash with:
+
+```
+permission denied for schema <new-schema>
+```
+
+This is **not** an application bug. The schema name is interpolated raw into every query (`"${DB_SCHEMA}".<table>` in `src/Database.ts`), and Postgres rejects access as soon as the DB user lacks `USAGE` on the target schema. Permissions are per-schema in Postgres and are **not** inherited from older schemas — every Lexicon import requires the grants to be replayed.
+
+Fix on the production DB (run as schema owner or superuser):
+
+```sql
+GRANT USAGE ON SCHEMA "lexicon__X_Y_Z-variant" TO <db_user>;
+GRANT SELECT ON ALL TABLES IN SCHEMA "lexicon__X_Y_Z-variant" TO <db_user>;
+-- so future tables in this schema inherit the right automatically:
+ALTER DEFAULT PRIVILEGES IN SCHEMA "lexicon__X_Y_Z-variant"
+  GRANT SELECT ON TABLES TO <db_user>;
+```
+
+The `pg` pool will pick up the new rights on its next connection — no app redeploy needed.
+
 ## Français
 
 ### Moteur de l'API
@@ -277,3 +299,25 @@ export function MyTemplate(props: Props) {
   return <div>Bonjour, {props.firstname} !</div>
 }
 ```
+
+### Permissions Postgres lors d'une montée de version Lexicon
+
+Quand `DB_SCHEMA` est basculé sur un nouveau schéma Lexicon importé (par exemple passage de `lexicon__6_0_0-ekyviti` à `lexicon__6_0_2-full`), l'API plante avec :
+
+```
+permission denied for schema <nouveau-schema>
+```
+
+Ce n'est **pas** un bug applicatif. Le nom du schéma est interpolé tel quel dans chaque requête (`"${DB_SCHEMA}".<table>` dans `src/Database.ts`), et Postgres refuse l'accès dès que l'utilisateur BDD n'a pas le droit `USAGE` sur le schéma cible. Les permissions sont **par schéma** sous Postgres et ne sont **pas** héritées des anciens schémas — chaque import Lexicon impose de rejouer les `GRANT`.
+
+Correctif à appliquer sur la BDD de prod (en tant que propriétaire du schéma ou superuser) :
+
+```sql
+GRANT USAGE ON SCHEMA "lexicon__X_Y_Z-variant" TO <db_user>;
+GRANT SELECT ON ALL TABLES IN SCHEMA "lexicon__X_Y_Z-variant" TO <db_user>;
+-- pour que les futures tables de ce schéma héritent automatiquement du droit :
+ALTER DEFAULT PRIVILEGES IN SCHEMA "lexicon__X_Y_Z-variant"
+  GRANT SELECT ON TABLES TO <db_user>;
+```
+
+Le pool `pg` prend en compte les nouveaux droits dès la prochaine connexion — pas besoin de redéployer l'app.
