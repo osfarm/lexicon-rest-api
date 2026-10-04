@@ -14,6 +14,17 @@ const STRUCTURED_OUTPUT = /\.(json|csv|geojson)$/
 // Reverse proxies in front of the API whose X-Forwarded-For entries are believed
 const TRUSTED_PROXIES = parseInt(import.meta.env.TRUSTED_PROXIES ?? "1")
 
+const FORMAT_VARIANT = /\.(json|csv|geojson)$/
+
+let servedPaths: string[] = []
+
+/**
+ * The paths the API serves, without their format variants.
+ */
+export function readablePaths(): string[] {
+  return servedPaths
+}
+
 export class API {
   protected endpoints: Record<string, ApiHandler> = {}
   // Scope a caller needs for each path; a path absent from here is open to all
@@ -95,6 +106,10 @@ export class API {
 
   async listen(port: string) {
     await startAccessControl(pool)
+
+    servedPaths = Object.keys(this.endpoints)
+      .filter((path) => !FORMAT_VARIANT.test(path))
+      .sort()
 
     const server = Bun.serve({
       port: port,

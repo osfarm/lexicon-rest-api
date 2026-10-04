@@ -38,6 +38,7 @@ export function Layout(props: Props) {
             </div>
             <div class="col center">
               <a href="/">{props.t("home_title")}</a>
+              <a href="/catalog">Catalogue</a>
               <a href="/documentation" target="_blank">
                 {props.t("documentation_title")}
               </a>
