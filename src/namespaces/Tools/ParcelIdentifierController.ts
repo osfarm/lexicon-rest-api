@@ -14,6 +14,8 @@ import { MunicipalityTable, type Municipality } from "../GeographicalReferences/
 import { ParcelTable, type Parcel } from "../GeographicalReferences/CadastralParcel"
 import { ParcelPriceTable, type ParcelPrice } from "../GeographicalReferences/CadastralParcelPrice"
 import { CapParcelTable, type CapParcel } from "../GeographicalReferences/CapParcel"
+import { pointToCoordinates } from "../../types/Coordinates"
+import { cropHistoryAt, type CropOfCampaign } from "../../cap-history/CapHistory"
 import {
   MasterCapCodeTable,
   type MasterCapCode,
@@ -84,6 +86,8 @@ interface ParcelData {
   cadastralParcelOwners?: EnrichedParcelOwner[]
   capParcel?: CapParcel
   capCode?: MasterCapCode
+  // What was declared here in the campaigns before the latest one
+  capHistory?: CropOfCampaign[]
   naturalZones?: NaturalZone[]
   protectedWaterZones?: ProtectedWaterZone[]
   areaItems?: AreaItem[]
@@ -241,9 +245,10 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     cadastre: data.cadastralParcel
       ? buildCadastreSection(data.cadastralParcel, cxt)
       : undefined,
-    cap: data.capParcel
-      ? buildCapSection(data.capParcel, data.capCode, cxt)
-      : undefined,
+    cap:
+      data.capParcel || data.capHistory?.length
+        ? buildCapSection(data.capParcel, data.capCode, cxt, data.capHistory ?? [])
+        : undefined,
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -436,6 +441,10 @@ async function retrieveParcelData(
         .run()
     : Ok([] as MasterCapCode[])
 
+  const capHistory = ((await cropHistoryAt(db, pointToCoordinates(point))) ?? []).filter(
+    (crop) => !crop.current,
+  )
+
   const department = deriveDepartmentZone(municipality)
 
   const productionDataResult = department
@@ -515,6 +524,7 @@ async function retrieveParcelData(
     cadastralParcelOwners,
     capParcel,
     capCode,
+    capHistory,
     naturalZones,
     protectedWaterZones,
     areaItems,
@@ -618,22 +628,33 @@ function buildCadastreSection(parcel: Parcel, cxt: Context): Record<string, Hype
 }
 
 function buildCapSection(
-  capParcel: CapParcel,
+  capParcel: CapParcel | undefined,
   capCode: MasterCapCode | undefined,
   cxt: Context,
+  history: CropOfCampaign[],
 ): Record<string, Hypermedia> {
-  const section: Record<string, Hypermedia> = {
-    id: Hypermedia.Link({
-      label: cxt.t("geographical_references_cap_parcel_id"),
-      value: capParcel.id,
-      method: "GET",
-      href: "/geographical-references/cap-parcels/" + capParcel.id,
-    }),
-    "crop-code": Hypermedia.Text({
-      label: cxt.t("geographical_references_cap_parcel_crop_code"),
-      value: capParcel.cap_crop_code,
-    }),
-  }
+  const section: Record<string, Hypermedia> = capParcel
+    ? {
+        id: Hypermedia.Link({
+          label: cxt.t("geographical_references_cap_parcel_id"),
+          value: capParcel.id,
+          method: "GET",
+          href: "/geographical-references/cap-parcels/" + capParcel.id,
+        }),
+        "crop-code": Hypermedia.Text({
+          label: cxt.t("geographical_references_cap_parcel_crop_code"),
+          value: capParcel.cap_crop_code,
+        }),
+      }
+    : {}
+
+  // The place was declared in earlier campaigns, whatever it is today
+  history.forEach((crop) => {
+    section[`culture-${crop.campaign}`] = Hypermedia.Text({
+      label: `${cxt.t("geographical_references_cap_parcel_culture")} ${crop.campaign}`,
+      value: [crop.crop, crop["crop-code"]].filter(Boolean).join(" — "),
+    })
+  })
 
   if (capCode) {
     section.culture = Hypermedia.Text({

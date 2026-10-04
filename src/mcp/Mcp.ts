@@ -32,6 +32,7 @@ export type McpBackend = Readonly<{
   enterprise: (siren: string) => Promise<unknown>
   searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
   rdDocument: (id: string) => Promise<unknown>
+  cropHistory: (longitude: unknown, latitude: unknown) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -143,6 +144,18 @@ export const TOOLS = [
       required: ["id"],
     }),
   },
+  {
+    name: "get_crop_history",
+    description:
+      "The crops declared to the Common Agricultural Policy at a point of metropolitan France, campaign after campaign (2022 onwards): what was grown there each year. Needs coordinates in degrees (WGS 84).",
+    inputSchema: text({
+      properties: {
+        longitude: { type: "number", description: "Longitude, such as -0.78" },
+        latitude: { type: "number", description: "Latitude, such as 45.81" },
+      },
+      required: ["longitude", "latitude"],
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -173,6 +186,7 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     get_enterprise: () => backend.enterprise(String(args.siren ?? "")),
     search_rd_documents: () => backend.searchRdDocuments(args),
     get_rd_document: () => backend.rdDocument(String(args.id ?? "")),
+    get_crop_history: () => backend.cropHistory(args.longitude, args.latitude),
   }
 
   return calls[name]
