@@ -85,6 +85,21 @@ export function setUpAccessSchema(db: Pick<Pool, "query">): Promise<void> {
         detail   jsonb
       );
 
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".assistant_daily (
+        day           date    PRIMARY KEY,
+        questions     integer NOT NULL DEFAULT 0,
+        tool_calls    integer NOT NULL DEFAULT 0,
+        failures      integer NOT NULL DEFAULT 0,
+        input_tokens  bigint  NOT NULL DEFAULT 0,
+        output_tokens bigint  NOT NULL DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".settings (
+        key        varchar PRIMARY KEY,
+        value      varchar NOT NULL,
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+
       INSERT INTO "${ACCESS_SCHEMA}".plans
         (name, per_minute, per_day, max_page_size, statement_timeout_ms, scopes)
       VALUES ${seeds}

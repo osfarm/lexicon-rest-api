@@ -60,6 +60,11 @@ export function Home(props: Props) {
           </SectionLink>
         </Cell>
         <Cell width={6}>
+          <SectionLink href="/rd-agri" icon-left="/public/icons/book.svg">
+            {t("rd_agri_title")}
+          </SectionLink>
+        </Cell>
+        <Cell width={6}>
           <SectionLink href="/weather" icon-left="/public/icons/cloud.svg">
             {t("weather_title")}
           </SectionLink>
@@ -75,6 +80,11 @@ export function Home(props: Props) {
             icon-left="/public/icons/marker.svg"
           >
             {t("tools_parcel_identifier")}
+          </SectionLink>
+        </Cell>
+        <Cell width={6}>
+          <SectionLink href="/tools/assistant" icon-left="/public/icons/circle-info.svg">
+            {t("tools_assistant")}
           </SectionLink>
         </Cell>
       </Grid>

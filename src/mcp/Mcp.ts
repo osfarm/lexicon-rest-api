@@ -30,6 +30,8 @@ export type McpBackend = Readonly<{
   readResource: (path: string, query: Record<string, string>) => Promise<unknown>
   commune: (inseeCode: string) => Promise<unknown>
   enterprise: (siren: string) => Promise<unknown>
+  searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
+  rdDocument: (id: string) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -101,6 +103,46 @@ export const TOOLS = [
       required: ["siren"],
     }),
   },
+  {
+    name: "search_rd_documents",
+    description:
+      'Search the documents of the French agricultural R&D platform (rd-agri.fr): trial reports, technical guides, articles, videos. Put everything in query, as a few short French keywords such as "mildiou vigne bio cuivre". The other arguments are filters that few documents match: leave them out at first, and add one only to narrow down too many results. Each result has a title, a year, a publisher, an excerpt and the address of the source.',
+    inputSchema: text({
+      properties: {
+        query: { type: "string", description: "French keywords" },
+        production: {
+          type: "string",
+          description:
+            "Reference name of a production, as found in /production/productions",
+        },
+        taxon: { type: "string", description: "Reference name of a taxon" },
+        pest: { type: "string", description: "Pest or disease, by its French label" },
+        production_system: {
+          type: "string",
+          description:
+            "Only the documents explicitly linked to a production system: organic_farming, conservation_agriculture, sustainable_agriculture or intensive_farming",
+        },
+        year_from: { type: "integer", description: "Published this year or later" },
+        year_to: { type: "integer", description: "Published this year or earlier" },
+        limit: {
+          type: "integer",
+          description: "Number of documents, 10 by default, 20 at most",
+        },
+      },
+      required: ["query"],
+    }),
+  },
+  {
+    name: "get_rd_document",
+    description:
+      "One document of the agricultural R&D platform, with its full description and what it is linked to: productions, taxa, regions, production systems, pests.",
+    inputSchema: text({
+      properties: {
+        id: { type: "string", description: "Identifier given by search_rd_documents" },
+      },
+      required: ["id"],
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -129,6 +171,8 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     read_resource: () => backend.readResource(String(args.path ?? ""), args.query ?? {}),
     get_commune: () => backend.commune(String(args.insee_code ?? "")),
     get_enterprise: () => backend.enterprise(String(args.siren ?? "")),
+    search_rd_documents: () => backend.searchRdDocuments(args),
+    get_rd_document: () => backend.rdDocument(String(args.id ?? "")),
   }
 
   return calls[name]
@@ -161,7 +205,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource or get a pre-joined record with get_commune. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource, get a pre-joined record with get_commune, or search the R&D documents with search_rd_documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {

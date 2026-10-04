@@ -14,6 +14,7 @@ const SECTIONS = [
   ["/admin/plans", "Plans"],
   ["/admin/usage", "Consommation"],
   ["/admin/datasources", "Datasources"],
+  ["/admin/assistant", "Duke"],
   ["/admin/audit", "Journal"],
 ]
 

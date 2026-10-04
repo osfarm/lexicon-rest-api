@@ -29,6 +29,17 @@ import {
   type KeyRow,
 } from "../../access/AdminStore"
 import { ADMIN_SCOPE } from "../../access/Plan"
+import {
+  isModelName,
+  readDailyCounts,
+  writeSettings,
+} from "../../assistant/AssistantStore"
+import {
+  ALLOWANCE_LIMITS,
+  currentSettings,
+  forgetSettings,
+  PROVIDER,
+} from "../../assistant/Runtime"
 import type { Context } from "../../types/Context"
 import { AdminLayout, e, Table } from "./AdminLayout"
 import {
@@ -553,6 +564,77 @@ const plans = administered(async ({ cxt, admin, csrf, form }) => {
   )
 })
 
+// --- assistant
+
+const assistantPage = administered(async ({ cxt, admin, csrf, form }) => {
+  if (form !== undefined) {
+    const model = text(form, "model")
+
+    if (isModelName(model)) {
+      const settings = { enabled: text(form, "enabled") === "on", model }
+
+      await writeSettings(cxt.db, settings)
+      await audit(cxt.db, admin, "assistant.settings", null, settings)
+      forgetSettings()
+    }
+
+    return redirect("/admin/assistant")
+  }
+
+  forgetSettings()
+  const settings = await currentSettings(cxt.db, Date.now())
+  const counts = await readDailyCounts(cxt.db, 30)
+
+  return (
+    <AdminLayout title="Duke" admin={admin} csrf={csrf}>
+      <p>
+        L'assistant de <a href="/tools/assistant">/tools/assistant</a>. Fournisseur :{" "}
+        <code>{e(PROVIDER.url)}</code>, clé{" "}
+        {PROVIDER.key === undefined ? (
+          <b>absente : l'outil est indisponible</b>
+        ) : (
+          "présente"
+        )}
+        . Limites par jour : {ALLOWANCE_LIMITS.anonymous} sans clé, {ALLOWANCE_LIMITS.key}{" "}
+        avec, {ALLOWANCE_LIMITS.total} au total. Le texte des questions n'est pas
+        conservé.
+      </p>
+      <form method="POST">
+        <Hidden csrf={csrf} />
+        <label>
+          <input type="checkbox" name="enabled" checked={settings.enabled} /> En service
+        </label>{" "}
+        <label>
+          Modèle <input type="text" name="model" value={e(settings.model)} required />
+        </label>{" "}
+        <button class="button" type="submit">
+          Enregistrer
+        </button>
+      </form>
+      <p>Un changement s'applique en moins d'une minute.</p>
+      <Table
+        columns={[
+          "Jour",
+          "Questions",
+          "Appels d'outils",
+          "Échecs",
+          "Jetons lus",
+          "Jetons écrits",
+        ]}
+        rows={counts.map((count) => [
+          e(count.day),
+          cxt.numberFormatter(count.questions),
+          cxt.numberFormatter(count.toolCalls),
+          cxt.numberFormatter(count.failures),
+          cxt.numberFormatter(count.inputTokens),
+          cxt.numberFormatter(count.outputTokens),
+        ])}
+        empty="Aucune question sur les trente derniers jours."
+      />
+    </AdminLayout>
+  )
+})
+
 // --- usage
 
 const usage = administered(async ({ cxt, admin, csrf }) => {
@@ -711,4 +793,5 @@ export const Admin = API.new()
   .path("/admin/plans", plans)
   .path("/admin/usage", usage)
   .path("/admin/datasources", datasourcesPage)
+  .path("/admin/assistant", assistantPage)
   .path("/admin/audit", auditPage)

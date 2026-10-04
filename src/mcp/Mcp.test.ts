@@ -12,6 +12,8 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   enterprise: async () => {
     throw new Error("This resource needs an API key")
   },
+  searchRdDocuments: async (args) => ({ total: 0, documents: [], asked: args }),
+  rdDocument: async (id) => ({ id }),
   ...overrides,
 })
 
@@ -75,6 +77,8 @@ describe("handleMcpMessage", () => {
       "read_resource",
       "get_commune",
       "get_enterprise",
+      "search_rd_documents",
+      "get_rd_document",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
   })
@@ -89,6 +93,18 @@ describe("handleMcpMessage", () => {
     expect(JSON.parse(response.result.content[0].text)).toEqual({
       path: "/phytosanitary/products",
       query: { page: "2" },
+    })
+  })
+
+  test("the search of documents gets every argument of the call", async () => {
+    const response: any = await call("search_rd_documents", {
+      query: "mildiou vigne",
+      year_from: 2020,
+    })
+
+    expect(JSON.parse(response.result.content[0].text).asked).toEqual({
+      query: "mildiou vigne",
+      year_from: 2020,
     })
   })
 

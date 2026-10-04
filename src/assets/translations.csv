@@ -332,3 +332,50 @@ tools_msa_new_contracts,Nouveaux installés,New contracts
 tools_msa_farm_chiefs,Chefs d'exploitation,Farm chiefs
 tools_msa_retired_salaried,Retraités salariés,Retired salaried
 tools_msa_retired_non_salaried,Retraités non salariés,Retired non-salaried
+rd_agri_title,Recherche et développement agricole,Agricultural research and development
+rd_agri_documents_title,Documents de R&D,R&D documents
+rd_agri_introduction,"Rapports d'essais, guides techniques, articles et vidéos de la plateforme R&D agricole, reliés aux productions, taxons, régions, systèmes de production et bioagresseurs du Lexicon.","Trial reports, technical guides, articles and videos of the French agricultural R&D platform, linked to the productions, taxa, regions, production systems and pests of Lexicon."
+rd_agri_ask_assistant,poser une question en langage naturel,ask a question in plain language
+rd_agri_source,Source :,Source:
+rd_agri_non_commercial,Usage non commercial uniquement.,Non commercial use only.
+rd_agri_search,Chercher,Search
+rd_agri_filter_words,Mots,Words
+rd_agri_filter_pest,Bioagresseur,Pest or disease
+rd_agri_filter_publisher,Éditeur,Publisher
+rd_agri_filter_year_from,Depuis l'année,From year
+rd_agri_filter_year_to,Jusqu'à l'année,To year
+rd_agri_documents_count,documents,documents
+rd_agri_relaxed,aucun document n'a tous les mots : voici ceux qui en ont au moins un,no document has every word: here are those with at least one
+rd_agri_see_source,Voir sur la plateforme R&D agricole,See on the R&D platform
+rd_agri_see_document,Document,Document
+rd_agri_project,Projet,Project
+rd_agri_keywords,Mots-clés,Keywords
+rd_agri_productions,Productions,Productions
+rd_agri_taxa,Taxons,Taxa
+rd_agri_production_systems,Systèmes de production,Production systems
+rd_agri_areas,Zones,Areas
+rd_agri_pests,Bioagresseurs,Pests and diseases
+tools_assistant,Duke,Duke
+tools_assistant_introduction,"Posez une question sur les références agricoles du Lexicon. Duke cherche dans les documents de R&D agricole, les productions, les produits phytosanitaires et les autres jeux de données, puis résume ce qu'il a trouvé.","Ask a question about the agricultural references of Lexicon. Duke searches the agricultural R&D documents, the productions, the plant protection products and the other datasets, then sums up what it found."
+tools_assistant_notice,"Réponse produite par un modèle de langage (Mistral), à vérifier dans les documents cités. Votre question est transmise à ce fournisseur, qui peut la réutiliser : n'y mettez aucune donnée personnelle. Duke ne donne pas de conseil agronomique.","Answer written by a language model (Mistral), to be checked in the documents it quotes. Your question is sent to this provider, which may reuse it: do not put any personal data in it. Duke gives no agronomic advice."
+tools_assistant_placeholder,Quels travaux sur le mildiou de la vigne en bio depuis 2020 ?,Which studies on downy mildew of organic vines since 2020?
+tools_assistant_examples,Exemples :,Examples:
+tools_assistant_example_1,Quels travaux récents sur le mildiou de la vigne en agriculture biologique ?,Which recent studies deal with downy mildew of vines in organic farming?
+tools_assistant_example_2,Que disent les documents sur les couverts végétaux avant un blé tendre ?,What do the documents say about cover crops before soft wheat?
+tools_assistant_example_3,Quels jeux de données le Lexicon propose-t-il sur les produits phytosanitaires ?,Which datasets does Lexicon offer about plant protection products?
+tools_assistant_ask,Demander,Ask
+tools_assistant_thinking,Duke cherche…,Duke is searching…
+tools_assistant_waiting,En attente : %d question(s) avant la vôtre…,Waiting: %d question(s) before yours…
+tools_assistant_tool,Outil MCP,MCP tool
+tools_assistant_result,%d caractères reçus,%d characters received
+tools_assistant_failed,échec,failed
+tools_assistant_sources,Documents cités,Documents quoted
+tools_assistant_lexicon_record,fiche Lexicon,Lexicon record
+tools_assistant_remaining,Il vous reste %d question(s) aujourd'hui.,You have %d question(s) left today.
+tools_assistant_how,"Duke interroge le Lexicon par son serveur MCP, comme le ferait n'importe quel agent : chaque appel d'outil est affiché. Documents de R&D :","Duke queries Lexicon through its MCP server, as any agent would: each tool call is shown. R&D documents:"
+tools_assistant_error_quota,Le modèle a atteint son quota. Réessayez dans quelques minutes : votre question n'a pas été décomptée.,The model has reached its quota. Try again in a few minutes: your question was not counted.
+tools_assistant_error_busy,Trop de questions sont en attente. Réessayez dans un instant : votre question n'a pas été décomptée.,Too many questions are waiting. Try again in a moment: your question was not counted.
+tools_assistant_error_down,Duke n'a pas pu répondre. Réessayez plus tard.,Duke could not answer. Try again later.
+tools_assistant_error_limit,Duke n'a pas trouvé de réponse à cette question.,Duke found no answer to this question.
+tools_assistant_error_disabled,Duke est indisponible pour le moment.,Duke is not available at the moment.
+tools_assistant_error_allowance,Vous avez posé toutes vos questions pour aujourd'hui. Revenez demain.,You have asked all your questions for today. Come back tomorrow.

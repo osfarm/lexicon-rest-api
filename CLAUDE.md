@@ -77,6 +77,13 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 - `src/mcp/Mcp.ts` is a stateless MCP server: `handleMcpMessage(message, backend)` answers one JSON-RPC message and knows nothing of HTTP or the database. `src/namespaces/Mcp.ts` gives it its backend at `POST /mcp`. `read_resource` asks the API itself over loopback with the caller's key and address, so that a tool never sees more than the caller would; `jsonPathOf()` refuses `/admin`, `/bundles`, `/mcp` and anything that is not a plain path. A tool that fails answers `isError: true`, not a JSON-RPC error.
 - Tables are served as JSON under a `text/plain` content type: do not rely on the header to recognise JSON.
 
+### R&D documents and Duke, the assistant
+
+- `src/rd-agri/RdAgri.ts` searches `registered_rd_agri_documents` through its `search` tsvector column. Accents are removed on both sides with the same `translate()` mapping as `lib/datasources/rd_agri.rb` in the lexicon repository: keep the two in step. `src/namespaces/RdAgri.tsx` serves `/rd-agri/documents`; the MCP tools `search_rd_documents` and `get_rd_document` use the same module.
+- `src/assistant/` is Duke: `Conversation.ts` is the loop between the model and the MCP tools and knows nothing of HTTP, of the provider or of the database (its dependencies are injected, see `Assistant.test.ts`); `Provider.ts` speaks "chat completions" to any provider; `ProviderQueue.ts` lets one call through at a time; `McpClient.ts` only knows the messages of the protocol; `Allowance.ts` counts questions per caller in memory; `AssistantStore.ts` keeps daily counts and two settings in `lexicon_access`.
+- `src/namespaces/Tools/AssistantController.tsx` is the page and `POST /tools/assistant/ask`, which answers a stream of events. Duke always reads Lexicon **as an anonymous caller**, whoever asks: nothing reserved must reach the provider. The text of a question is never stored nor logged. The sources shown under an answer come from the tool results, never from the text of the model.
+- Mistral refuses a `user` message after a `tool` message: to make the model answer, `tool_choice: "none"` is used instead.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.

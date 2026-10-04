@@ -12,6 +12,7 @@ import {
   readEnterpriseLink,
 } from "../links/Links"
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
+import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
 import type { Context } from "../types/Context"
 
 const PORT = import.meta.env.PORT
@@ -46,7 +47,11 @@ function jsonOf(text: string): any {
   }
 }
 
-function backendFor(cxt: Context): McpBackend {
+/**
+ * What the tools of the MCP server do for this caller: they read no more than
+ * the caller could through the API.
+ */
+export function backendFor(cxt: Context): McpBackend {
   const required = async <T>(value: T | undefined | null, message: string) => {
     if (value === undefined || value === null) {
       throw new Error(message)
@@ -141,6 +146,59 @@ function backendFor(cxt: Context): McpBackend {
           await readEnterpriseLink(cxt.db, siren),
           `No legal entity ${siren} in the records`,
         ),
+      )
+    },
+
+    searchRdDocuments: async (args) => {
+      const filters = filtersOf({
+        q: args.query,
+        production: args.production,
+        taxon: args.taxon,
+        pest: args.pest,
+        "production-system": args.production_system,
+        "year-from": args.year_from,
+        "year-to": args.year_to,
+      })
+      if (filters.q === undefined) {
+        throw new Error("A search needs a query: a few French keywords")
+      }
+      const asked = Number(args.limit)
+      const limit = Number.isInteger(asked) && asked > 0 ? Math.min(asked, 20) : 10
+      const page = { limit, offset: 0 }
+      const found = await required(
+        await searchDocuments(cxt.db, filters, page),
+        "The R&D documents are not in service",
+      )
+      const { q, "year-from": yearFrom, "year-to": yearTo, ...references } = filters
+
+      if (found.total > 0 || Object.keys(references).length === 0) {
+        return found
+      }
+
+      // Few documents are linked to a reference, and a model easily makes one up:
+      // rather than nothing, the search is given again on its words and years alone
+      const wider = await searchDocuments(
+        cxt.db,
+        filtersOf({ q, "year-from": yearFrom, "year-to": yearTo }),
+        page,
+      )
+
+      return {
+        ...(wider ?? found),
+        "filters-ignored": Object.keys(references).map((name) => name.replace("-", "_")),
+      }
+    },
+
+    rdDocument: async (id) => {
+      const document = await readDocument(cxt.db, id)
+
+      if (document === undefined) {
+        throw new Error("The R&D documents are not in service")
+      }
+
+      return required(
+        document,
+        `No document ${id}. Use search_rd_documents to find identifiers.`,
       )
     },
   }
