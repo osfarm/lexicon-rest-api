@@ -7,6 +7,7 @@ import { CreditTable } from "./Credits"
 import type { Translator } from "../Translator"
 import { API } from "../API"
 import { ObjectFlatMap } from "../utils"
+import { MEMBERS_SCOPE } from "../access/Plan"
 
 type VineVariety = {
   id: string
@@ -78,6 +79,8 @@ export const Viticulture = API.new()
       t,
     }),
   )
+  // The catalogue of vine varieties is under a non commercial licence: reserved to the holders of a key
+  .restrictedTo(MEMBERS_SCOPE)
   .path("/viticulture/vine-varieties", (context) =>
     generateTablePage(context, {
       title: context.t("viticulture_vine_variety_title"),

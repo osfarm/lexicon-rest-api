@@ -85,9 +85,9 @@ Non seulement une même ressource peut être affichée dans différents formats,
 
 Le format de sortie peut être modifié en ajoutant une extension à un chemin :
 
-- `/viticulture/vine-varieties`
-- `/viticulture/vine-varieties.json`
-- `/viticulture/vine-varieties.csv`
+- `/phytosanitary/products`
+- `/phytosanitary/products.json`
+- `/phytosanitary/products.csv`
 
 ---
 
@@ -174,6 +174,6 @@ Not only can the same resource be displayed in different formats, but informatio
 
 The output format can be changed by adding an extension to a path:
 
-- `/viticulture/vine-varieties`
-- `/viticulture/vine-varieties.json`
-- `/viticulture/vine-varieties.csv`
+- `/phytosanitary/products`
+- `/phytosanitary/products.json`
+- `/phytosanitary/products.csv`

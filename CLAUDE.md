@@ -70,6 +70,13 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 
 `src/namespaces/Bundles.ts` serves `/bundles/<flavor>/<path>` from the directory `BUNDLES_ROOT`, only to a key carrying the scope `bundle:<flavor>` (or `bundle:*`, see `access/Scope.ts`). The route itself is open so that the handler can answer `401`/`403` per flavor; `fileOfBundle()` refuses any path leaving the bundle. A bundle is a Lexicon repository of packages, downloaded by `./lexicon fetch` on the other side.
 
+### Catalogue, records and MCP
+
+- `src/catalog/Catalog.ts` reads `lexicon_meta.packages` (the manifests of the packages in service) and `lexicon_meta.repository_versions` (what the loader saw in the repository); `src/namespaces/Catalog.tsx` serves `/catalog` and `/catalog/:name`. Download addresses come from `PACKAGES_URL` and are not given for reserved packages.
+- `src/links/Links.ts` shapes the pre-joined rows of `link_communes` and `link_enterprises`; `src/namespaces/Links.tsx` serves `/links/communes/:insee` (open) and `/links/enterprises/:siren` (members). The format is part of the last segment (`17387.json`), since `.path()` registers no variant after a `:param`.
+- `src/mcp/Mcp.ts` is a stateless MCP server: `handleMcpMessage(message, backend)` answers one JSON-RPC message and knows nothing of HTTP or the database. `src/namespaces/Mcp.ts` gives it its backend at `POST /mcp`. `read_resource` asks the API itself over loopback with the caller's key and address, so that a tool never sees more than the caller would; `jsonPathOf()` refuses `/admin`, `/bundles`, `/mcp` and anything that is not a plain path. A tool that fails answers `isError: true`, not a JSON-RPC error.
+- Tables are served as JSON under a `text/plain` content type: do not rely on the header to recognise JSON.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.
