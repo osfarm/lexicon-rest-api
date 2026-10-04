@@ -379,3 +379,7 @@ tools_assistant_error_down,Duke n'a pas pu répondre. Réessayez plus tard.,Duke
 tools_assistant_error_limit,Duke n'a pas trouvé de réponse à cette question.,Duke found no answer to this question.
 tools_assistant_error_disabled,Duke est indisponible pour le moment.,Duke is not available at the moment.
 tools_assistant_error_allowance,Vous avez posé toutes vos questions pour aujourd'hui. Revenez demain.,You have asked all your questions for today. Come back tomorrow.
+geographical_references_cap_history_title,Cultures déclarées en un point,Crops declared at a point
+geographical_references_cap_history_help,"Les parcelles déclarées à la PAC en ce point, campagne après campagne. Une parcelle n'a pas d'identifiant stable d'une campagne à l'autre : c'est le lieu qui fait le lien.","The parcels declared to the CAP at this point, campaign after campaign. A parcel has no stable identifier from one campaign to the next: the place is the link."
+geographical_references_cap_history_none,Aucune parcelle n'a été déclarée à la PAC en ce point.,No parcel was declared to the CAP at this point.
+geographical_references_cap_history_campaign,Campagne,Campaign

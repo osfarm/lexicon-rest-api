@@ -48,6 +48,7 @@ const backend: McpBackend = {
   },
   searchRdDocuments: async () => ({ total: 1, documents: [DOCUMENT] }),
   rdDocument: async () => DOCUMENT,
+  cropHistory: async () => ({ campaigns: [] }),
 }
 
 const mcp = mcpClient((message) => handleMcpMessage(message, backend))

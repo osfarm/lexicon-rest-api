@@ -5,6 +5,7 @@ import { MunicipalityAPI } from "./MunicipalityAPI"
 import { CadastralParcelAPI } from "./CadastralParcelAPI"
 import { CadastralParcelPriceAPI } from "./CadastralParcelPriceAPI"
 import { CapParcelAPI } from "./CapParcelAPI"
+import { CapHistoryAPI } from "./CapHistoryAPI"
 import { API } from "../../API"
 
 const Breadcrumbs = (t: Translator) => [
@@ -43,6 +44,11 @@ export const GeographicalReferences = API.new()
             href: "/geographical-references/cap-parcels/map",
           }),
           Hypermedia.Link({
+            value: t("geographical_references_cap_history_title"),
+            method: "GET",
+            href: "/geographical-references/cap-parcels/history",
+          }),
+          Hypermedia.Link({
             value: t("geographical_references_municipality_title"),
             method: "GET",
             href: "/geographical-references/municipalities",
@@ -61,3 +67,4 @@ export const GeographicalReferences = API.new()
   .use(CadastralParcelAPI)
   .use(CadastralParcelPriceAPI)
   .use(CapParcelAPI)
+  .use(CapHistoryAPI)

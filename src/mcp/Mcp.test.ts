@@ -14,6 +14,7 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   },
   searchRdDocuments: async (args) => ({ total: 0, documents: [], asked: args }),
   rdDocument: async (id) => ({ id }),
+  cropHistory: async (longitude, latitude) => ({ longitude, latitude, campaigns: [] }),
   ...overrides,
 })
 
@@ -79,6 +80,7 @@ describe("handleMcpMessage", () => {
       "get_enterprise",
       "search_rd_documents",
       "get_rd_document",
+      "get_crop_history",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
   })

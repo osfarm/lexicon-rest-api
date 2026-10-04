@@ -84,6 +84,10 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 - `src/namespaces/Tools/AssistantController.tsx` is the page and `POST /tools/assistant/ask`, which answers a stream of events. Duke always reads Lexicon **as an anonymous caller**, whoever asks: nothing reserved must reach the provider. The text of a question is never stored nor logged. The sources shown under an answer come from the tool results, never from the text of the model.
 - Mistral refuses a `user` message after a `tool` message: to make the model answer, `tool_choice: "none"` is used instead.
 
+### History of the CAP parcels
+
+`src/cap-history/CapHistory.ts` answers "what was declared at this point, campaign after campaign": it reads `registered_graphic_parcels` (latest campaign) and `registered_graphic_parcels_history` (earlier ones) by place, since parcel ids change every campaign, and takes the label of a crop code for the year of the campaign. Served at `/geographical-references/cap-parcels/history`, shown by the parcel identifier, and given to agents as the MCP tool `get_crop_history`. Where the history table is absent, the latest campaign alone is answered.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.

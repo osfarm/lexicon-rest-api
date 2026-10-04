@@ -12,6 +12,7 @@ import {
   readEnterpriseLink,
 } from "../links/Links"
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
+import { coordinatesOf, cropHistoryAt } from "../cap-history/CapHistory"
 import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
 import type { Context } from "../types/Context"
 
@@ -200,6 +201,19 @@ export function backendFor(cxt: Context): McpBackend {
         document,
         `No document ${id}. Use search_rd_documents to find identifiers.`,
       )
+    },
+
+    cropHistory: async (longitude, latitude) => {
+      const point = await required(
+        coordinatesOf({ longitude, latitude }),
+        "A point is needed: longitude and latitude, in degrees (WGS 84)",
+      )
+      const campaigns = await required(
+        await cropHistoryAt(cxt.db, point),
+        "The CAP parcels are not in service",
+      )
+
+      return { ...point, campaigns }
     },
   }
 }
