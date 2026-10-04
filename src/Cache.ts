@@ -22,6 +22,12 @@ export class Cache {
     return this
   }
 
+  clear() {
+    this.storage = {}
+
+    return this
+  }
+
   retrieve(key: string): Maybe<any> {
     const item = this.storage[key]
 

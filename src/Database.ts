@@ -3,6 +3,7 @@ import { Err, match, Ok, type AsyncResult, type Result } from "shulk"
 import { ObjectMap } from "./utils"
 import { NotFound } from "./types/HTTPErrors"
 import { Cache } from "./Cache"
+import { DataVersion } from "./DataVersion"
 import type { Point } from "./types/Geometry"
 
 const hasher = new Bun.CryptoHasher("sha256")
@@ -14,6 +15,9 @@ const MAX_CACHE_ITEMS = 1000
 const ONE_DAY_IN_MS = 86400000
 
 const cache = new Cache({ max: MAX_CACHE_ITEMS })
+
+// Results are kept for a day, unless the data is replaced in the meantime
+const dataVersion = new DataVersion(cache)
 
 type TableDefinition<T extends object> = {
   table: string
@@ -241,6 +245,8 @@ class Select<T extends object> {
 
     const queryHash = hash(q + "-" + params.toString())
 
+    await dataVersion.refresh(db)
+
     const maybeCached = cache.retrieve(queryHash)
 
     return match(maybeCached).case({
@@ -282,11 +288,14 @@ class Select<T extends object> {
     // is sub-millisecond. Exact COUNT(*) is only worth it when filters
     // are present.
     const useEstimate = this.conditions.length === 0
+    const exactQuery = `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`
     const q = useEstimate
       ? `SELECT reltuples::bigint AS count FROM pg_class WHERE relname = '${this.def.table}' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '${DB_SCHEMA}');`
-      : `SELECT COUNT(*) FROM "${DB_SCHEMA}".${this.def.table} ${conditions};`
+      : exactQuery
 
     const queryHash = hash(q + "-" + params.toString())
+
+    await dataVersion.refresh(db)
 
     const maybeCached = cache.retrieve(queryHash)
 
@@ -296,7 +305,14 @@ class Select<T extends object> {
         try {
           const response = await db.query(q, useEstimate ? [] : params)
 
-          const parsedResponse = parseInt(response.rows[0]?.count ?? "0")
+          const estimate = parseInt(response.rows[0]?.count ?? "-1")
+
+          // There is no usable estimate for a view, a table never analyzed or
+          // an empty one: these are counted, which is cheap for the last two.
+          const parsedResponse =
+            useEstimate && estimate <= 0
+              ? parseInt((await db.query(exactQuery, params)).rows[0]?.count ?? "0")
+              : estimate
 
           cache.save(queryHash, parsedResponse, ONE_DAY_IN_MS)
 
