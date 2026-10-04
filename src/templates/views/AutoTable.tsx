@@ -71,39 +71,47 @@ export function AutoTable(props: PageData) {
           <Form method={"GET"} definition={page.form} submitLabel={context.t("filter")} />
         )}
 
-        <br />
+        <div class="formats">
+          {Object.values(page.formats)
+            .filter((format) => format.value !== "HTML")
+            .map((format) => (
+              <a class="button small" href={format.href}>
+                {format.value}
+              </a>
+            ))}
+        </div>
 
-        <table>
-          <thead>
-            <tr>
-              {Object.values(page.table.columns).map((field) => (
-                <th>{field}</th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {page.table.rows.map((item) => (
+        <div class="table-scroll">
+          <table>
+            <thead>
               <tr>
-                {Object.keys(page.table.columns).map((field) => (
-                  <td>
-                    {item[field] === undefined ? (
-                      <i>{context.t("common_undefined")}</i>
-                    ) : (
-                      parseHypermedia(item[field], context.numberFormatter)
-                    )}
-                  </td>
+                {Object.values(page.table.columns).map((field) => (
+                  <th>{field}</th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
 
-        <br />
+            <tbody>
+              {page.table.rows.map((item) => (
+                <tr>
+                  {Object.keys(page.table.columns).map((field) => (
+                    <td>
+                      {item[field] === undefined ? (
+                        <i>{context.t("common_undefined")}</i>
+                      ) : (
+                        parseHypermedia(item[field], context.numberFormatter)
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <div style={{ textAlign: "center" }}>
+        <nav class="pager" aria-label="Pagination">
           {page.navigation["previous-page"] ? (
-            <a href={page.navigation["previous-page"].href} class="button">
+            <a href={page.navigation["previous-page"].href} class="button small">
               {"< " + page.navigation["previous-page"].value}
             </a>
           ) : undefined}
@@ -121,7 +129,7 @@ export function AutoTable(props: PageData) {
           {page.pages
             .map((link) =>
               parseInt(link.value) == page.page ? (
-                <a>{link.value}</a>
+                <span class="current">{link.value}</span>
               ) : (
                 <a href={link.href}>{link.value}</a>
               ),
@@ -140,20 +148,11 @@ export function AutoTable(props: PageData) {
             )}
 
           {page.navigation["next-page"] ? (
-            <a href={page.navigation["next-page"].href} class="button">
+            <a href={page.navigation["next-page"].href} class="button small">
               {page.navigation["next-page"].value + " >"}
             </a>
           ) : undefined}
-        </div>
-
-        <footer style={{ textAlign: "center", marginTop: "25px" }}>
-          {Object.values(page.formats)
-            .filter((format) => format.value !== "HTML")
-            .map((format) => <a href={format.href}>{format.value}</a>)
-            .join(" • ")}
-        </footer>
-
-        <br />
+        </nav>
 
         {page.credit && (
           <Card info>
@@ -193,7 +192,7 @@ const parseHypermedia = (
   match(item)
     .returnType<string | number | boolean | JSX.Element>()
     .case({
-      Number: (nb) => <>{numberFormatter(nb.value) + " " + nb.unit}</>,
+      Number: (nb) => <>{numberFormatter(nb.value) + (nb.unit ? " " + nb.unit : "")}</>,
       Link: (link) => <a href={link.href}>{link.value}</a>,
       Date: (date) => date.value,
       List: (item) =>

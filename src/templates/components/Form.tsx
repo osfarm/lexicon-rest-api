@@ -110,11 +110,7 @@ export function Form(props: Props) {
         ))}
 
         <Cell width={2}>
-          <button
-            type="submit"
-            class="success shadow button"
-            style={{ height: "54px", width: "100%" }}
-          >
+          <button type="submit" class="primary button">
             {props.submitLabel}
           </button>
         </Cell>

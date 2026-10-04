@@ -871,7 +871,7 @@ function buildAreaItemsSection(items: AreaItem[], cxt: Context): TableSection {
   }
 }
 
-const YIELD_CHART_COLOR = "#10ac84"
+const YIELD_CHART_COLOR = "#2f8f89"
 
 function buildHistoricalYieldsChart(
   yields: ProductionYield[],

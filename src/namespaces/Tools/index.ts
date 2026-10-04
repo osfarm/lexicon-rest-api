@@ -24,6 +24,7 @@ export const Tools = API.new()
       t: cxt.t,
       page: {
         title: cxt.t("tools"),
+        section: "tools",
         breadcrumbs: [Breadcrumbs(cxt.t)[0]],
         links: [
           Hypermedia.Link({

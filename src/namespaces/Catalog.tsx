@@ -47,7 +47,12 @@ function csvOf(datasets: Dataset[]) {
 
 function ListPage(props: { cxt: Context; datasets: Dataset[] }) {
   return (
-    <Layout title="Catalogue" breadcrumbs={breadcrumbs(props.cxt, false)} t={props.cxt.t}>
+    <Layout
+      title="Catalogue"
+      breadcrumbs={breadcrumbs(props.cxt, false)}
+      t={props.cxt.t}
+      section="catalog"
+    >
       <p>
         {props.datasets.length} jeux de données en service. Formats :{" "}
         <a href="/catalog.json">JSON</a>, <a href="/catalog.csv">CSV</a>.

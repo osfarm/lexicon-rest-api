@@ -92,6 +92,14 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 
 `registered_cap_beneficiaries` and `registered_cap_subsidies` hold several years. Amounts of different years are never added up: `src/cap-subsidies/CapSubsidies.ts` (`subsidiesByYear`) groups them, the enterprise page and the parcel identifier show the latest year, and the enterprise record (`/links/enterprises/:siren`, MCP `get_enterprise`) gives `cap-by-year`.
 
+### Interface
+
+- **Style**: `public/style.css` is the whole stylesheet: tokens at the top (`--ink`, `--lexicon`, the three family colours of the logo), then components. Ubuntu is served from `public/fonts/`. Components carry classes, not inline styles. Static files are addressed through `asset()` (`src/templates/Assets.ts`), whose stamp changes at each start: browsers cache `/public/*` for a day.
+- **Layout**: `src/templates/layouts/Layout.tsx` draws the header, the menu and the footer. The current menu entry is told by the breadcrumbs (`sectionOf`), and "Explore" is inserted in the breadcrumbs of the pages of data (`shownBreadcrumbs`): namespaces do not know about it. A top-level page whose breadcrumbs only hold the home page passes `section` itself. The administration has its own layout, same stylesheet, `body.admin`.
+- **Language**: `languageOf` in `applyRequestConfiguration.ts`. The cookie `lang` (set by `/language/:code`) comes first; without it a page is in French, while JSON and CSV still follow `Accept-Language`. The translator carries its language (`t.language`).
+- **Home page**: `src/home/Weave.ts` holds, by hand, the datasets and the keys linking them; `Weave.test.ts` keeps it consistent, but only a look at the schema tells whether a knot is true. Figures come from the catalogue. `src/templates/components/Weave.tsx` renders it as a real table (readable without styles nor scripts), `public/weave.js` adds the hovering. `/explore` holds what the home page used to list.
+- `/public/*` only serves files of the `public` folder (`publicFileOf` in `API.ts`).
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.

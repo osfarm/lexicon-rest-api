@@ -1,6 +1,7 @@
 import { parse } from "csv-parse/sync"
 
-export type Translator = (key: string) => string
+// The language is carried along, for the few places that need more than a text
+export type Translator = ((key: string) => string) & { language?: string }
 
 const translationsCSV = await Bun.file("./src/assets/translations.csv").text()
 
@@ -10,10 +11,13 @@ const translations = Object.fromEntries(
     columns: true,
     skip_empty_lines: true,
     encoding: "utf8",
-  }).map((row: Record<string, string>) => [row.key, row])
+  }).map((row: Record<string, string>) => [row.key, row]),
 )
 
 export function useTranslator(lang: string): Translator {
-  return (key: string) =>
-    translations[key] && translations[key][lang] ? translations[key][lang] : key
+  return Object.assign(
+    (key: string) =>
+      translations[key] && translations[key][lang] ? translations[key][lang] : key,
+    { language: lang },
+  )
 }

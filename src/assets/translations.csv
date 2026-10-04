@@ -383,3 +383,47 @@ geographical_references_cap_history_title,Cultures déclarées en un point,Crops
 geographical_references_cap_history_help,"Les parcelles déclarées à la PAC en ce point, campagne après campagne. Une parcelle n'a pas d'identifiant stable d'une campagne à l'autre : c'est le lieu qui fait le lien.","The parcels declared to the CAP at this point, campaign after campaign. A parcel has no stable identifier from one campaign to the next: the place is the link."
 geographical_references_cap_history_none,Aucune parcelle n'a été déclarée à la PAC en ce point.,No parcel was declared to the CAP at this point.
 geographical_references_cap_history_campaign,Campagne,Campaign
+nav_explore,Explorer,Explore
+nav_catalog,Catalogue,Catalogue
+nav_menu,Menu,Menu
+nav_skip,Aller au contenu,Skip to content
+nav_language,Langue,Language
+footer_credits,Crédits,Credits
+footer_association,L'association,The association
+footer_version,Version,Version
+footer_licence,Code sous licence MIT,Code under the MIT licence
+home_headline,"Les référentiels agricoles français, reliés entre eux.","French agricultural reference data, linked together."
+home_lead,"Cadastre, parcelles déclarées à la PAC, entreprises, produits phytosanitaires, météo, travaux de recherche : le Lexicon rassemble ces données publiques et les relie par des clés communes.","Cadastre, parcels declared to the CAP, companies, plant protection products, weather, research: Lexicon gathers this public data and links it through shared keys."
+home_action_explore,Explorer les données,Explore the data
+home_action_ask,Poser une question à Duke,Ask Duke a question
+home_weave_caption,"Les jeux de données du Lexicon en colonnes, les clés qui les relient en lignes : un point marque chaque jeu qui porte la clé.","The datasets of Lexicon as columns, the keys linking them as rows: a dot marks each dataset carrying the key."
+home_weave_hint,"Chaque fil est une clé commune à plusieurs jeux de données. Survolez une clé ou un jeu pour voir ce qu'il relie.","Each thread is a key shared by several datasets. Hover a key or a dataset to see what it links."
+home_weave_rows,lignes,rows
+home_weave_members,adhérents,members
+home_weave_count,Ce schéma montre %shown des %total jeux de données en service.,This picture shows %shown of the %total datasets in service.
+home_weave_catalog,Voir tout le catalogue,See the whole catalogue
+home_journey_title,"Qu'est-ce qui pousse ici, et qui le cultive ?","What grows here, and who farms it?"
+home_journey_lead,"Aucun jeu de données ne répond seul à cette question. En les traversant de clé en clé, quatre pas suffisent.","No dataset answers this question alone. Going through them from key to key, four steps are enough."
+home_ways_title,Trois façons de s'en servir,Three ways to use it
+home_way_api_title,Par l'API,Through the API
+home_way_api,"Chaque page existe aussi en JSON et en CSV : il suffit d'ajouter l'extension à son adresse.","Every page also exists as JSON and CSV: add the extension to its address."
+home_way_packages_title,Par téléchargement,By download
+home_way_packages,"Chaque jeu de données est un paquet versionné, à charger dans votre propre base PostgreSQL. Le catalogue donne ses versions, sa licence et la date de sa source.","Each dataset is a versioned package, to load in your own PostgreSQL database. The catalogue gives its versions, its licence and the date of its source."
+home_way_packages_link,Ouvrir le catalogue,Open the catalogue
+home_way_agents_title,Par un agent IA,Through an AI agent
+home_way_agents,"Le Lexicon parle le protocole MCP : un assistant peut chercher dans les données et croiser les jeux lui-même. Duke en fait la démonstration.","Lexicon speaks the MCP protocol: an assistant can search the data and cross the datasets by itself. Duke shows how."
+home_commons_title,Un commun d'OSFarm,A commons of OSFarm
+home_commons,"Le Lexicon est construit et maintenu par l'association OSFarm. Son code est libre, ses données gardent la licence de leur source. Les adhérents obtiennent une clé d'accès aux données réservées et des quotas plus larges.","Lexicon is built and maintained by the OSFarm association. Its code is free software, its data keeps the licence of its source. Members get a key to the reserved data and larger quotas."
+home_commons_join,Découvrir OSFarm,Discover OSFarm
+home_commons_contribute,Contribuer sur GitHub,Contribute on GitHub
+explore_lead,"Les données du Lexicon, rangées par thème. Chaque page se consulte ici, ou se récupère en JSON et en CSV.","The data of Lexicon, by theme. Each page can be read here, or fetched as JSON and CSV."
+explore_geographical_references,"Communes, parcelles du cadastre et leurs prix, parcelles déclarées à la PAC et leurs cultures.","Communes, cadastral parcels and their prices, parcels declared to the CAP and their crops."
+explore_enterprises,"Entreprises agricoles, aides de la PAC, résultats économiques des exploitations.","Farming companies, CAP subsidies, economic results of farms."
+explore_production,"Productions végétales et animales, leurs codes, rendements et prix.","Plant and animal productions, their codes, yields and prices."
+explore_phytosanitary,"Produits autorisés, usages, doses et mentions de risque.","Authorised products, uses, doses and risk statements."
+explore_seeds,Variétés de semences inscrites au catalogue.,Seed varieties of the official catalogue.
+explore_viticulture,Cépages et stades phénologiques de la vigne.,Vine varieties and phenological stages.
+explore_rd_agri,"Rapports d'essais, guides et articles de la recherche agricole.","Trial reports, guides and articles of agricultural research."
+explore_weather,Stations et relevés météorologiques.,Weather stations and records.
+explore_tools_parcel_identifier,"Un point sur la carte : sa parcelle, sa culture, sa commune, sa météo.","A point on the map: its parcel, its crop, its commune, its weather."
+explore_tools_assistant,Une question en langage naturel sur les données du Lexicon.,A question in plain language about the data of Lexicon.

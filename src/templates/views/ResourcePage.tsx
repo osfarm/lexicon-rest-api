@@ -1,6 +1,6 @@
 import { Html } from "@elysiajs/html"
 import { Layout } from "../layouts/Layout"
-import { match, type Result } from "shulk"
+import { isObject, match, type Result } from "shulk"
 import type { Hypermedia, HypermediaType } from "../../Hypermedia"
 import { Error } from "../components/Error"
 import type { Context } from "../../types/Context"
@@ -29,16 +29,18 @@ export function ResourcePage(props: Props) {
         <div>
           <h2>{context.t("common_details")}</h2>
 
-          {Object.values(val.details)
-            .filter((detail) => detail !== undefined)
-            .map(
-              (detail) =>
-                `<b>${detail.label}</b> ${renderHypermedia(
-                  detail,
-                  context.numberFormatter,
-                )}`,
-            )
-            .join("<br/>")}
+          <dl class="details">
+            {Object.values(val.details)
+              .filter((detail) => detail !== undefined)
+              .map(
+                (detail) =>
+                  `<dt>${detail.label}</dt><dd>${renderHypermedia(
+                    detail,
+                    context.numberFormatter,
+                  )}</dd>`,
+              )
+              .join("")}
+          </dl>
         </div>
 
         <div>
@@ -51,7 +53,7 @@ export function ResourcePage(props: Props) {
                   hx-trigger="click once"
                   hx-target={"#" + key + "-tab"}
                   x-on:click="open = !open"
-                  style={{ cursor: "pointer" }}
+                  class="fold"
                 >
                   <img
                     x-bind:src={
@@ -101,7 +103,12 @@ function renderHypermedia(
 ) {
   return match(element).case({
     Text: (h) => h.value,
-    Number: (h) => numberFormatter(h.value) + " " + h.unit,
+    Number: (h) => numberFormatter(h.value) + (h.unit ? " " + h.unit : ""),
+    List: (h) =>
+      h.values
+        .map((value) => (isObject(value) && "value" in value ? value.value : value))
+        .join("<br/>"),
+    Boolean: (h) => (h.value ? "✓" : "—"),
     Link: (h) => `<a href="${h.href}">${h.value}</a>`,
     Date: (h) => h.value,
     _otherwise: () => "Unknown",
