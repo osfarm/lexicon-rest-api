@@ -16,7 +16,7 @@ bun start              # dev server with --hot reload, reads .env
 bun run ./bin/tag.ts   # interactive release: bumps package.json, commits, tags, pushes (touches main + origin)
 ```
 
-There is **no test suite, no linter, no typecheck script, no build step**. Formatting is Prettier via `.prettierrc` (no semicolons, 2-space, printWidth 90, trailing commas).
+Unit tests run with `bun test` (files named `*.test.ts` next to the code). There is **no linter, no typecheck script, no build step**. Formatting is Prettier via `.prettierrc` (no semicolons, 2-space, printWidth 90, trailing commas).
 
 `.env` is required to start — copy `.env.example` and fill `DB_HOST/PORT/USER/PASSWORD/NAME/SCHEMA`. The `DB_SCHEMA` (e.g. `lexicon__6_0_0-ekyviti`) is interpolated raw into queries via `import.meta.env.DB_SCHEMA` in `src/Database.ts`.
 
@@ -45,6 +45,16 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 3. **`generateTablePage(context, params)`** in `src/page-generators/` — the workhorse. Given a `Select` query, column labels, a per-row `handler` mapping each row to `Hypermedia` values, and optional `form`/`formHandler`/`credits`, it handles pagination (150/page), filtering, output-format dispatch, and credits rendering. Most endpoints are a single call to this. `generateResourcePage` is the single-record equivalent; `generateMapSection` and `generateDocumentation` are specialized.
 
 4. **`Result<E, T>` monad from `shulk`** — the project's deliberate alternative to `try/catch`. Fallible functions return `Result`, callers use `.map`/`.mapErr`/`.flatMap`. **Do not introduce `try/catch`**; the rationale is in `documentation/THINGS-TO-KNOW.md` and it is load-bearing project policy.
+
+### Access control
+
+`src/access/` decides who is served, before any handler runs (`API.listen`). A caller without key is anonymous and limited per IP address; a key (`Authorization: Bearer lex_…` or `X-API-Key`) gets the limits and scopes of its plan. Refusals are `401` (bad key, or a reserved resource without key), `403` (scope not in the plan), `429` (allowance exhausted, with `Retry-After`) and `503` (keys unreadable). Every response carries `RateLimit-*` headers.
+
+- State lives in the Postgres schema `lexicon_access` (`DB_ACCESS_SCHEMA`), created at start by `Schema.ts`; keys and plans are cached in memory and re-read every 30 seconds, usage is flushed every minute. No IP address is ever stored.
+- A namespace reserves its paths with `API.new().restrictedTo("members")`; a handler can also test `cxt.identity.scopes` (the parcel identifier hides owners from anonymous callers this way).
+- `bun run bin/key.ts create|list|revoke` manages keys; a key is printed once and only its hash is stored.
+- The pure parts (`RateLimit.ts`, `AccessControl.ts`, `ApiKey.ts`, `CallerAddress.ts`) take the time as a parameter and are covered by `bun test`.
+- `TRUSTED_PROXIES` (default 1) says how many reverse proxies sit in front: the caller address is read from the `X-Forwarded-For` entry they appended, never from what the caller sent.
 
 ### Templates
 

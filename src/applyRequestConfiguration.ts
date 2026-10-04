@@ -4,6 +4,7 @@ import { Pool } from "pg"
 import type { OutputFormat } from "./types/OutputFormat"
 import type { Context } from "./types/Context"
 import type { BunRequest } from "bun"
+import { anonymousIdentity, type Identity } from "./access/AccessControl"
 
 const DB_HOST = import.meta.env.DB_HOST
 const DB_PORT = parseInt(import.meta.env.DB_PORT as string)
@@ -11,12 +12,17 @@ const DB_USER = import.meta.env.DB_USER
 const DB_PASSWORD = import.meta.env.DB_PASSWORD
 const DB_NAME = import.meta.env.DB_NAME
 
-const pool = new Pool({
+// No request holds the database longer than this, whatever it asks for: a
+// table being replaced must not wait behind a runaway query
+const STATEMENT_TIMEOUT_IN_MS = 30000
+
+export const pool = new Pool({
   host: DB_HOST,
   port: DB_PORT,
   user: DB_USER,
   password: DB_PASSWORD,
   database: DB_NAME,
+  statement_timeout: STATEMENT_TIMEOUT_IN_MS,
 })
 
 const AVAILABLE_LANGUAGES = ["fr", "en"]
@@ -25,6 +31,7 @@ const DEFAULT_LANGUAGE = "fr"
 export function applyRequestConfiguration(
   path: string,
   request: BunRequest<"/:id">,
+  identity: Identity = anonymousIdentity("unknown"),
 ): Context {
   const headers = request.headers.toJSON()
 
@@ -77,6 +84,7 @@ export function applyRequestConfiguration(
     language: serverLanguage,
     t: useTranslator(serverLanguage),
     db: pool,
+    identity,
     dateTimeFormatter,
     numberFormatter,
   }

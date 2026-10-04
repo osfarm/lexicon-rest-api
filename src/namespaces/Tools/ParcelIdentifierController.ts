@@ -1,3 +1,4 @@
+import { MEMBERS_SCOPE } from "../../access/Plan"
 import { Concurrently, Err, match, None, Ok, Some, type AsyncResult } from "shulk"
 import { Hypermedia, hypermedia2json, type HypermediaType } from "../../Hypermedia"
 import { Field } from "../../templates/components/Form"
@@ -178,7 +179,12 @@ export async function ParcelIdentifierController(
       Some: async ({ val: coordinates }) => {
         const point = coordinatesToPoint(coordinates)
 
-        const parcelDataResult = await retrieveParcelData(cxt.db, point, capCodeYear)
+        const parcelDataResult = await retrieveParcelData(
+          cxt.db,
+          point,
+          capCodeYear,
+          cxt.identity.scopes.includes(MEMBERS_SCOPE),
+        )
 
         return parcelDataResult.map((data) =>
           buildPage({
@@ -307,6 +313,8 @@ async function retrieveParcelData(
   db: Pool,
   point: Point,
   capCodeYear: number,
+  // Owners of parcels are reserved to the holders of a key
+  includeOwners: boolean,
 ): AsyncResult<Error, ParcelData> {
   const wave1 = await Concurrently.run(() =>
     MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(1).run(),
@@ -378,10 +386,12 @@ async function retrieveParcelData(
             .run(),
         )
           .and(() =>
-            CadastralParcelOwnerTable(db)
-              .select()
-              .where("cadastral_parcel_id", "=", cadastralParcel.id)
-              .run(),
+            includeOwners
+              ? CadastralParcelOwnerTable(db)
+                  .select()
+                  .where("cadastral_parcel_id", "=", cadastralParcel.id)
+                  .run()
+              : Promise.resolve(Ok([] as CadastralParcelOwner[])),
           )
           .done()
 

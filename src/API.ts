@@ -1,13 +1,24 @@
 import { match } from "shulk"
 import type { Context } from "./types/Context"
-import { applyRequestConfiguration } from "./applyRequestConfiguration"
+import { applyRequestConfiguration, pool } from "./applyRequestConfiguration"
+import { checkAccess, countRequest, startAccessControl } from "./access"
+import { OPEN_SCOPE } from "./access/Plan"
+import { callerAddress } from "./access/CallerAddress"
 import type { BunRequest } from "bun"
 import { ObjectFlatMap, ObjectMap } from "./utils"
 
 type ApiHandler = (cxt: Context) => unknown | Promise<unknown>
 
+const STRUCTURED_OUTPUT = /\.(json|csv|geojson)$/
+
+// Reverse proxies in front of the API whose X-Forwarded-For entries are believed
+const TRUSTED_PROXIES = parseInt(import.meta.env.TRUSTED_PROXIES ?? "1")
+
 export class API {
   protected endpoints: Record<string, ApiHandler> = {}
+  // Scope a caller needs for each path; a path absent from here is open to all
+  protected scopes: Record<string, string> = {}
+  protected currentScope = OPEN_SCOPE
 
   protected constructor() {}
 
@@ -15,21 +26,30 @@ export class API {
     return new this()
   }
 
+  /**
+   * The paths declared after this call need the given scope.
+   */
+  restrictedTo(scope: string) {
+    this.currentScope = scope
+
+    return this
+  }
+
   path(path: string, handler: ApiHandler) {
     const lastPart = path.split("/").pop()
 
     const lastPartIsParam = lastPart?.startsWith(":")
 
-    this.endpoints[path] = handler
+    const variants = lastPartIsParam
+      ? [path]
+      : [path, path + ".json", path + ".csv", path + ".geojson"]
 
-    if (lastPartIsParam) {
-      return this
-    } else {
-      this.endpoints[path + ".json"] = handler
-      this.endpoints[path + ".csv"] = handler
-      this.endpoints[path + ".geojson"] = handler
-      return this
-    }
+    variants.forEach((variant) => {
+      this.endpoints[variant] = handler
+      this.scopes[variant] = this.currentScope
+    })
+
+    return this
   }
 
   dump() {
@@ -38,8 +58,26 @@ export class API {
 
   use(namespace: API) {
     this.endpoints = { ...this.endpoints, ...namespace.dump() }
+    this.scopes = { ...this.scopes, ...namespace.scopes }
 
     return this
+  }
+
+  protected callerAddress(
+    req: Request,
+    server: { requestIP: (req: Request) => { address: string } | null },
+  ) {
+    return callerAddress(
+      req.headers.get("x-forwarded-for"),
+      server.requestIP(req)?.address,
+      TRUSTED_PROXIES,
+    )
+  }
+
+  protected refusal(path: string, status: number, message: string, headers: Record<string, string>) {
+    return STRUCTURED_OUTPUT.test(path)
+      ? Response.json({ error: { status, message } }, { status, headers })
+      : new Response(message, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } })
   }
 
   protected cors() {
@@ -54,25 +92,56 @@ export class API {
     }
   }
 
-  listen(port: string) {
+  async listen(port: string) {
+    await startAccessControl(pool)
+
     const server = Bun.serve({
       port: port,
       idleTimeout: 30,
 
       routes: {
-        ...ObjectMap(this.endpoints, (path, handler) => async (req: BunRequest<any>) => {
-          const context = applyRequestConfiguration(path, req)
+        ...ObjectMap(
+          this.endpoints,
+          (path, handler) => async (req: BunRequest<any>, server: any) => {
+            const access = await checkAccess(
+              pool,
+              req,
+              this.callerAddress(req, server),
+              this.scopes[path] ?? OPEN_SCOPE,
+            )
 
-          const result = await handler(context)
+            if (access !== undefined && !access.allowed) {
+              countRequest(access, path, access.denial.status)
 
-          if (result instanceof Response) {
-            return result
-          } else {
-            return new Response(result as any, {
-              headers: { "Content-Type": "text/html" },
-            })
-          }
-        }),
+              return this.refusal(
+                path,
+                access.denial.status,
+                access.denial.message,
+                access.denial.headers,
+              )
+            }
+
+            const context = applyRequestConfiguration(path, req, access?.identity)
+
+            const result = await handler(context)
+
+            const response =
+              result instanceof Response
+                ? result
+                : new Response(result as any, {
+                    headers: { "Content-Type": "text/html" },
+                  })
+
+            if (access !== undefined) {
+              Object.entries(access.headers).forEach(([name, value]) =>
+                response.headers.set(name, value),
+              )
+              countRequest(access, path, response.status)
+            }
+
+            return response
+          },
+        ),
 
         "/public/*": async (req) => {
           const [, , , ...path] = req.url.split("/")
