@@ -7,14 +7,19 @@ interface Props {
 }
 
 export function Breadcrumbs(props: Props) {
-  return (
-    <div class="breadcrumbs" style={{ marginBottom: "15px" }}>
-      {props.links.flatMap((part, i) => [
-        <a href={part.href}>{part.value}</a>,
-        <a>{" / "}</a>,
-      ])}
-
-      {props.pageTitle}
-    </div>
+  return props.links.length === 0 ? (
+    ""
+  ) : (
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      {props.links.map((part) => (
+        <span>
+          <a href={part.href}>{part.value}</a>
+          <span class="separator" aria-hidden="true">
+            /
+          </span>
+        </span>
+      ))}
+      <span aria-current="page">{props.pageTitle}</span>
+    </nav>
   )
 }

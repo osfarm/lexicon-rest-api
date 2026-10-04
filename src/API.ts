@@ -25,6 +25,28 @@ export function readablePaths(): string[] {
   return servedPaths
 }
 
+/**
+ * The file of the public folder an address asks for, or undefined when the
+ * address tries to leave that folder.
+ */
+export function publicFileOf(pathname: string): string | undefined {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(pathname)
+    } catch {
+      return undefined
+    }
+  })()
+
+  return decoded !== undefined &&
+    decoded.startsWith("/public/") &&
+    !decoded.includes("..") &&
+    !decoded.includes("\\") &&
+    !decoded.includes("\0")
+    ? decoded.slice(1)
+    : undefined
+}
+
 export class API {
   protected endpoints: Record<string, ApiHandler> = {}
   // Scope a caller needs for each path; a path absent from here is open to all
@@ -86,10 +108,18 @@ export class API {
     )
   }
 
-  protected refusal(path: string, status: number, message: string, headers: Record<string, string>) {
+  protected refusal(
+    path: string,
+    status: number,
+    message: string,
+    headers: Record<string, string>,
+  ) {
     return STRUCTURED_OUTPUT.test(path)
       ? Response.json({ error: { status, message } }, { status, headers })
-      : new Response(message, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } })
+      : new Response(message, {
+          status,
+          headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" },
+        })
   }
 
   protected cors() {
@@ -164,20 +194,29 @@ export class API {
         ),
 
         "/public/*": async (req) => {
-          const [, , , ...path] = req.url.split("/")
-          const parsedPath = path.join("/")
-          const fileExtension = parsedPath.split(".")[1]
+          // The query string only serves to get past the cache of browsers
+          const parsedPath = publicFileOf(new URL(req.url).pathname)
+          const file = parsedPath === undefined ? undefined : Bun.file(parsedPath)
+
+          if (parsedPath === undefined || file === undefined || !(await file.exists())) {
+            return new Response("Not Found", { status: 404 })
+          }
+
+          const fileExtension = parsedPath.split(".").pop() ?? ""
 
           const mime = match(fileExtension).with({
             css: "text/css",
             png: "image/png",
             jpg: "image/jpg",
             svg: "image/svg+xml",
+            js: "text/javascript; charset=utf-8",
+            woff2: "font/woff2",
+            ttf: "font/ttf",
             ico: "image/x-icon",
             _otherwise: "text",
           })
 
-          const buffer = await Bun.file(parsedPath).bytes()
+          const buffer = await file.bytes()
 
           return new Response(buffer as any, {
             headers: {

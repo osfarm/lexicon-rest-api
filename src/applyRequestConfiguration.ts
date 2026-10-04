@@ -27,6 +27,37 @@ export const pool = new Pool({
 
 const AVAILABLE_LANGUAGES = ["fr", "en"]
 const DEFAULT_LANGUAGE = "fr"
+export const LANGUAGE_COOKIE = "lang"
+
+export const isLanguage = (value: string | undefined): value is string =>
+  value !== undefined && AVAILABLE_LANGUAGES.includes(value)
+
+/**
+ * The language a request is answered in. The visitor's own choice, kept in a
+ * cookie, comes first. Without one, a page is in French; data (JSON, CSV)
+ * follows the language the client asks for, as it always did.
+ */
+export function languageOf(request: {
+  cookie: string | undefined
+  acceptLanguage: string | undefined
+  isPage: boolean
+}): string {
+  const chosen = request.cookie
+    ?.split(";")
+    .map((part) => part.trim().split("="))
+    .find(([name]) => name === LANGUAGE_COOKIE)?.[1]
+
+  if (isLanguage(chosen)) {
+    return chosen
+  }
+  if (request.isPage) {
+    return DEFAULT_LANGUAGE
+  }
+
+  const asked = request.acceptLanguage?.split(",")[0]?.split("-")[0]?.trim()
+
+  return isLanguage(asked) ? asked : DEFAULT_LANGUAGE
+}
 
 export function applyRequestConfiguration(
   path: string,
@@ -35,19 +66,6 @@ export function applyRequestConfiguration(
 ): Context {
   const headers = request.headers.toJSON()
 
-  const clientDesiredLanguage =
-    headers["accept-language"]?.split(",")[0]?.split("-")[0] || ""
-
-  const serverLanguage = AVAILABLE_LANGUAGES.includes(clientDesiredLanguage)
-    ? clientDesiredLanguage
-    : DEFAULT_LANGUAGE
-
-  const locale = match(serverLanguage).with({
-    fr: "fr-FR",
-    en: "en-US",
-    _otherwise: "en-US",
-  })
-
   const extension: string | undefined = path.split(".")[1]
 
   const output: OutputFormat = match(extension).with({
@@ -55,6 +73,18 @@ export function applyRequestConfiguration(
     geojson: "geojson",
     csv: "csv",
     _otherwise: "html",
+  })
+
+  const serverLanguage = languageOf({
+    cookie: headers["cookie"],
+    acceptLanguage: headers["accept-language"],
+    isPage: output === "html",
+  })
+
+  const locale = match(serverLanguage).with({
+    fr: "fr-FR",
+    en: "en-US",
+    _otherwise: "en-US",
   })
 
   // Instantiate formatters once per request rather than on every .format()
