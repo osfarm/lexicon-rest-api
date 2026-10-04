@@ -2,7 +2,7 @@ import { match } from "shulk"
 import type { Context } from "./types/Context"
 import { applyRequestConfiguration, pool } from "./applyRequestConfiguration"
 import { checkAccess, countRequest, startAccessControl } from "./access"
-import { OPEN_SCOPE } from "./access/Plan"
+import { ADMIN_SCOPE, OPEN_SCOPE } from "./access/Plan"
 import { callerAddress } from "./access/CallerAddress"
 import type { BunRequest } from "bun"
 import { ObjectFlatMap, ObjectMap } from "./utils"
@@ -103,12 +103,16 @@ export class API {
         ...ObjectMap(
           this.endpoints,
           (path, handler) => async (req: BunRequest<any>, server: any) => {
-            const access = await checkAccess(
-              pool,
-              req,
-              this.callerAddress(req, server),
-              this.scopes[path] ?? OPEN_SCOPE,
-            )
+            // The administration has its own sessions: neither keys nor rate limits apply to it
+            const access =
+              this.scopes[path] === ADMIN_SCOPE
+                ? undefined
+                : await checkAccess(
+                    pool,
+                    req,
+                    this.callerAddress(req, server),
+                    this.scopes[path] ?? OPEN_SCOPE,
+                  )
 
             if (access !== undefined && !access.allowed) {
               countRequest(access, path, access.denial.status)

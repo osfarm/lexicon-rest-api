@@ -56,6 +56,16 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 - The pure parts (`RateLimit.ts`, `AccessControl.ts`, `ApiKey.ts`, `CallerAddress.ts`) take the time as a parameter and are covered by `bun test`.
 - `TRUSTED_PROXIES` (default 1) says how many reverse proxies sit in front: the caller address is read from the `X-Forwarded-For` entry they appended, never from what the caller sent.
 
+### Administration
+
+`src/namespaces/Admin/` serves `/admin`: login, summary, keys (create, extend, change plan, renew, revoke), plans, usage (with CSV export), datasources in service (read from `lexicon_meta`) and the audit log. Pages are French only and rendered by `AdminLayout`, which loads no third-party script.
+
+- These paths have the scope `admin`: the router skips keys and rate limits for them, and every handler is wrapped by `administered()` (`session.ts`), which requires a session and checks the CSRF token of each `POST`.
+- Sessions are a random token in an `HttpOnly`, `SameSite=Strict` cookie limited to `/admin`; only its hash is stored. Login is limited to five attempts per quarter of an hour and per address.
+- Administrators are created with `bun run bin/admin.ts create <email>` (password asked, or read from standard input); there is no sign-up.
+- JSX children are **not escaped** by `@elysiajs/html`: anything that is not a literal goes through `e()` from `AdminLayout.tsx`.
+- Every action is written to `lexicon_access.audit_log`.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.

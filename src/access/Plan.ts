@@ -9,6 +9,8 @@ export type Plan = Readonly<{
 
 export const OPEN_SCOPE = "open"
 export const MEMBERS_SCOPE = "members"
+// Paths of the administration: no key gives it, they have their own sessions
+export const ADMIN_SCOPE = "admin"
 export const ANONYMOUS_PLAN_NAME = "anonymous"
 
 // What a caller without key gets, also when the plans cannot be read
