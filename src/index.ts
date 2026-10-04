@@ -12,6 +12,7 @@ import { Seeds } from "./namespaces/Seeds"
 import { Enterprises } from "./namespaces/Enterprises"
 import { Rica } from "./namespaces/Rica"
 import { Admin } from "./namespaces/Admin"
+import { Bundles } from "./namespaces/Bundles"
 
 const PORT = import.meta.env.PORT as string
 
@@ -29,4 +30,5 @@ API.new()
   .use(Weather)
   .use(Credits)
   .use(Admin)
+  .use(Bundles)
   .listen(PORT)

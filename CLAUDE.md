@@ -66,6 +66,10 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 - JSX children are **not escaped** by `@elysiajs/html`: anything that is not a literal goes through `e()` from `AdminLayout.tsx`.
 - Every action is written to `lexicon_access.audit_log`.
 
+### Private bundles
+
+`src/namespaces/Bundles.ts` serves `/bundles/<flavor>/<path>` from the directory `BUNDLES_ROOT`, only to a key carrying the scope `bundle:<flavor>` (or `bundle:*`, see `access/Scope.ts`). The route itself is open so that the handler can answer `401`/`403` per flavor; `fileOfBundle()` refuses any path leaving the bundle. A bundle is a Lexicon repository of packages, downloaded by `./lexicon fetch` on the other side.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.
