@@ -1,6 +1,6 @@
 {
   "name": "rest-api",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "homepage": "https://lexicon.osfarm.org",
   "module": "src/index.ts",
   "type": "module",
