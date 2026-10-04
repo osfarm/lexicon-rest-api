@@ -28,7 +28,17 @@ export type EnterpriseLink = Readonly<{
   cadastre: { parcels: number; "area-m2": number; communes: number }
   establishments: { count: number; "main-activity-code": string | null }
   cap: { year: number; total: number } | null
+  // What the company received from the CAP each year, latest first
+  "cap-by-year": CapYear[]
   links: Record<string, string>
+}>
+
+export type CapYear = Readonly<{
+  year: number
+  feaga: number
+  feader: number
+  cofinanced: number
+  total: number
 }>
 
 const INSEE_CODE = /^[0-9][0-9AB][0-9]{3}$/
@@ -67,7 +77,10 @@ export function communeLinkOf(row: Record<string, any>): CommuneLink {
 /**
  * The pre-joined record of a company. Only legal entities have one.
  */
-export function enterpriseLinkOf(row: Record<string, any>): EnterpriseLink {
+export function enterpriseLinkOf(
+  row: Record<string, any>,
+  capYears: CapYear[] = [],
+): EnterpriseLink {
   return {
     siren: row.siren,
     name: row.name,
@@ -83,6 +96,7 @@ export function enterpriseLinkOf(row: Record<string, any>): EnterpriseLink {
     },
     cap:
       row.cap_year === null ? null : { year: row.cap_year, total: Number(row.cap_total) },
+    "cap-by-year": capYears,
     links:
       row.establishments_count > 0
         ? { enterprise: `/enterprises/enterprises/${row.siren}` }
@@ -107,3 +121,32 @@ export const readCommuneLink = (db: Db, inseeCode: string) =>
 
 export const readEnterpriseLink = (db: Db, siren: string) =>
   readRow(db, "link_enterprises", "siren", siren)
+
+export function capYearOf(row: Record<string, any>): CapYear {
+  return {
+    year: row.year,
+    feaga: Number(row.feaga_total ?? 0),
+    feader: Number(row.feader_total ?? 0),
+    cofinanced: Number(row.cofinanced_total ?? 0),
+    total: Number(row.total_eu_cofinanced ?? 0),
+  }
+}
+
+/**
+ * @returns the years a company is among the beneficiaries of the CAP, latest
+ *   first; none when the beneficiaries are not in service
+ */
+export function readCapYears(db: Db, siren: string): Promise<CapYear[]> {
+  return db
+    .query(
+      `SELECT year, feaga_total, feader_total, cofinanced_total, total_eu_cofinanced
+         FROM "${DB_SCHEMA}".registered_cap_beneficiaries
+        WHERE siren = $1
+        ORDER BY year DESC;`,
+      [siren],
+    )
+    .then(
+      (result) => result.rows.map(capYearOf),
+      () => [],
+    )
+}

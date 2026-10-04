@@ -6,6 +6,7 @@ import { generateTablePage } from "../page-generators/generateTablePage"
 import { generateResourcePage } from "../page-generators/generateResourcePage"
 import { API } from "../API"
 import { EnterpriseTable, fetchSubsidiesBySiren } from "./Enterprise"
+import { subsidiesByYear } from "../cap-subsidies/CapSubsidies"
 import { CreditTable } from "./Credits"
 import { NotFound } from "../types/HTTPErrors"
 import type { Context } from "../types/Context"
@@ -163,18 +164,8 @@ export const Enterprises = API.new()
         const primary = rows[0]
         const subsidiesResult = await fetchSubsidiesBySiren(cxt.db, [siren])
         const subsidies = subsidiesResult.unwrapOr(new Map()).get(siren) ?? []
-        const totalAmount = subsidies.reduce(
-          (s, sub) =>
-            s +
-            parseFloat((sub.feaga_amount as any) ?? "0") +
-            parseFloat((sub.feader_amount as any) ?? "0") +
-            parseFloat((sub.cofinanced_amount as any) ?? "0"),
-          0,
-        )
-        const latestYear = subsidies.reduce<number | undefined>(
-          (max, s) => (max === undefined || s.year > max ? s.year : max),
-          undefined,
-        )
+        // The figures shown are those of the latest year; the earlier ones follow, year by year
+        const [latest, ...earlier] = subsidiesByYear(subsidies)
 
         const establishments = rows.map((r) =>
           [r.establishment_number, r.address, r.postal_code, r.city]
@@ -205,28 +196,35 @@ export const Enterprises = API.new()
               label: cxt.t("enterprises_establishments"),
               values: establishments,
             }),
-            "subsidies-count":
-              subsidies.length > 0
-                ? Hypermedia.Number({
-                    label: cxt.t("tools_subsidies_count"),
-                    value: subsidies.length,
-                  })
-                : undefined,
-            "subsidies-total":
-              subsidies.length > 0
-                ? Hypermedia.Number({
-                    label: cxt.t("tools_subsidies_total_amount"),
-                    value: Math.round(totalAmount * 100) / 100,
-                    unit: "€",
-                  })
-                : undefined,
-            "subsidies-latest-year":
-              latestYear !== undefined
-                ? Hypermedia.Number({
-                    label: cxt.t("tools_subsidies_year"),
-                    value: latestYear,
-                  })
-                : undefined,
+            "subsidies-count": latest
+              ? Hypermedia.Number({
+                  label: cxt.t("tools_subsidies_count"),
+                  value: latest.count,
+                })
+              : undefined,
+            "subsidies-total": latest
+              ? Hypermedia.Number({
+                  label: cxt.t("tools_subsidies_total_amount"),
+                  value: latest.total,
+                  unit: "€",
+                })
+              : undefined,
+            "subsidies-latest-year": latest
+              ? Hypermedia.Number({
+                  label: cxt.t("tools_subsidies_year"),
+                  value: latest.year,
+                })
+              : undefined,
+            ...Object.fromEntries(
+              earlier.map((year) => [
+                `subsidies-${year.year}`,
+                Hypermedia.Number({
+                  label: `${cxt.t("tools_subsidies_total_amount")} ${year.year}`,
+                  value: year.total,
+                  unit: "€",
+                }),
+              ]),
+            ),
           },
           sections: {},
           links: [],

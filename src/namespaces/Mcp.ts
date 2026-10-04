@@ -9,6 +9,7 @@ import {
   isInseeCode,
   isSiren,
   readCommuneLink,
+  readCapYears,
   readEnterpriseLink,
 } from "../links/Links"
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
@@ -147,6 +148,7 @@ export function backendFor(cxt: Context): McpBackend {
           await readEnterpriseLink(cxt.db, siren),
           `No legal entity ${siren} in the records`,
         ),
+        await readCapYears(cxt.db, siren),
       )
     },
 
