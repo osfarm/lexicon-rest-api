@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test"
-import { communeLinkOf, enterpriseLinkOf, isInseeCode, isSiren } from "./Links"
+import {
+  capYearOf,
+  communeLinkOf,
+  enterpriseLinkOf,
+  isInseeCode,
+  isSiren,
+  readCapYears,
+} from "./Links"
 
 describe("communeLinkOf", () => {
   const row = {
@@ -65,6 +72,42 @@ describe("enterpriseLinkOf", () => {
     expect(link.establishments).toEqual({ count: 239, "main-activity-code": "02.10Z" })
     expect(link.cap).toEqual({ year: 2024, total: 6573149.71 })
     expect(link.links.enterprise).toBe("/enterprises/enterprises/662043116")
+  })
+
+  test("the CAP payments are given year by year, never added up", () => {
+    const years = [
+      {
+        year: 2025,
+        feaga_total: "100.00",
+        feader_total: "20.50",
+        cofinanced_total: "4.50",
+        total_eu_cofinanced: "125.00",
+      },
+      {
+        year: 2024,
+        feaga_total: "90.00",
+        feader_total: null,
+        cofinanced_total: null,
+        total_eu_cofinanced: "90.00",
+      },
+    ].map(capYearOf)
+    const link = enterpriseLinkOf(row, years)
+
+    expect(link["cap-by-year"]).toEqual([
+      { year: 2025, feaga: 100, feader: 20.5, cofinanced: 4.5, total: 125 },
+      { year: 2024, feaga: 90, feader: 0, cofinanced: 0, total: 90 },
+    ])
+    expect(enterpriseLinkOf(row)["cap-by-year"]).toEqual([])
+  })
+
+  test("beneficiaries that are not in service give no year, not an error", async () => {
+    const db = {
+      query: async () => {
+        throw new Error("relation does not exist")
+      },
+    }
+
+    expect(await readCapYears(db as any, "662043116")).toEqual([])
   })
 
   test("a company without agricultural establishment nor CAP payment", () => {

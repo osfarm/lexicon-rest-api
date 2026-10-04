@@ -8,6 +8,7 @@ import {
   isInseeCode,
   isSiren,
   readCommuneLink,
+  readCapYears,
   readEnterpriseLink,
 } from "../links/Links"
 import { Layout } from "../templates/layouts/Layout"
@@ -156,7 +157,7 @@ async function enterprise(cxt: Context) {
     return refusal(404, `No legal entity ${identifier} in the records`)
   }
 
-  const link = enterpriseLinkOf(row)
+  const link = enterpriseLinkOf(row, await readCapYears(cxt.db, identifier))
 
   if (wantsJson) {
     return Response.json(link)
@@ -176,12 +177,19 @@ async function enterprise(cxt: Context) {
           ["Communes concernées", cxt.numberFormatter(link.cadastre.communes)],
           ["Établissements agricoles", cxt.numberFormatter(link.establishments.count)],
           ["Activité principale", link.establishments["main-activity-code"]],
-          [
-            "Aides PAC",
-            link.cap === null
-              ? null
-              : `${cxt.numberFormatter(link.cap.total)} € en ${link.cap.year}`,
-          ],
+          ...(link["cap-by-year"].length > 0
+            ? link["cap-by-year"].map((year): [string, unknown] => [
+                `Aides PAC ${year.year}`,
+                `${cxt.numberFormatter(year.total)} €`,
+              ])
+            : [
+                [
+                  "Aides PAC",
+                  link.cap === null
+                    ? null
+                    : `${cxt.numberFormatter(link.cap.total)} € en ${link.cap.year}`,
+                ] as [string, unknown],
+              ]),
         ]}
       />
     </Layout>

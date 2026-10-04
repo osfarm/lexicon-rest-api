@@ -15,6 +15,7 @@ import { ParcelTable, type Parcel } from "../GeographicalReferences/CadastralPar
 import { ParcelPriceTable, type ParcelPrice } from "../GeographicalReferences/CadastralParcelPrice"
 import { CapParcelTable, type CapParcel } from "../GeographicalReferences/CapParcel"
 import { pointToCoordinates } from "../../types/Coordinates"
+import { subsidiesByYear } from "../../cap-subsidies/CapSubsidies"
 import { cropHistoryAt, type CropOfCampaign } from "../../cap-history/CapHistory"
 import {
   MasterCapCodeTable,
@@ -975,18 +976,8 @@ function buildAgriculturalEnterprisesSection(
       const subsidies = enterprise.siren
         ? subsidiesBySiren.get(enterprise.siren) ?? []
         : []
-      const totalAmount = subsidies.reduce(
-        (sum, s) =>
-          sum +
-          parseFloat((s.feaga_amount as any) || "0") +
-          parseFloat((s.feader_amount as any) || "0") +
-          parseFloat((s.cofinanced_amount as any) || "0"),
-        0,
-      )
-      const latestYear = subsidies.reduce<number | undefined>(
-        (max, s) => (max === undefined || s.year > max ? s.year : max),
-        undefined,
-      )
+      // Amounts of different years are never added up: the latest year is shown
+      const latest = subsidiesByYear(subsidies)[0]
       return {
         siren: enterprise.siren
           ? Hypermedia.Link({
@@ -1002,23 +993,21 @@ function buildAgriculturalEnterprisesSection(
         }),
         "subsidy-count": Hypermedia.Number({
           label: cxt.t("tools_subsidies_count"),
-          value: subsidies.length,
+          value: latest?.count ?? 0,
         }),
-        "subsidy-amount":
-          subsidies.length > 0
-            ? Hypermedia.Number({
-                label: cxt.t("tools_subsidies_total_amount"),
-                value: Math.round(totalAmount * 100) / 100,
-                unit: "€",
-              })
-            : undefined,
-        "subsidy-year":
-          latestYear !== undefined
-            ? Hypermedia.Number({
-                label: cxt.t("tools_subsidies_year"),
-                value: latestYear,
-              })
-            : undefined,
+        "subsidy-amount": latest
+          ? Hypermedia.Number({
+              label: cxt.t("tools_subsidies_total_amount"),
+              value: latest.total,
+              unit: "€",
+            })
+          : undefined,
+        "subsidy-year": latest
+          ? Hypermedia.Number({
+              label: cxt.t("tools_subsidies_year"),
+              value: latest.year,
+            })
+          : undefined,
       }
     }),
   }
