@@ -13,10 +13,17 @@ export function setUpAccessSchema(db: Pick<Pool, "query">): Promise<void> {
       `('${plan.name}', ${plan.perMinute ?? "NULL"}, ${plan.perDay ?? "NULL"}, ${plan.maxPageSize}, ${plan.statementTimeoutMs}, '{${plan.scopes.join(",")}}')`,
   ).join(", ")
 
+  // The schema may have been prepared for a role that cannot create schemas:
+  // even with IF NOT EXISTS, Postgres would refuse the statement to that role
+  const createSchema = (exists: boolean) =>
+    exists ? "" : `CREATE SCHEMA IF NOT EXISTS "${ACCESS_SCHEMA}";`
+
   return db
-    .query(
-      `
-      CREATE SCHEMA IF NOT EXISTS "${ACCESS_SCHEMA}";
+    .query(`SELECT 1 FROM pg_namespace WHERE nspname = $1;`, [ACCESS_SCHEMA])
+    .then((found) =>
+      db.query(
+        `
+      ${createSchema(found.rows.length > 0)}
 
       CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".plans (
         name                 varchar PRIMARY KEY,
@@ -83,6 +90,7 @@ export function setUpAccessSchema(db: Pick<Pool, "query">): Promise<void> {
       VALUES ${seeds}
       ON CONFLICT (name) DO NOTHING;
       `,
+      ),
     )
     .then(() => undefined)
 }
