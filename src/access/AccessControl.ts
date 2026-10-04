@@ -3,6 +3,7 @@ import { parseKey, secretMatches } from "./ApiKey"
 import type { KeyStore } from "./KeyStore"
 import { ANONYMOUS_PLAN, ANONYMOUS_PLAN_NAME, OPEN_SCOPE, type Plan } from "./Plan"
 import { consume, type RateLimitState, type RateLimitVerdict } from "./RateLimit"
+import { givesScope } from "./Scope"
 
 export type Identity = Readonly<{
   // "key" for the holder of an API key, "anonymous" otherwise
@@ -127,7 +128,7 @@ export function authorize(
   }
 
   const required = request.scope
-  if (required !== OPEN_SCOPE && !identity.scopes.includes(required)) {
+  if (required !== OPEN_SCOPE && !givesScope(identity.scopes, required)) {
     const denial = match(identity.kind).with({
       anonymous: deny(401, "This resource needs an API key", {
         "WWW-Authenticate": 'Bearer realm="lexicon"',

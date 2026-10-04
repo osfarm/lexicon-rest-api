@@ -38,7 +38,8 @@ export class API {
   path(path: string, handler: ApiHandler) {
     const lastPart = path.split("/").pop()
 
-    const lastPartIsParam = lastPart?.startsWith(":")
+    // A parameter or a wildcard has no format variant
+    const lastPartIsParam = lastPart?.startsWith(":") || lastPart === "*"
 
     const variants = lastPartIsParam
       ? [path]
