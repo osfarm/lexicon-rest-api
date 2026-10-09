@@ -15,6 +15,7 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   searchRdDocuments: async (args) => ({ total: 0, documents: [], asked: args }),
   rdDocument: async (id) => ({ id }),
   cropHistory: async (longitude, latitude) => ({ longitude, latitude, campaigns: [] }),
+  inputPrices: async (args) => ({ query: args.query, prices: [] }),
   ...overrides,
 })
 
@@ -81,8 +82,22 @@ describe("handleMcpMessage", () => {
       "search_rd_documents",
       "get_rd_document",
       "get_crop_history",
+      "get_input_price",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
+  })
+
+  test("the price of an input is asked with the arguments of the caller", async () => {
+    const response: any = await call("get_input_price", {
+      query: "glyphosate",
+      quantity: 3,
+    })
+
+    expect(response.result.isError).toBe(false)
+    expect(JSON.parse(response.result.content[0].text)).toEqual({
+      query: "glyphosate",
+      prices: [],
+    })
   })
 
   test("a tool call returns its data as text", async () => {

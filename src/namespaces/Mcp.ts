@@ -14,6 +14,11 @@ import {
 } from "../links/Links"
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
 import { coordinatesOf, cropHistoryAt } from "../cap-history/CapHistory"
+import {
+  priceQueryOf,
+  searchInputPrices,
+  unpricedProducts,
+} from "../input-prices/InputPrices"
 import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
 import type { Context } from "../types/Context"
 
@@ -216,6 +221,37 @@ export function backendFor(cxt: Context): McpBackend {
       )
 
       return { ...point, campaigns }
+    },
+
+    inputPrices: async (args) => {
+      const asked = await required(
+        priceQueryOf(args),
+        "A query is needed: a few words naming the input, such as glyphosate or ammonitrate",
+      )
+      const prices = await required(
+        await searchInputPrices(cxt.db, asked),
+        "The prices of inputs are not in service",
+      )
+
+      // Few plant protection products have a price: say which ones were found without any
+      const unpriced =
+        prices.length === 0 ? await unpricedProducts(cxt.db, asked) : undefined
+
+      return {
+        query: asked.query,
+        ...(asked.quantity === undefined ? {} : { quantity: asked.quantity }),
+        prices,
+        ...(unpriced && unpriced.count > 0
+          ? {
+              "without-price": {
+                ...unpriced,
+                meaning:
+                  "Authorised plant protection products matching the query, for which Lexicon has no price",
+              },
+            }
+          : {}),
+        note: "Prices before tax, metropolitan France. A negotiated price is the one of a purchasing group. Source: Lexicon OSFarm, dataset prices.",
+      }
     },
   }
 }

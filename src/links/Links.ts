@@ -13,7 +13,7 @@ export type CommuneLink = Readonly<{
   cadastre: {
     parcels: number
     "area-m2": number
-    "parcels-with-agricultural-owner": number
+    "parcels-with-enterprise-owner": number
   }
   "agricultural-enterprises": number
   msa: { year: number; "farm-chiefs": number | null } | null
@@ -60,7 +60,9 @@ export function communeLinkOf(row: Record<string, any>): CommuneLink {
     cadastre: {
       parcels: row.cadastral_parcels_count,
       "area-m2": Number(row.cadastral_area_m2),
-      "parcels-with-agricultural-owner": row.agricultural_owner_parcels_count,
+      // The column was named agricultural_owner_parcels_count before registered_enterprises held every activity
+      "parcels-with-enterprise-owner":
+        row.enterprise_owner_parcels_count ?? row.agricultural_owner_parcels_count,
     },
     "agricultural-enterprises": row.enterprises_count,
     msa:

@@ -77,12 +77,22 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 - `src/mcp/Mcp.ts` is a stateless MCP server: `handleMcpMessage(message, backend)` answers one JSON-RPC message and knows nothing of HTTP or the database. `src/namespaces/Mcp.ts` gives it its backend at `POST /mcp`. `read_resource` asks the API itself over loopback with the caller's key and address, so that a tool never sees more than the caller would; `jsonPathOf()` refuses `/admin`, `/bundles`, `/mcp` and anything that is not a plain path. A tool that fails answers `isError: true`, not a JSON-RPC error.
 - Tables are served as JSON under a `text/plain` content type: do not rely on the header to recognise JSON.
 
+### Guide of the contributor
+
+`src/namespaces/Contribute.tsx` serves `/contribute`, the guide of `./lexicon contribute` (the review of a tabular contribution on the build side) for someone who proposes a dataset. It is in French, as the command answers in French; only its title and the links to it are translated. Its content (`src/contribute/Guide.ts`) quotes the answers of `Contribution::Review` in the `lexicon` repository: change both together.
+
 ### R&D documents and Duke, the assistant
 
 - `src/rd-agri/RdAgri.ts` searches `registered_rd_agri_documents` through its `search` tsvector column. Accents are removed on both sides with the same `translate()` mapping as `lib/datasources/rd_agri.rb` in the lexicon repository: keep the two in step. `src/namespaces/RdAgri.tsx` serves `/rd-agri/documents`; the MCP tools `search_rd_documents` and `get_rd_document` use the same module.
 - `src/assistant/` is Duke: `Conversation.ts` is the loop between the model and the MCP tools and knows nothing of HTTP, of the provider or of the database (its dependencies are injected, see `Assistant.test.ts`); `Provider.ts` speaks "chat completions" to any provider; `ProviderQueue.ts` lets one call through at a time; `McpClient.ts` only knows the messages of the protocol; `Allowance.ts` counts questions per caller in memory; `AssistantStore.ts` keeps daily counts and two settings in `lexicon_access`.
 - `src/namespaces/Tools/AssistantController.tsx` is the page and `POST /tools/assistant/ask`, which answers a stream of events. Duke always reads Lexicon **as an anonymous caller**, whoever asks: nothing reserved must reach the provider. The text of a question is never stored nor logged. The sources shown under an answer come from the tool results, never from the text of the model.
 - Mistral refuses a `user` message after a `tool` message: to make the model answer, `tool_choice: "none"` is used instead.
+
+### Farm inputs and their prices
+
+`src/namespaces/Inputs.ts` serves `/inputs`: the pages are declared as data (`OPEN` and `RESERVED`, one entry per table: path, order, columns, filters) and built by one function. What is open: the reference prices Ekylibre reads (`master_prices`, `master_phytosanitary_prices`, and `master_price_sources`, which says where each price comes from), the price of non-road diesel, and the active substances with their EIQ and HRAC group. What names merchants (readings and monthly prices of fertilisers, seeds and plant protection products) comes after `.restrictedTo(MEMBERS_SCOPE)`. A new table of these datasets is one more entry, plus its translations (`inputs_<last part of the path>_title`, `inputs_field_<column>`).
+
+`src/input-prices/InputPrices.ts` answers "what does this input cost": it searches the open price tables by the name of a product, an active substance or an article, without accents, and gives the latest price with its date, its origin and whether it is old (`stale`). The MCP tool `get_input_price` uses it; when nothing has a price it says which authorised products matched without one, so that an empty answer is not read as "this does not exist". Only open tables are read: the tool answers the same to everyone, Duke included.
 
 ### History of the CAP parcels
 

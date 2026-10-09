@@ -416,6 +416,9 @@ home_commons_title,Un commun d'OSFarm,A commons of OSFarm
 home_commons,"Le Lexicon est construit et maintenu par l'association OSFarm. Son code est libre, ses données gardent la licence de leur source. Les adhérents obtiennent une clé d'accès aux données réservées et des quotas plus larges.","Lexicon is built and maintained by the OSFarm association. Its code is free software, its data keeps the licence of its source. Members get a key to the reserved data and larger quotas."
 home_commons_join,Découvrir OSFarm,Discover OSFarm
 home_commons_contribute,Contribuer sur GitHub,Contribute on GitHub
+home_commons_propose,Proposer un jeu de données,Propose a dataset
+contribute_title,Proposer un jeu de données,Propose a dataset
+contribute_catalog_link,Proposer un jeu de données à partir d'un tableau,Propose a dataset from a spreadsheet
 explore_lead,"Les données du Lexicon, rangées par thème. Chaque page se consulte ici, ou se récupère en JSON et en CSV.","The data of Lexicon, by theme. Each page can be read here, or fetched as JSON and CSV."
 explore_geographical_references,"Communes, parcelles du cadastre et leurs prix, parcelles déclarées à la PAC et leurs cultures.","Communes, cadastral parcels and their prices, parcels declared to the CAP and their crops."
 explore_enterprises,"Entreprises agricoles, aides de la PAC, résultats économiques des exploitations.","Farming companies, CAP subsidies, economic results of farms."
@@ -427,3 +430,92 @@ explore_rd_agri,"Rapports d'essais, guides et articles de la recherche agricole.
 explore_weather,Stations et relevés météorologiques.,Weather stations and records.
 explore_tools_parcel_identifier,"Un point sur la carte : sa parcelle, sa culture, sa commune, sa météo.","A point on the map: its parcel, its crop, its commune, its weather."
 explore_tools_assistant,Une question en langage naturel sur les données du Lexicon.,A question in plain language about the data of Lexicon.
+inputs_title,Intrants,Inputs
+explore_inputs,"Engrais, semences, produits phytosanitaires, carburant : composition et prix.","Fertilisers, seeds, plant protection products, fuel: composition and prices."
+inputs_article_prices_title,Prix de référence des articles,Reference prices of articles
+inputs_phytosanitary_prices_title,Prix de référence des produits phytosanitaires,Reference prices of plant protection products
+inputs_price_sources_title,Provenance des prix de référence,Where the reference prices come from
+inputs_fuel_prices_title,Prix mensuel du gazole non routier,Monthly price of non-road diesel
+inputs_phytosanitary_substances_title,Matières actives : EIQ et mode d'action HRAC,Active substances: EIQ and HRAC mode of action
+inputs_phytosanitary_product_substances_title,Composition des produits phytosanitaires,Composition of plant protection products
+inputs_fertilizers_title,Engrais et amendements,Fertilisers and amendments
+inputs_fertilizer_prices_title,Prix mensuel des engrais,Monthly prices of fertilisers
+inputs_fertilizer_unit_values_title,Valeur des unités fertilisantes,Value of fertilising units
+inputs_fertilizer_price_readings_title,Relevés de prix des engrais,Price readings of fertilisers
+inputs_seed_species_title,Espèces de semences,Seed species
+inputs_seed_prices_title,Prix mensuel des semences par espèce,Monthly prices of seeds by species
+inputs_seed_price_readings_title,Relevés de prix des semences,Price readings of seeds
+inputs_phytosanitary_price_readings_title,Relevés de prix des produits phytosanitaires,Price readings of plant protection products
+inputs_field_active_substances,Matières actives,Active substances
+inputs_field_approval_state,Approbation,Approval
+inputs_field_calcium,CaO,CaO
+inputs_field_cas_number,Numéro CAS,CAS number
+inputs_field_category,Catégorie,Category
+inputs_field_delivery_from,Livraison à partir du,Delivery from
+inputs_field_delivery_postal_code,Lieu de livraison,Place of delivery
+inputs_field_delivery_to,Livraison jusqu'au,Delivery until
+inputs_field_detail,Détail,Detail
+inputs_field_eiq,EIQ,EIQ
+inputs_field_eiq_consumer,EIQ consommateur,EIQ consumer
+inputs_field_eiq_ecological,EIQ écologique,EIQ ecological
+inputs_field_eiq_farm_worker,EIQ agriculteur,EIQ farm worker
+inputs_field_eiq_match,Rapprochement EIQ,EIQ match
+inputs_field_family,Famille,Family
+inputs_field_fertilizer_id,Engrais,Fertiliser
+inputs_field_french_name,Nom français,French name
+inputs_field_french_names,Noms français,French names
+inputs_field_highest_price_per_kilogram,Prix au kilo le plus haut,Highest price per kilogram
+inputs_field_hrac_group,Groupe HRAC,HRAC group
+inputs_field_hrac_match,Rapprochement HRAC,HRAC match
+inputs_field_hrac_mode_of_action,Mode d'action,Mode of action
+inputs_field_id,Identifiant,Identifier
+inputs_field_kind,Type,Kind
+inputs_field_label,Nom de l'offre,Name of the offer
+inputs_field_last_observed_on,Dernier relevé,Latest reading
+inputs_field_latin_name,Nom latin,Latin name
+inputs_field_lowest_price_per_kilogram,Prix au kilo le plus bas,Lowest price per kilogram
+inputs_field_magnesium,MgO,MgO
+inputs_field_merchant,Marchand,Merchant
+inputs_field_merchants,Marchands,Merchants
+inputs_field_method,Méthode,Method
+inputs_field_mixture,Mélange,Mixture
+inputs_field_month,Mois,Month
+inputs_field_name,Nom,Name
+inputs_field_negotiated,Prix négocié,Negotiated price
+inputs_field_nitrogen,N,N
+inputs_field_nutrient,Élément,Nutrient
+inputs_field_observations,Relevés,Readings
+inputs_field_observed_on,Date du relevé,Reading date
+inputs_field_offers,Offres,Offers
+inputs_field_organic,Bio,Organic
+inputs_field_packaging,Conditionnement,Packaging
+inputs_field_phosphorus,P2O5,P2O5
+inputs_field_potassium,K2O,K2O
+inputs_field_previous_amount,Prix remplacé,Replaced price
+inputs_field_previous_started_on,Date du prix remplacé,Date of the replaced price
+inputs_field_price,Prix hors taxes,Price before tax
+inputs_field_price_excluding_taxes,Prix hors toutes taxes,Price before all taxes
+inputs_field_price_excluding_vat,Prix hors TVA,Price before VAT
+inputs_field_price_including_taxes,Prix TTC,Price including taxes
+inputs_field_price_per_kilogram,Prix au kilo,Price per kilogram
+inputs_field_price_table,Table,Table
+inputs_field_product,Produit,Product
+inputs_field_product_id,Numéro d'AMM,Authorisation number
+inputs_field_quantity,Teneur,Content
+inputs_field_reference_article_name,Article,Article
+inputs_field_reference_name,Produit de référence,Reference product
+inputs_field_season,Saison de semis,Sowing season
+inputs_field_source,Jeu source,Source dataset
+inputs_field_source_label,Nom chez le marchand,Name at the merchant
+inputs_field_sowing_rate_max,Dose de semis maximale,Highest sowing rate
+inputs_field_sowing_rate_min,Dose de semis minimale,Lowest sowing rate
+inputs_field_species_id,Espèce,Species
+inputs_field_started_on,Date du prix,Price date
+inputs_field_substance_id,Matière active,Active substance
+inputs_field_sulfur,SO3,SO3
+inputs_field_taxon_reference_name,Taxon,Taxon
+inputs_field_unit_pretax_amount,Prix hors taxes,Price before tax
+inputs_field_value,Valeur,Value
+inputs_field_variant_reference_name,Article de référence,Reference article
+inputs_field_variety,Variété,Variety
+inputs_field_variety_id,Variété au catalogue officiel,Variety in the official catalogue

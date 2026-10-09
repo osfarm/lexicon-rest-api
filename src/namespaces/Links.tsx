@@ -118,11 +118,11 @@ async function commune(cxt: Context) {
             cxt.numberFormatter(Math.round(link.cadastre["area-m2"] / 10000)),
           ],
           [
-            "Parcelles dont un propriétaire est une personne morale agricole",
-            cxt.numberFormatter(link.cadastre["parcels-with-agricultural-owner"]),
+            "Parcelles dont un propriétaire est une société connue de SIRENE",
+            cxt.numberFormatter(link.cadastre["parcels-with-enterprise-owner"]),
           ],
           [
-            "Établissements agricoles",
+            "Établissements (toutes activités)",
             cxt.numberFormatter(link["agricultural-enterprises"]),
           ],
           [
@@ -175,7 +175,10 @@ async function enterprise(cxt: Context) {
             cxt.numberFormatter(Math.round(link.cadastre["area-m2"] / 10000)),
           ],
           ["Communes concernées", cxt.numberFormatter(link.cadastre.communes)],
-          ["Établissements agricoles", cxt.numberFormatter(link.establishments.count)],
+          [
+            "Établissements (toutes activités)",
+            cxt.numberFormatter(link.establishments.count),
+          ],
           ["Activité principale", link.establishments["main-activity-code"]],
           ...(link["cap-by-year"].length > 0
             ? link["cap-by-year"].map((year): [string, unknown] => [

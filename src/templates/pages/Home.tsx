@@ -99,6 +99,9 @@ export async function Home(cxt: Context) {
           <a class="button" href="https://www.osfarm.org/">
             {t("home_commons_join")}
           </a>
+          <a class="button" href="/contribute">
+            {t("home_commons_propose")}
+          </a>
           <a class="button" href="https://github.com/osfarm/lexicon">
             {t("home_commons_contribute")}
           </a>

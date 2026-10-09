@@ -33,6 +33,7 @@ export type McpBackend = Readonly<{
   searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
   rdDocument: (id: string) => Promise<unknown>
   cropHistory: (longitude: unknown, latitude: unknown) => Promise<unknown>
+  inputPrices: (args: Record<string, unknown>) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -156,6 +157,28 @@ export const TOOLS = [
       required: ["longitude", "latitude"],
     }),
   },
+  {
+    name: "get_input_price",
+    description:
+      'The latest price before tax, in euros, of farm inputs in France: plant protection products (by product name, active substance such as "glyphosate", or authorisation number), fertilisers ("ammonitrate", "urée", "18 46"), seeds ("blé tendre", "luzerne"), non-road diesel ("gazole non routier"). Each result gives the price, its unit (liter, kilogram, ton), the date of the price and how it was obtained (observed, estimated, or an older reference price). Give quantity, in the unit of the price, to get the cost: a dose per hectare gives a cost per hectare. Check price-date and stale: many prices are several years old.',
+    inputSchema: text({
+      properties: {
+        query: {
+          type: "string",
+          description: "A few French or English words naming the input",
+        },
+        quantity: {
+          type: "number",
+          description: "Quantity to cost, in the unit of the price, such as 3 for 3 L/ha",
+        },
+        limit: {
+          type: "integer",
+          description: "Number of prices, 10 by default, 20 at most",
+        },
+      },
+      required: ["query"],
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -187,6 +210,7 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     search_rd_documents: () => backend.searchRdDocuments(args),
     get_rd_document: () => backend.rdDocument(String(args.id ?? "")),
     get_crop_history: () => backend.cropHistory(args.longitude, args.latitude),
+    get_input_price: () => backend.inputPrices(args),
   }
 
   return calls[name]
@@ -219,7 +243,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource, get a pre-joined record with get_commune, or search the R&D documents with search_rd_documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource, get a pre-joined record with get_commune, search the R&D documents with search_rd_documents, or price a farm input with get_input_price. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {
