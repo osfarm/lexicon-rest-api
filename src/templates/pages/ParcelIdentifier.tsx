@@ -30,10 +30,68 @@ export interface ParcelIdentifierOkPage {
   rotation?: { campaign: number; crop: string; code: string; current: boolean }[]
   // The point that was asked for
   point?: Coordinates
+  // Water within about 500 m, the closest first; distances in metres
+  // permanent, ditch, water-police and width say whether a buffer zone is counted from it
+  water?: {
+    nature: string
+    name?: string
+    distance: number
+    permanent?: boolean
+    ditch?: boolean
+    "water-police"?: string
+    width?: string
+  }[]
+  // Around the cadastral parcel: dwellings within 100 m and the closest one,
+  // metres of hedge along it, woods, vines and orchards on it or within 100 m
+  surroundings?: {
+    dwellings?: { within: number; count: number; nearest?: number }
+    hedges?: number
+    vegetation?: { nature: string; area: number; share: number; distance: number }[]
+    // Schools, hospitals, homes for the elderly within about 500 m
+    "sensitive-sites"?: { kind: string; name?: string; distance: number }[]
+    // High-voltage lines over the parcel (distance 0) or within 100 m
+    "power-lines"?: { voltage: string; distance: number }[]
+  }
+  // What Lexicon holds about the crop declared here, each with where to read it
+  "crop-context"?: {
+    production: string
+    label: string
+    price?: {
+      value: number
+      unit: string
+      campaign: number
+      specie: string
+      nature: string
+      national: boolean
+    }
+    "gross-product"?: {
+      value: number
+      unit: string
+      yield: number
+      "yield-campaign": number
+      "price-campaign": number
+    }
+    usages?: { crop: string; count: number; products: number; href: string }
+    documents?: {
+      area: { kind: string; code: string }
+      total: number
+      href: string
+      latest: { id: string; title: string; year?: number; publisher?: string; href: string }[]
+    }
+    workflows?: { count: number; href: string }
+  }
   soil?: Record<string, Hypermedia>
   links?: Record<string, HypermediaType["Link"]>
   transactions?: TableSection
   owners?: TableSection
+  // Why no owner is listed
+  "owners-note"?: "members-only" | "no-legal-person"
+  // For a visitor without a key: the first two characters of each value of the owners
+  "owners-preview"?: {
+    label: string
+    columns: Record<string, string>
+    rows: Record<string, string>[]
+  }
   "natural-zones"?: TableSection
   "protected-water-zones"?: TableSection
   "area-items"?: TableSection
@@ -161,6 +219,7 @@ function renderRecord(val: ParcelIdentifierOkPage, context: Context) {
             />
           </figure>
         )}
+        {val["crop-context"] ? renderCropContext(val["crop-context"], context) : ""}
         {/* The crops are in the rotation above; the reference name of the production is for programs */}
         {renderDetails(without(val.cap, /^(culture|production$)/), numberFormatter)}
       </section>
@@ -194,11 +253,25 @@ function renderRecord(val: ParcelIdentifierOkPage, context: Context) {
           ? renderTableSection(val.transactions, context, t("tools_no_transaction"))
           : ""}
         {renderTableSection(val.owners, context)}
+        {val["owners-preview"] ? (
+          renderReserved(val["owners-preview"], context)
+        ) : val["owners-note"] === "members-only" ? (
+          <p class="quiet owners-note">
+            {t("tools_owners_members_only")}{" "}
+            <a href="https://www.osfarm.org/">{t("home_commons_join")}</a>
+          </p>
+        ) : val["owners-note"] === "no-legal-person" ? (
+          <p class="quiet owners-note">{t("tools_owners_none")}</p>
+        ) : (
+          ""
+        )}
       </section>
 
       <section class="record" id="sol">
         <h2 class="dot family-environment">{t("tools_parcel_section_environment")}</h2>
         {val.soil ? renderDetails(val.soil, numberFormatter) : ""}
+        {val.water ? renderWater(val.water, context) : ""}
+        {val.surroundings ? renderSurroundings(val.surroundings, context) : ""}
         {zones.some((zone) => zone !== undefined) ? (
           zones.map((zone) => renderTableSection(zone, context))
         ) : (
@@ -226,6 +299,298 @@ function renderRecord(val: ParcelIdentifierOkPage, context: Context) {
         </a>
       </p>
     </>
+  )
+}
+
+const UNITS: Record<string, string> = { ton: "t", quintal: "q", kilogram: "kg", liter: "L" }
+
+// What can be read elsewhere in Lexicon about the crop of the parcel: a sentence
+// for each, with the figure and the page behind it
+function renderCropContext(
+  crop: NonNullable<ParcelIdentifierOkPage["crop-context"]>,
+  context: Context,
+) {
+  const { t, numberFormatter } = context
+  const fill = (key: string, ...values: (string | number)[]) =>
+    values.reduce<string>((sentence, value) => sentence.replace("%s", String(value)), t(key))
+  const gross = crop["gross-product"]
+
+  if (!crop.price && !crop.usages && !crop.documents && !crop.workflows) {
+    return ""
+  }
+
+  return (
+    <div class="crop-context">
+      <h3>{fill("tools_parcel_crop_context", Html.escapeHtml(crop.label.toLocaleLowerCase(context.language)))}</h3>
+      <ul>
+        {crop.price ? (
+          <li>
+            {fill(
+              "tools_parcel_crop_price",
+              numberFormatter(crop.price.value),
+              UNITS[crop.price.unit] ?? crop.price.unit,
+              crop.price.campaign,
+              t("tools_parcel_price_" + crop.price.nature),
+              t(crop.price.national ? "tools_parcel_price_national" : "tools_parcel_price_local"),
+            )}
+            {gross
+              ? " " +
+                fill(
+                  "tools_parcel_crop_gross",
+                  numberFormatter(gross.value),
+                  numberFormatter(gross.yield),
+                  gross["yield-campaign"],
+                )
+              : ""}
+          </li>
+        ) : (
+          ""
+        )}
+        {crop.usages ? (
+          <li>
+            <a href={crop.usages.href}>
+              {fill("tools_parcel_crop_usages", numberFormatter(crop.usages.products))}
+            </a>{" "}
+            {fill(
+              "tools_parcel_crop_usages_detail",
+              Html.escapeHtml(crop.usages.crop),
+              numberFormatter(crop.usages.count),
+            )}
+          </li>
+        ) : (
+          ""
+        )}
+        {crop.workflows ? (
+          <li>
+            <a href={crop.workflows.href}>
+              {fill("tools_parcel_crop_workflows", crop.workflows.count)}
+            </a>
+          </li>
+        ) : (
+          ""
+        )}
+        {crop.documents ? (
+          <li>
+            <a href={crop.documents.href}>
+              {fill("tools_parcel_crop_documents", numberFormatter(crop.documents.total))}
+            </a>{" "}
+            {t("tools_parcel_crop_documents_" + crop.documents.area.kind)}
+            <ul class="documents">
+              {crop.documents.latest.map((document) => (
+                <li>
+                  <a href={document.href}>{Html.escapeHtml(document.title)}</a>
+                  <span class="quiet">
+                    {" "}
+                    {Html.escapeHtml(
+                      [document.publisher, document.year].filter(Boolean).join(", "),
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ) : (
+          ""
+        )}
+      </ul>
+    </div>
+  )
+}
+
+// What the IGN says of a stretch of water, the legal status first
+function waterDetails(
+  item: NonNullable<ParcelIdentifierOkPage["water"]>[number],
+  context: Context,
+) {
+  const { t } = context
+  const details = [
+    item["water-police"] === "Inscrit"
+      ? t("tools_parcel_water_police")
+      : item["water-police"] === "Non inscrit"
+        ? t("tools_parcel_water_not_police")
+        : item["water-police"] === "Expertise en cours"
+          ? t("tools_parcel_water_police_pending")
+          : undefined,
+    item.ditch ? t("tools_parcel_water_ditch") : undefined,
+    item.permanent === true
+      ? t("tools_parcel_water_permanent")
+      : item.permanent === false
+        ? t("tools_parcel_water_intermittent")
+        : undefined,
+    item.width ? item.width.toLocaleLowerCase(context.language) + " " + t("tools_parcel_water_wide") : undefined,
+  ].filter((detail): detail is string => detail !== undefined)
+
+  return details.length > 0 ? (
+    <span class="quiet"> {Html.escapeHtml("— " + details.join(", "))}</span>
+  ) : (
+    ""
+  )
+}
+
+// Buffer zones of plant protection products are counted from the water: the
+// closest ones are named with their distance
+function renderWater(
+  water: NonNullable<ParcelIdentifierOkPage["water"]>,
+  context: Context,
+) {
+  const { t, numberFormatter } = context
+
+  return (
+    <div class="water-nearby">
+      <h3>{t("tools_parcel_water")}</h3>
+      <ul>
+        {water.map((item) => (
+          <li>
+            {Html.escapeHtml(item.name ? `${item.name} (${item.nature.toLocaleLowerCase(context.language)})` : item.nature)}
+            {", "}
+            {item.distance === 0
+              ? t("tools_parcel_water_on")
+              : `${t("tools_parcel_at")} ${numberFormatter(item.distance)} m`}
+            {waterDetails(item, context)}
+          </li>
+        ))}
+      </ul>
+      <p class="quiet">{t("tools_parcel_water_why")}</p>
+    </div>
+  )
+}
+
+// What stands for the hidden part of a reserved value: the same letters for
+// everyone, so that nothing of the value is in the page but its first characters
+const VEIL = { denomination: "xxxxxxxxxxxxxx", siren: "0000000" } as Record<string, string>
+const VEIL_BY_DEFAULT = "xxxx"
+
+// Data reserved to members, outlined in orange: the start of each value is
+// readable, the rest is blurred
+function renderReserved(
+  preview: NonNullable<ParcelIdentifierOkPage["owners-preview"]>,
+  context: Context,
+) {
+  const { t } = context
+  const fields = Object.keys(preview.columns)
+
+  return (
+    <div class="reserved">
+      <h3>
+        {preview.label} <span class="reserved-tag">{t("tools_reserved_tag")}</span>
+      </h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              {fields.map((field) => (
+                <th>{preview.columns[field]}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {preview.rows.map((row) => (
+              <tr>
+                {fields.map((field) => (
+                  <td>
+                    {row[field] === undefined ? (
+                      ""
+                    ) : (
+                      <>
+                        {Html.escapeHtml(row[field])}
+                        <span class="veiled" aria-hidden="true">
+                          {VEIL[field] ?? VEIL_BY_DEFAULT}
+                        </span>
+                      </>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="quiet">
+        {t("tools_reserved_why")} <a href="https://www.osfarm.org/">{t("home_commons_join")}</a>
+      </p>
+    </div>
+  )
+}
+
+// Dwellings set the safety distances of treatments; hedges and woods are what
+// the parcel is bordered with
+function renderSurroundings(
+  around: NonNullable<ParcelIdentifierOkPage["surroundings"]>,
+  context: Context,
+) {
+  const { t, numberFormatter } = context
+  const fill = (key: string, ...values: (string | number)[]) =>
+    values.reduce<string>((text, value) => text.replace("%s", String(value)), t(key))
+  const { dwellings, hedges, vegetation = [] } = around
+  const sites = around["sensitive-sites"] ?? []
+  const lines = around["power-lines"] ?? []
+
+  if (
+    dwellings === undefined &&
+    hedges === undefined &&
+    vegetation.length + sites.length + lines.length === 0
+  ) {
+    return ""
+  }
+
+  return (
+    <div class="water-nearby">
+      <h3>{t("tools_parcel_around")}</h3>
+      <ul>
+        {dwellings ? (
+          <li>
+            {dwellings.nearest === undefined
+              ? t("tools_parcel_dwellings_none")
+              : fill(
+                  dwellings.nearest === 0
+                    ? "tools_parcel_dwellings_on"
+                    : "tools_parcel_dwellings",
+                  numberFormatter(dwellings.count),
+                  dwellings.within,
+                  numberFormatter(dwellings.nearest),
+                )}
+          </li>
+        ) : (
+          ""
+        )}
+        {sites.map((site) => (
+          <li>
+            {Html.escapeHtml(site.name ? `${site.name} (${site.kind.toLocaleLowerCase(context.language)})` : site.kind)}
+            {" : "}
+            {site.distance === 0
+              ? t("tools_parcel_water_on")
+              : `${t("tools_parcel_at")} ${numberFormatter(site.distance)} m`}
+          </li>
+        ))}
+        {hedges !== undefined ? (
+          <li>
+            {hedges === 0
+              ? t("tools_parcel_hedges_none")
+              : fill("tools_parcel_hedges", numberFormatter(hedges))}
+          </li>
+        ) : (
+          ""
+        )}
+        {vegetation.map((item) => (
+          <li>
+            {Html.escapeHtml(item.nature)}
+            {" : "}
+            {item.area > 0
+              ? fill("tools_parcel_vegetation_on", numberFormatter(item.area), item.share)
+              : `${t("tools_parcel_at")} ${numberFormatter(item.distance)} m`}
+          </li>
+        ))}
+        {lines.map((line) => (
+          <li>
+            {fill("tools_parcel_power_line", Html.escapeHtml(line.voltage))}{" "}
+            {line.distance === 0
+              ? t("tools_parcel_power_line_over")
+              : `${t("tools_parcel_at")} ${numberFormatter(line.distance)} m`}
+          </li>
+        ))}
+      </ul>
+      <p class="quiet">{t("tools_parcel_around_why")}</p>
+    </div>
   )
 }
 

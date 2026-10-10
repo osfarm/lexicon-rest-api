@@ -13,6 +13,10 @@ import {
   readEnterpriseLink,
 } from "../links/Links"
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
+import { compactPage } from "../mcp/Compact"
+import { parcelSummaryOf } from "../mcp/Parcel"
+import { cropFigures, figuresQueryOf } from "../crop-figures/CropFigures"
+import { productQueryOf, searchProducts } from "../phytosanitary/ProductSearch"
 import { coordinatesOf, cropHistoryAt } from "../cap-history/CapHistory"
 import {
   priceQueryOf,
@@ -74,6 +78,41 @@ export function backendFor(cxt: Context): McpBackend {
     return value
   }
 
+  // A resource is asked to the API itself, with the key of the caller: it
+  // goes through the same access control as any other request
+  const read = async (path: string, query: Record<string, string>) => {
+    const jsonPath = await required(
+      jsonPathOf(path),
+      `${path} is not a readable resource. Use list_resources to see the paths.`,
+    )
+    const search = new URLSearchParams(query).toString()
+    const headers = new Headers({
+      "X-Forwarded-For": cxt.identity.caller.replace(/^ip:/, ""),
+    })
+    const key =
+      cxt.request.headers.get("authorization") ?? cxt.request.headers.get("x-api-key")
+    if (key !== null) {
+      headers.set("Authorization", key.startsWith("Bearer ") ? key : `Bearer ${key}`)
+    }
+
+    const response = await fetch(
+      `http://127.0.0.1:${PORT}${jsonPath}${search ? "?" + search : ""}`,
+      { headers },
+    )
+    const text = await response.text()
+
+    if (!response.ok) {
+      throw new Error(
+        jsonOf(text)?.error?.message ??
+          (text.length > 0 && text.length < 200 && !text.startsWith("<")
+            ? text
+            : `The API answered ${response.status}`),
+      )
+    }
+
+    return required(jsonOf(text), `${path} has no JSON form`)
+  }
+
   return {
     version: packageJson.version,
 
@@ -99,39 +138,69 @@ export function backendFor(cxt: Context): McpBackend {
 
     listResources: async () => readablePaths().filter((path) => !isClosed(path)),
 
-    // The resource is asked to the API itself, with the key of the caller: it
-    // goes through the same access control as any other request
-    readResource: async (path, query) => {
-      const jsonPath = await required(
-        jsonPathOf(path),
-        `${path} is not a readable resource. Use list_resources to see the paths.`,
+    readResource: async (path, query, full) => {
+      const page = await read(path, query)
+
+      return full ? page : compactPage(page)
+    },
+
+    parcel: async (longitude, latitude) => {
+      const point = await required(
+        coordinatesOf({ longitude, latitude }),
+        "A point is needed: longitude and latitude, in degrees (WGS 84)",
       )
-      const search = new URLSearchParams(query).toString()
-      const headers = new Headers({
-        "X-Forwarded-For": cxt.identity.caller.replace(/^ip:/, ""),
+      const page = await read("/tools/parcel-identifier", {
+        longitude: String(point.longitude),
+        latitude: String(point.latitude),
       })
-      const key =
-        cxt.request.headers.get("authorization") ?? cxt.request.headers.get("x-api-key")
-      if (key !== null) {
-        headers.set("Authorization", key.startsWith("Bearer ") ? key : `Bearer ${key}`)
-      }
+      const summary = parcelSummaryOf(page)
 
-      const response = await fetch(
-        `http://127.0.0.1:${PORT}${jsonPath}${search ? "?" + search : ""}`,
-        { headers },
-      )
-      const text = await response.text()
-
-      if (!response.ok) {
+      // A weather station is always found, however far: a place is known by
+      // its commune or its parcels
+      if (!["commune", "cadastral-parcel", "cap-parcel"].some((part) => part in summary)) {
         throw new Error(
-          jsonOf(text)?.error?.message ??
-            (text.length > 0 && text.length < 200 && !text.startsWith("<")
-              ? text
-              : `The API answered ${response.status}`),
+          "Lexicon knows nothing at this point: it covers metropolitan France. Check that longitude and latitude are not swapped.",
         )
       }
 
-      return required(jsonOf(text), `${path} has no JSON form`)
+      return summary
+    },
+
+    cropFigures: async (args) => {
+      const asked = await required(
+        figuresQueryOf(args),
+        "A production is needed: a few words naming the crop, such as blé tendre",
+      )
+      const figures = await required(
+        await cropFigures(cxt.db, asked),
+        "The productions are not in service",
+      )
+
+      if (figures.productions.length === 0) {
+        throw new Error(
+          `No production named ${asked.production}. Try a shorter French name, or read /production/productions.`,
+        )
+      }
+
+      return {
+        ...figures,
+        note: "Yields: Agreste, by department. Prices before tax. Source: Lexicon OSFarm, dataset productions.",
+      }
+    },
+
+    phytosanitaryProducts: async (args) => {
+      const asked = await required(
+        productQueryOf(args),
+        "Give at least one of substance, crop, target or name",
+      )
+
+      return {
+        ...(await required(
+          await searchProducts(cxt.db, asked),
+          "The plant protection products are not in service",
+        )),
+        note: "Authorised products only. Source: E-Phy (ANSES), through Lexicon OSFarm.",
+      }
     },
 
     commune: async (inseeCode) => {

@@ -30,6 +30,8 @@
   --rule: #d9e5e5;
   --muted: #4d6b72;
   --danger: #a3123d;
+  /* What only members read in full */
+  --reserved: #e07a1f;
   --danger-surface: #fde8ee;
 
   /* Families of datasets, as the discs of the logo */
@@ -1472,6 +1474,67 @@ body.admin .page .field input {
 .record .details {
   grid-template-columns: minmax(8rem, 14rem) 1fr;
   max-width: 44rem;
+}
+
+/* What is read elsewhere about the crop, and the water around: plain lists */
+.crop-context ul,
+.water-nearby ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  max-width: 44rem;
+}
+
+.crop-context {
+  margin-bottom: 1.5rem;
+}
+
+.crop-context li,
+.water-nearby li {
+  margin: 0.3rem 0;
+}
+
+.crop-context .documents {
+  margin-top: 0.3rem;
+  list-style: none;
+  padding-left: 0;
+  border-left: 2px solid var(--rule);
+  padding-left: 0.8rem;
+}
+
+.water-nearby .quiet {
+  font-size: var(--step--1);
+  max-width: 44rem;
+  margin-top: 0.4rem;
+}
+
+/* Data reserved to members: outlined, the start of each value readable, the rest blurred */
+.reserved {
+  border: 2px solid var(--reserved);
+  border-radius: 6px;
+  padding: 0.25rem 1rem 0.75rem;
+  margin: 1.25rem 0;
+  max-width: 44rem;
+}
+
+.reserved-tag {
+  font-size: var(--step--1);
+  font-weight: 400;
+  color: var(--reserved);
+  border: 1px solid var(--reserved);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  margin-left: 0.4rem;
+  white-space: nowrap;
+}
+
+.reserved .veiled {
+  filter: blur(4px);
+  user-select: none;
+}
+
+.reserved .quiet {
+  font-size: var(--step--1);
+  margin: 0.5rem 0 0;
 }
 
 .record-chart {

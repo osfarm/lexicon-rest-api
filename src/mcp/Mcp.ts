@@ -27,7 +27,14 @@ export type McpBackend = Readonly<{
   listDatasets: () => Promise<unknown>
   describeDataset: (name: string) => Promise<unknown>
   listResources: () => Promise<unknown>
-  readResource: (path: string, query: Record<string, string>) => Promise<unknown>
+  readResource: (
+    path: string,
+    query: Record<string, string>,
+    full: boolean,
+  ) => Promise<unknown>
+  parcel: (longitude: unknown, latitude: unknown) => Promise<unknown>
+  cropFigures: (args: Record<string, unknown>) => Promise<unknown>
+  phytosanitaryProducts: (args: Record<string, unknown>) => Promise<unknown>
   commune: (inseeCode: string) => Promise<unknown>
   enterprise: (siren: string) => Promise<unknown>
   searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
@@ -69,7 +76,7 @@ export const TOOLS = [
   {
     name: "read_resource",
     description:
-      "Read one page (150 rows) of an API resource as JSON. Filters are passed in query; use page to get the following rows.",
+      "Read one page (150 rows) of an API resource. A table comes as rows-total, the names of its filters, its columns, then one array per row. Always filter rather than read page after page: pass the filters in query. A path holding a parameter, such as /weather/stations/:reference, is read with the value in its place.",
     inputSchema: text({
       properties: {
         path: {
@@ -81,8 +88,54 @@ export const TOOLS = [
           description: 'Filters and page number, for instance {"page": "2"}',
           additionalProperties: { type: "string" },
         },
+        full: {
+          type: "boolean",
+          description:
+            "true to get the page as the API serves it, with the label and type of every cell",
+        },
       },
       required: ["path"],
+    }),
+  },
+  {
+    name: "get_parcel",
+    description:
+      "Everything the datasets know at a point of metropolitan France: commune, cadastral parcel and its area, crop declared to the CAP and the rotation of the last campaigns, yields of the department, selling price and what Lexicon holds about that crop, soil depth and available water, water nearby (distances in metres), zonings, land transactions, the weather of the last 30 days at the nearest station, farms of the commune. Use it for any question about a place given by coordinates.",
+    inputSchema: text({
+      properties: {
+        longitude: { type: "number", description: "Longitude, such as -0.78" },
+        latitude: { type: "number", description: "Latitude, such as 45.81" },
+      },
+      required: ["longitude", "latitude"],
+    }),
+  },
+  {
+    name: "get_crop_figures",
+    description:
+      'Yields (quintals per hectare, by campaign, 2021 onwards) and selling prices of a crop in France, by department. production takes a few French or English words such as "blé tendre", "tournesol" or "maize"; department is a code such as 17. Without a department, yields are averaged over the departments. Prices are few: many are national quotations (zone France).',
+    inputSchema: text({
+      properties: {
+        production: { type: "string", description: "Name of the crop" },
+        department: { type: "string", description: "Department code, such as 17 or 2A" },
+      },
+      required: ["production"],
+    }),
+  },
+  {
+    name: "search_phytosanitary_products",
+    description:
+      'The plant protection products authorised in France (E-Phy), found by what they hold or what they are for: substance ("prosulfocarbe", "glyphosate"), crop as E-Phy names it ("Blé", "Vigne", "Maïs"), target ("pucerons", "désherbage", "mildiou") or product name. Give at least one. Each product comes with its authorisation number, its firm and its substances; with a crop or a target, also the matching usages: dose, days before harvest, untreated buffer from water in metres. total counts every match.',
+    inputSchema: text({
+      properties: {
+        substance: { type: "string", description: "Active substance, French or English" },
+        crop: { type: "string", description: "Crop, by its French E-Phy label" },
+        target: { type: "string", description: "Pest, disease or purpose, in French" },
+        name: { type: "string", description: "Part of the product name" },
+        limit: {
+          type: "integer",
+          description: "Number of products, 10 by default, 20 at most",
+        },
+      },
     }),
   },
   {
@@ -204,7 +257,11 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     list_datasets: () => backend.listDatasets(),
     describe_dataset: () => backend.describeDataset(String(args.name ?? "")),
     list_resources: () => backend.listResources(),
-    read_resource: () => backend.readResource(String(args.path ?? ""), args.query ?? {}),
+    read_resource: () =>
+      backend.readResource(String(args.path ?? ""), args.query ?? {}, args.full === true),
+    get_parcel: () => backend.parcel(args.longitude, args.latitude),
+    get_crop_figures: () => backend.cropFigures(args),
+    search_phytosanitary_products: () => backend.phytosanitaryProducts(args),
     get_commune: () => backend.commune(String(args.insee_code ?? "")),
     get_enterprise: () => backend.enterprise(String(args.siren ?? "")),
     search_rd_documents: () => backend.searchRdDocuments(args),
@@ -243,7 +300,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource, get a pre-joined record with get_commune, search the R&D documents with search_rd_documents, or price a farm input with get_input_price. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_input_price for the price of an input, search_rd_documents for the R&D documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {

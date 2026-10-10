@@ -1,5 +1,5 @@
 {
-  "@id": "http://localhost:8888/tools/parcel-identifier.json?latitude=45.8275731903227&longitude=-0.783718835725218",
+  "@id": "http://localhost:8888/tools/parcel-identifier.json?latitude=45.8295169339847&longitude=-0.786978473820221",
   "title": "Identificateur de parcelle",
   "breadcrumbs": [
     {
@@ -21,15 +21,19 @@
       "label": "Latitude",
       "required": true,
       "unit": "°",
-      "defaultValue": 45.8275731903227
+      "defaultValue": 45.8295169339847
     },
     "longitude": {
       "@type": "Number",
       "label": "Longitude",
       "required": true,
       "unit": "°",
-      "defaultValue": -0.783718835725218
+      "defaultValue": -0.786978473820221
     }
+  },
+  "point": {
+    "latitude": 45.8295169339847,
+    "longitude": -0.786978473820221
   },
   "information": {
     "country": {
@@ -58,8 +62,8 @@
   "links": {
     "cap-parcels-map": {
       "@type": "Link",
-      "label": "tools_parcel_identifier_links_cap_parcels_map",
-      "value": "tools_parcel_identifier_links_cap_parcels_map",
+      "label": "Voir les parcelles PAC de la commune sur la carte",
+      "value": "Voir les parcelles PAC de la commune sur la carte",
       "method": "GET",
       "href": "/geographical-references/cap-parcels/map?city=ST%20PORCHAIRE"
     }
@@ -68,9 +72,9 @@
     "id": {
       "@type": "Link",
       "label": "Identifiant cadastral",
-      "value": "17387000AH0248",
+      "value": "17387000ZA0001",
       "method": "GET",
-      "href": "/geographical-references/cadastral-parcels/17387000AH0248"
+      "href": "/geographical-references/cadastral-parcels/17387000ZA0001"
     },
     "prefix": {
       "@type": "Text",
@@ -80,19 +84,208 @@
     "section": {
       "@type": "Text",
       "label": "Section",
-      "value": "AH"
+      "value": "ZA"
     },
     "number": {
       "@type": "Text",
       "label": "Numéro",
-      "value": "248"
+      "value": "1"
     },
     "area": {
       "@type": "Number",
       "label": "Superficie",
-      "value": 5619,
+      "value": 97600,
+      "unit": "m²"
+    },
+    "buildings": {
+      "@type": "Number",
+      "label": "Bâtiments sur la parcelle",
+      "value": 3
+    },
+    "buildings-ground-area": {
+      "@type": "Number",
+      "label": "Emprise au sol des bâtiments",
+      "value": 2247,
       "unit": "m²"
     }
+  },
+  "cap": {
+    "id": {
+      "@type": "Link",
+      "label": "Identifiant PAC",
+      "value": "1618963",
+      "method": "GET",
+      "href": "/geographical-references/cap-parcels/1618963"
+    },
+    "crop-code": {
+      "@type": "Text",
+      "label": "Code culture PAC",
+      "value": "BTH"
+    },
+    "culture-2024": {
+      "@type": "Text",
+      "label": "Culture 2024",
+      "value": "Tournesol — TRN"
+    },
+    "culture-2023": {
+      "@type": "Text",
+      "label": "Culture 2023",
+      "value": "Épeautre — EPE"
+    },
+    "culture-2022": {
+      "@type": "Text",
+      "label": "Culture 2022",
+      "value": "Tournesol — TRN"
+    },
+    "culture": {
+      "@type": "Text",
+      "label": "Culture",
+      "value": "Blé tendre d’hiver"
+    },
+    "production": {
+      "@type": "Text",
+      "label": "Production PAC",
+      "value": "winter_common_wheat"
+    },
+    "year": {
+      "@type": "Number",
+      "label": "Millésime PAC",
+      "value": 2025
+    },
+    "is-seed": {
+      "@type": "Boolean",
+      "label": "Semence",
+      "value": false
+    }
+  },
+  "rotation": [
+    {
+      "campaign": 2022,
+      "crop": "Tournesol",
+      "code": "TRN",
+      "current": false
+    },
+    {
+      "campaign": 2023,
+      "crop": "Épeautre",
+      "code": "EPE",
+      "current": false
+    },
+    {
+      "campaign": 2024,
+      "crop": "Tournesol",
+      "code": "TRN",
+      "current": false
+    },
+    {
+      "campaign": 2025,
+      "crop": "Blé tendre d’hiver",
+      "code": "BTH",
+      "current": true
+    }
+  ],
+  "crop-context": {
+    "production": "winter_common_wheat",
+    "label": "Blé tendre d’hiver",
+    "price": {
+      "value": 251.25,
+      "unit": "ton",
+      "campaign": 2025,
+      "specie": "triticum_aestivum",
+      "nature": "matif_price",
+      "national": true
+    },
+    "gross-product": {
+      "value": 1859,
+      "unit": "EUR/ha",
+      "yield": 74,
+      "yield-campaign": 2025,
+      "price-campaign": 2025
+    },
+    "usages": {
+      "crop": "Blé",
+      "count": 1018,
+      "products": 415,
+      "href": "/phytosanitary/usages?state=authorized&crop=Bl%C3%A9"
+    },
+    "documents": {
+      "area": {
+        "kind": "department",
+        "code": "17"
+      },
+      "total": 6,
+      "href": "/rd-agri/documents?production=winter_common_wheat&area-kind=department&area-code=17",
+      "latest": [
+        {
+          "id": "chambres_d'agriculture_329822",
+          "title": "Les associations de cultures dans la régulation des bioagresseurs - 3 - Céréales et Protéagineux",
+          "year": 2025,
+          "publisher": "Chambres d'agriculture",
+          "href": "/rd-agri/documents/chambres_d'agriculture_329822"
+        },
+        {
+          "id": "chambres_d'agriculture_329823",
+          "title": "Les associations de cultures dans la régulation des bioagresseurs - 4 - céréales et légumineuses pluriannuelles",
+          "year": 2025,
+          "publisher": "Chambres d'agriculture",
+          "href": "/rd-agri/documents/chambres_d'agriculture_329823"
+        },
+        {
+          "id": "chambres_d'agriculture_291381",
+          "title": "Regroupement des essais Cultures de printemps en Charente et en Charente-Maritime",
+          "year": 2021,
+          "publisher": "Chambres d'agriculture",
+          "href": "/rd-agri/documents/chambres_d'agriculture_291381"
+        }
+      ]
+    },
+    "workflows": {
+      "count": 2,
+      "href": "/production/technical-workflows?production=winter_common_wheat"
+    }
+  },
+  "water": [
+    {
+      "nature": "Ecoulement naturel",
+      "name": "le Bruant",
+      "distance": 46,
+      "permanent": true,
+      "width": "Entre 0 et 5 m"
+    },
+    {
+      "nature": "Réservoir-bassin",
+      "distance": 50,
+      "permanent": false
+    },
+    {
+      "nature": "Retenue",
+      "distance": 237,
+      "permanent": true
+    }
+  ],
+  "surroundings": {
+    "dwellings": {
+      "within": 100,
+      "count": 2,
+      "nearest": 46
+    },
+    "hedges": 8,
+    "vegetation": [
+      {
+        "nature": "Forêt fermée de feuillus",
+        "area": 2298,
+        "share": 2,
+        "distance": 0
+      },
+      {
+        "nature": "Peupleraie",
+        "area": 0,
+        "share": 0,
+        "distance": 98
+      }
+    ],
+    "sensitive-sites": [],
+    "power-lines": []
   },
   "soil": {
     "depth": {
@@ -124,132 +317,54 @@
     "columns": {
       "id": "ID Bien",
       "date": "Date",
-      "address": "Adresse",
-      "building-nature": "Type de bien",
       "price": "Prix"
     },
     "rows": []
   },
-  "owners": {
-    "label": "Propriétaires",
-    "columns": {
-      "denomination": "Dénomination",
-      "legal-form": "Forme juridique",
-      "siren": "SIREN",
-      "suf-area": "Surface SUF",
-      "culture-nature": "Nature de culture"
+  "owners-note": "members-only",
+  "historical-yields": {
+    "production": {
+      "@type": "Text",
+      "label": "Production PAC",
+      "value": "Blé tendre d’hiver"
     },
-    "rows": [
-      {
-        "denomination": {
-          "@type": "Text",
-          "label": "Dénomination",
-          "value": "LES CHENES VERTS"
-        },
-        "legal-form": {
-          "@type": "Text",
-          "label": "Forme juridique",
-          "value": "SCI"
-        },
-        "siren": {
-          "@type": "Text",
-          "label": "SIREN",
-          "value": "840968499"
-        },
-        "suf-area": {
-          "@type": "Number",
-          "label": "Surface SUF",
-          "value": 2809,
-          "unit": "m²"
-        },
-        "culture-nature": {
-          "@type": "Text",
-          "label": "Nature de culture",
-          "value": "L"
-        }
-      },
-      {
-        "denomination": {
-          "@type": "Text",
-          "label": "Dénomination",
-          "value": "LES CHENES VERTS"
-        },
-        "legal-form": {
-          "@type": "Text",
-          "label": "Forme juridique",
-          "value": "SCI"
-        },
-        "siren": {
-          "@type": "Text",
-          "label": "SIREN",
-          "value": "840968499"
-        },
-        "suf-area": {
-          "@type": "Number",
-          "label": "Surface SUF",
-          "value": 2810,
-          "unit": "m²"
-        },
-        "culture-nature": {
-          "@type": "Text",
-          "label": "Nature de culture",
-          "value": "S"
-        }
-      }
-    ]
-  },
-  "natural-zones": {
-    "label": "Zones naturelles",
-    "columns": {
-      "name": "Nom",
-      "nature": "Type",
-      "id": "ID"
+    "unit": {
+      "@type": "Text",
+      "label": "Rendement",
+      "value": "q/ha"
     },
-    "rows": [
-      {
-        "name": {
-          "@type": "Text",
-          "label": "Nom",
-          "value": "Estuaire et basse vallée de la Charente"
-        },
-        "nature": {
-          "@type": "Text",
-          "label": "Type",
-          "value": "zps"
-        },
-        "id": {
-          "@type": "Text",
-          "label": "ID",
-          "value": "FR5412025"
-        }
-      },
-      {
-        "name": {
-          "@type": "Text",
-          "label": "Nom",
-          "value": "Vallée de la Charente (basse vallée)"
-        },
-        "nature": {
-          "@type": "Text",
-          "label": "Type",
-          "value": "sic"
-        },
-        "id": {
-          "@type": "Text",
-          "label": "ID",
-          "value": "FR5400430"
-        }
+    "legend": {
+      "yield": {
+        "label": "Rendement",
+        "unit": "q/ha",
+        "type": "line",
+        "color": "#2f8f89",
+        "side": "left"
       }
-    ]
+    },
+    "values": {
+      "2021": {
+        "yield": 61
+      },
+      "2022": {
+        "yield": 53
+      },
+      "2023": {
+        "yield": 67
+      },
+      "2024": {
+        "yield": 59
+      },
+      "2025": {
+        "yield": 74
+      }
+    }
   },
   "agricultural-enterprises": {
     "label": "Entreprises agricoles sur la commune",
     "columns": {
       "siren": "SIREN",
-      "name": "Nom",
       "activity": "Code NAF",
-      "address": "Adresse",
-      "city": "Ville",
       "subsidy-count": "Nombre d'aides PAC",
       "subsidy-amount": "Montant total des aides",
       "subsidy-year": "Dernière année"
@@ -257,29 +372,16 @@
     "rows": [
       {
         "siren": {
-          "@type": "Text",
+          "@type": "Link",
           "label": "SIREN",
-          "value": "529174575"
-        },
-        "name": {
-          "@type": "Text",
-          "label": "Nom",
-          "value": "ATLANTIQUE TAILLE DE HAIES"
+          "value": "529174575",
+          "method": "GET",
+          "href": "/enterprises/enterprises/529174575"
         },
         "activity": {
           "@type": "Text",
           "label": "Code NAF",
           "value": "01.61Z"
-        },
-        "address": {
-          "@type": "Text",
-          "label": "Adresse",
-          "value": "5CHEDES PRES"
-        },
-        "city": {
-          "@type": "Text",
-          "label": "Ville",
-          "value": "SAINT-PORCHAIRE"
         },
         "subsidy-count": {
           "@type": "Number",
@@ -289,29 +391,16 @@
       },
       {
         "siren": {
-          "@type": "Text",
+          "@type": "Link",
           "label": "SIREN",
-          "value": "752816967"
-        },
-        "name": {
-          "@type": "Text",
-          "label": "Nom",
-          "value": "HAPPY MIEL"
+          "value": "752816967",
+          "method": "GET",
+          "href": "/enterprises/enterprises/752816967"
         },
         "activity": {
           "@type": "Text",
           "label": "Code NAF",
           "value": "01.49Z"
-        },
-        "address": {
-          "@type": "Text",
-          "label": "Adresse",
-          "value": "5RUEDES COUDRAIES"
-        },
-        "city": {
-          "@type": "Text",
-          "label": "Ville",
-          "value": "SAINT-PORCHAIRE"
         },
         "subsidy-count": {
           "@type": "Number",
@@ -363,44 +452,248 @@
       "method": "GET",
       "href": "/weather/stations/FR17415003"
     },
+    "distance": {
+      "@type": "Number",
+      "label": "Distance de la station",
+      "value": 13,
+      "unit": "km"
+    },
+    "until": {
+      "@type": "Date",
+      "label": "Dernier relevé",
+      "value": "10/10/2026",
+      "iso": "2026-10-10T03:00:00.000Z"
+    },
     "legend": {
       "temperature-max": {
         "label": "Température max.",
         "unit": "°C",
         "type": "line",
-        "color": "#EE6666",
-        "side": "left",
-        "stack": "Total"
+        "color": "#0e3d48",
+        "side": "left"
       },
-      "humidity": {
-        "label": "Humidité",
-        "unit": "%",
+      "temperature-max-avg": {
+        "label": "Température max. moyenne (10 ans)",
+        "unit": "°C",
         "type": "line",
-        "color": "#5470C6",
+        "color": "#9db4b9",
+        "dashed": true,
+        "side": "left"
+      },
+      "rain": {
+        "label": "Précipitations",
+        "unit": "mm",
+        "type": "bar",
+        "color": "#5b99c7",
+        "side": "right"
+      },
+      "rain-avg": {
+        "label": "Précipitations moyennes (10 ans)",
+        "unit": "mm",
+        "type": "bar",
+        "color": "#c5dcec",
         "side": "right"
       }
     },
     "values": {
-      "23/04/2026 12:00": {
-        "temperature-max": 23.6,
-        "humidity": 59
+      "10/09/2026": {
+        "temperature-max": 25.5,
+        "rain": 0,
+        "temperature-max-avg": 21.6,
+        "rain-avg": 2.6
       },
-      "23/04/2026 13:00": {
-        "temperature-max": 25.1,
-        "humidity": 52
+      "11/09/2026": {
+        "temperature-max": 24.6,
+        "rain": 0.2,
+        "temperature-max-avg": 29.5,
+        "rain-avg": 5
+      },
+      "12/09/2026": {
+        "temperature-max": 29.3,
+        "rain": 0,
+        "temperature-max-avg": 27.7,
+        "rain-avg": 0.2
+      },
+      "13/09/2026": {
+        "temperature-max": 31.6,
+        "rain": 0.2,
+        "temperature-max-avg": 33.1,
+        "rain-avg": 0
+      },
+      "14/09/2026": {
+        "temperature-max": 34,
+        "rain": 0,
+        "temperature-max-avg": 35,
+        "rain-avg": 0
+      },
+      "15/09/2026": {
+        "temperature-max": 32.8,
+        "rain": 0,
+        "temperature-max-avg": 21.7,
+        "rain-avg": 4.8
+      },
+      "16/09/2026": {
+        "temperature-max": 24.2,
+        "rain": 0,
+        "temperature-max-avg": 28.9,
+        "rain-avg": 0.2
+      },
+      "17/09/2026": {
+        "temperature-max": 23.6,
+        "rain": 0,
+        "temperature-max-avg": 27.6,
+        "rain-avg": 15.5
+      },
+      "18/09/2026": {
+        "temperature-max": 23.8,
+        "rain": 2.2,
+        "temperature-max-avg": 31,
+        "rain-avg": 0.2
+      },
+      "19/09/2026": {
+        "temperature-max": 26.4,
+        "rain": 0.2,
+        "temperature-max-avg": 26.3,
+        "rain-avg": 0.2
+      },
+      "20/09/2026": {
+        "temperature-max": 28.2,
+        "rain": 0.2,
+        "temperature-max-avg": 23.2,
+        "rain-avg": 0
+      },
+      "21/09/2026": {
+        "temperature-max": 27.7,
+        "rain": 0,
+        "temperature-max-avg": 19.9,
+        "rain-avg": 33.7
+      },
+      "22/09/2026": {
+        "temperature-max": 30.1,
+        "rain": 0,
+        "temperature-max-avg": 23.2,
+        "rain-avg": 0.4
+      },
+      "23/09/2026": {
+        "temperature-max": 31.8,
+        "rain": 0,
+        "temperature-max-avg": 20.6,
+        "rain-avg": 0.6
+      },
+      "24/09/2026": {
+        "temperature-max": 33.6,
+        "rain": 0,
+        "temperature-max-avg": 19.4,
+        "rain-avg": 0
+      },
+      "25/09/2026": {
+        "temperature-max": 29.2,
+        "rain": 0,
+        "temperature-max-avg": 21.5,
+        "rain-avg": 0
+      },
+      "26/09/2026": {
+        "temperature-max": 27.1,
+        "rain": 0,
+        "temperature-max-avg": 27.5,
+        "rain-avg": 0
+      },
+      "27/09/2026": {
+        "temperature-max": 28.5,
+        "rain": 0,
+        "temperature-max-avg": 21.1,
+        "rain-avg": 0
+      },
+      "28/09/2026": {
+        "temperature-max": 29.3,
+        "rain": 17,
+        "temperature-max-avg": 28.3,
+        "rain-avg": 0
+      },
+      "29/09/2026": {
+        "temperature-max": 29.6,
+        "rain": 0,
+        "temperature-max-avg": 23.8,
+        "rain-avg": 0
+      },
+      "30/09/2026": {
+        "temperature-max": 27.1,
+        "rain": 6,
+        "temperature-max-avg": 21.6,
+        "rain-avg": 0.2
+      },
+      "01/10/2026": {
+        "temperature-max": 23.8,
+        "rain": 0,
+        "temperature-max-avg": 19.6,
+        "rain-avg": 10.8
+      },
+      "02/10/2026": {
+        "temperature-max": 25.8,
+        "rain": 0.2,
+        "temperature-max-avg": 21.9,
+        "rain-avg": 0.2
+      },
+      "03/10/2026": {
+        "temperature-max": 22.8,
+        "rain": 0,
+        "temperature-max-avg": 16.6,
+        "rain-avg": 0.2
+      },
+      "04/10/2026": {
+        "temperature-max": 27.2,
+        "rain": 0,
+        "temperature-max-avg": 20.2,
+        "rain-avg": 3.8
+      },
+      "05/10/2026": {
+        "temperature-max": 29.5,
+        "rain": 0.2,
+        "temperature-max-avg": 23.4,
+        "rain-avg": 0
+      },
+      "06/10/2026": {
+        "temperature-max": 27.8,
+        "rain": 3.6,
+        "temperature-max-avg": 18.5,
+        "rain-avg": 8.2
+      },
+      "07/10/2026": {
+        "temperature-max": 22,
+        "rain": 0.4,
+        "temperature-max-avg": 18.9,
+        "rain-avg": 9.2
+      },
+      "08/10/2026": {
+        "temperature-max": 18.8,
+        "rain": 0,
+        "temperature-max-avg": 18.8,
+        "rain-avg": 0.2
+      },
+      "09/10/2026": {
+        "temperature-max": 18.7,
+        "rain": 0.4,
+        "temperature-max-avg": 21.2,
+        "rain-avg": 0.2
+      },
+      "10/10/2026": {
+        "temperature-max": 16.1,
+        "rain": 0.8,
+        "temperature-max-avg": 17.8,
+        "rain-avg": 0
       }
     }
   },
   "geolocation": {
     "coordinates": {
-      "latitude": 45.8275731903227,
-      "longitude": -0.783718835725218
+      "latitude": 45.8295169339847,
+      "longitude": -0.786978473820221
     },
     "marker": {
       "type": "Point",
       "coordinates": [
-        -0.783718835725218,
-        45.8275731903227
+        -0.786978473820221,
+        45.8295169339847
       ]
     },
     "shape": {
@@ -409,112 +702,12 @@
         [
           [
             [
-              -0.7839855,
-              45.8272083
+              -0.7849602,
+              45.8320763
             ],
             [
-              -0.7835305,
-              45.8272496
-            ],
-            [
-              -0.7832562,
-              45.8276959
-            ],
-            [
-              -0.7832828,
-              45.8277344
-            ],
-            [
-              -0.7833134,
-              45.8277714
-            ],
-            [
-              -0.7833261,
-              45.8277852
-            ],
-            [
-              -0.7833815,
-              45.8278914
-            ],
-            [
-              -0.7834216,
-              45.8280919
-            ],
-            [
-              -0.7834328,
-              45.8283003
-            ],
-            [
-              -0.7834752,
-              45.8283604
-            ],
-            [
-              -0.7835153,
-              45.82839
-            ],
-            [
-              -0.7836061,
-              45.8284209
-            ],
-            [
-              -0.783894,
-              45.8284968
-            ],
-            [
-              -0.7839309,
-              45.8284577
-            ],
-            [
-              -0.7840852,
-              45.8285432
-            ],
-            [
-              -0.7840148,
-              45.8284388
-            ],
-            [
-              -0.7839501,
-              45.8282804
-            ],
-            [
-              -0.7838904,
-              45.8281529
-            ],
-            [
-              -0.7838348,
-              45.8280245
-            ],
-            [
-              -0.7838026,
-              45.8279448
-            ],
-            [
-              -0.7838695,
-              45.8278396
-            ],
-            [
-              -0.7838839,
-              45.8276887
-            ],
-            [
-              -0.7839592,
-              45.8275325
-            ],
-            [
-              -0.7839936,
-              45.8274769
-            ],
-            [
-              -0.7841063,
-              45.8273607
-            ],
-            [
-              -0.7840109,
-              45.8272705
-            ],
-            [
-              -0.7839855,
-              45.8272083
+              -0.7852252,
+              45.8317772
             ]
           ]
         ]

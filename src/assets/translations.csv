@@ -221,6 +221,8 @@ documentation_cap_parcel_location,Emplacement d'une parcelle PAC,Location of a C
 documentation_municipality_cadastre,Cadastre d'une commune,Cadastre of a municipality
 documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,Parcels of a municipality which are registered in the CAP
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
+documentation_links,Liens entre jeux de données,Links between datasets
+documentation_catalog,Catalogue,Catalog
 
 country_FR,France,France
 tools_soil,Sol,Soil
@@ -229,6 +231,10 @@ tools_soil_available_water,Réserve utile,Available water capacity
 tools_soil_available_water_min,Réserve utile (min),Available water (min)
 tools_soil_available_water_max,Réserve utile (max),Available water (max)
 tools_owners,Propriétaires,Owners
+tools_owners_members_only,"Propriétaire : réservé aux adhérents, sur présentation d'une clé d'accès.","Owner: reserved to members, with an access key."
+tools_reserved_tag,Réservé aux adhérents,Members only
+tools_reserved_why,"Seuls les premiers caractères sont affichés. Les adhérents lisent ces données en entier avec leur clé d'accès.","Only the first characters are shown. Members read this data in full with their access key."
+tools_owners_none,"Propriétaire : aucune société ni organisme public. La parcelle appartient à des particuliers, que le Lexicon ne nomme pas.","Owner: no company nor public body. The parcel belongs to private persons, whom Lexicon does not name."
 tools_owner_denomination,Dénomination,Denomination
 tools_owner_legal_form,Forme juridique,Legal form
 tools_owner_siren,SIREN,SIREN
@@ -554,3 +560,63 @@ tools_parcel_json,Cette fiche en JSON,This record as JSON
 tools_assistant_question,Votre question,Your question
 tools_assistant_reset,Nouvelle conversation,New conversation
 tools_assistant_from,tirés de la,taken from the
+phytosanitary_usage_title,Usages autorisés,Authorised usages
+phytosanitary_usage_product,Produit,Product
+phytosanitary_usage_product_id,Numéro du produit,Product number
+phytosanitary_usage_crop,Culture,Crop
+phytosanitary_usage_target,Cible,Target
+phytosanitary_usage_dose,Dose,Dose
+phytosanitary_usage_pre_harvest_delay,Délai avant récolte,Pre-harvest interval
+phytosanitary_usage_aquatic_buffer,Zone non traitée (eau),Untreated buffer (water)
+phytosanitary_usage_applications,Applications,Applications
+common_days,j,d
+production_workflows_title,Itinéraires techniques,Technical workflows
+production_workflows_production,Production,Production
+production_workflows_system,Système de production,Production system
+production_workflows_start,Début (jour/mois),Start (day/month)
+production_workflows_life_cycle,Cycle,Life cycle
+production_workflows_reference,Référence,Reference
+tools_parcel_buildings,Bâtiments sur la parcelle,Buildings on the parcel
+tools_parcel_buildings_area,Emprise au sol des bâtiments,Ground area of the buildings
+tools_parcel_buildings_agricultural,dont bâtiments agricoles,of which agricultural buildings
+tools_parcel_around,Autour de la parcelle,Around the parcel
+tools_parcel_dwellings,"Habitations : %s à moins de %s m, la plus proche à %s m.","Dwellings: %s within %s m, the closest at %s m."
+tools_parcel_dwellings_on,"Habitations : %s à moins de %s m, dont une sur la parcelle.","Dwellings: %s within %s m, one of them on the parcel."
+tools_parcel_dwellings_none,Habitations : aucune à moins de 500 m.,Dwellings: none within 500 m.
+tools_parcel_hedges,Haies : %s m sur la parcelle ou en bordure.,Hedges: %s m on the parcel or along it.
+tools_parcel_hedges_none,Haies : aucune sur la parcelle ni en bordure.,Hedges: none on the parcel nor along it.
+tools_parcel_vegetation_on,%s m² sur la parcelle (%s %),%s m² on the parcel (%s%)
+tools_parcel_around_why,"Près des habitations, les traitements phytosanitaires respectent une distance de sécurité de 5 à 20 m selon le produit et la culture. Une habitation est un bâtiment résidentiel ou comptant au moins un logement. Écoles, hôpitaux et maisons de retraite sont recherchés jusqu'à 500 m environ : les traitements y sont restreints à proximité. Données de l'IGN (BD TOPO).","Near dwellings, plant protection treatments keep a safety distance of 5 to 20 m depending on the product and the crop. A dwelling is a residential building or one holding at least one home. Schools, hospitals and homes for the elderly are looked for up to about 500 m: treatments are restricted near them. Data from the IGN (BD TOPO)."
+tools_parcel_water,Eau à proximité,Water nearby
+tools_parcel_water_police,cours d'eau inscrit à l'inventaire de la police de l'eau,watercourse listed in the inventory of the water police
+tools_parcel_water_not_police,non inscrit à l'inventaire de la police de l'eau,not listed in the inventory of the water police
+tools_parcel_water_police_pending,expertise de la police de l'eau en cours,under review by the water police
+tools_parcel_water_ditch,fossé,ditch
+tools_parcel_water_permanent,permanent,permanent
+tools_parcel_water_intermittent,intermittent,intermittent
+tools_parcel_water_wide,de large,wide
+tools_parcel_power_line,Ligne électrique %s :,Power line %s:
+tools_parcel_power_line_over,au-dessus de la parcelle,over the parcel
+tools_area_green_zone,Végétation,Vegetation
+tools_area_protected_area,Espace protégé,Protected area
+tools_area_public_forest,Forêt publique,Public forest
+tools_area_sensitive_site,Site sensible,Sensitive site
+tools_area_edge,Haie,Hedge
+tools_area_electric_pole,Pylône,Pylon
+tools_area_power_line,Ligne électrique,Power line
+tools_parcel_water_on,sur la parcelle,on the parcel
+tools_parcel_water_why,"Les zones non traitées des produits phytosanitaires (5 à 100 m selon l'usage) se comptent depuis les points d'eau. L'inscription à l'inventaire de la police de l'eau est ce que l'IGN en sait : sans mention, l'écoulement peut tout de même être un cours d'eau. Recherche jusqu'à 500 m environ.","Untreated buffer zones of plant protection products (5 to 100 m depending on the usage) are counted from water. The listing in the inventory of the water police is what the IGN knows of it: without a mention, the stretch may still be a watercourse. Searched up to about 500 m."
+tools_parcel_crop_context,Pour le %s,About %s
+tools_parcel_crop_price,"Prix de vente : %s €/%s en %s (%s, %s).","Selling price: €%s per %s in %s (%s, %s)."
+tools_parcel_price_farmer_price,prix payé aux producteurs,price paid to farmers
+tools_parcel_price_matif_price,cotation MATIF,MATIF quotation
+tools_parcel_price_shipping_price,prix rendu,delivered price
+tools_parcel_price_national,France,France
+tools_parcel_price_local,département,department
+tools_parcel_crop_gross,"Soit environ %s €/ha au rendement du département (%s q/ha en %s).","That is about €%s per hectare at the yield of the department (%s q/ha in %s)."
+tools_parcel_crop_usages,%s produits phytosanitaires autorisés,%s authorised plant protection products
+tools_parcel_crop_usages_detail,sur « %s » (%s usages).,"on “%s” (%s usages)."
+tools_parcel_crop_workflows,%s itinéraires techniques de référence,%s reference technical workflows
+tools_parcel_crop_documents,%s documents de R&D,%s R&D documents
+tools_parcel_crop_documents_department,"sur cette culture dans le département. Les plus récents :","about this crop in the department. The latest:"
+tools_parcel_crop_documents_region,"sur cette culture dans la région. Les plus récents :","about this crop in the region. The latest:"

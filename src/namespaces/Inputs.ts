@@ -347,7 +347,7 @@ const RESERVED: Resource[] = [
   },
 ]
 
-const titleOf = (resource: Resource) =>
+export const titleOfInput = (resource: Pick<Resource, "path">) =>
   "inputs_" + resource.path.split("/").pop()!.replaceAll("-", "_") + "_title"
 
 const labelOf = (t: Translator, field: string) => t("inputs_field_" + field)
@@ -401,7 +401,7 @@ function page(cxt: Context, resource: Resource) {
   const filters = resource.filters ?? []
 
   return generateTablePage(cxt, {
-    title: cxt.t(titleOf(resource)),
+    title: cxt.t(titleOfInput(resource)),
     breadcrumbs: Breadcrumbs(cxt.t),
     query,
     columns: Object.fromEntries(
@@ -433,7 +433,7 @@ function page(cxt: Context, resource: Resource) {
 }
 
 const linkTo = (t: Translator) => (resource: Resource) =>
-  Hypermedia.Link({ value: t(titleOf(resource)), method: "GET", href: resource.path })
+  Hypermedia.Link({ value: t(titleOfInput(resource)), method: "GET", href: resource.path })
 
 const withPages = (api: API, resources: Resource[]) =>
   resources.reduce(

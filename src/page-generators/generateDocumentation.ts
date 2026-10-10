@@ -8,6 +8,7 @@ import type { Translator } from "../Translator"
 import { Country } from "../types/Country"
 import { ActivityFamily, ProductionUsage } from "../namespaces/Production"
 import type { OutputFormat } from "../types/OutputFormat"
+import { INPUT_RESOURCES, titleOfInput } from "../namespaces/Inputs"
 
 const loadExample = (name: string): Promise<object> =>
   Bun.file(`./src/assets/examples/${name}`).json()
@@ -27,22 +28,22 @@ const Paths = (t: Translator) => ({
     get: ResourceEndpoint({
       description:
         t("tools_parcel_identifier") +
-        " (JSON). Example uses a point inside Saint-Porchaire (17250).",
+        " (JSON). Everything Lexicon knows at a point: commune (the arrondissement in Paris, Lyon and Marseille), cadastral parcel, CAP parcel and the crops declared there campaign by campaign (rotation), what Lexicon holds about that crop (crop-context: selling price, gross product per hectare, authorised plant protection products, R&D documents, technical workflows), buildings on the parcel with their ground area, soil, water within about 500 m with its distance in metres and what the IGN says of it (water: permanent, ditch, water-police « Inscrit » for a watercourse listed by the water police, width), what stands around the cadastral parcel (surroundings: dwellings within 100 m and the closest one, schools, hospitals and homes for the elderly within 500 m, metres of hedge along it, woods, vines and orchards on it or within 100 m, high-voltage lines over it or within 100 m), zonings including protected areas and public forests, land transactions, the companies and public bodies that own the parcel (owners, with a member key; without a key, owners-preview gives the first two characters of each value and owners-note says members-only; no-legal-person when private persons own it), yields of the department, farms of the commune, and the 30 days before the latest report of the nearest weather station (distance and until). Example uses a point inside Saint-Porchaire (17250).",
       category: t("tools"),
       query: {
         latitude: {
           description:
-            "Latitude of the point to identify (WGS84 degrees). Example: 45.8275731903227 (Saint-Porchaire).",
+            "Latitude of the point to identify (WGS84 degrees). Example: 45.8295169339847 (Saint-Porchaire).",
           type: "string",
         },
         longitude: {
           description:
-            "Longitude of the point to identify (WGS84 degrees). Example: -0.783718835725218 (Saint-Porchaire).",
+            "Longitude of the point to identify (WGS84 degrees). Example: -0.786978473820221 (Saint-Porchaire).",
           type: "string",
         },
         year: {
           description:
-            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+            "CAP code reference year used to resolve the crop label (defaults to the campaign of the declaration).",
           type: "number",
         },
       },
@@ -66,7 +67,7 @@ const Paths = (t: Translator) => ({
         },
         year: {
           description:
-            "CAP code reference year used to resolve the crop label (defaults to the latest supported year).",
+            "CAP code reference year used to resolve the crop label (defaults to the campaign of the declaration).",
           type: "number",
         },
       },
@@ -350,6 +351,24 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/production/technical-workflows.json": {
+    get: TableEndpoint({
+      description: t("production_workflows_title"),
+      category: t("production_title"),
+      query: {
+        production: {
+          description: "Reference name of a production. Example: winter_common_wheat.",
+          type: "string",
+        },
+        system: {
+          description: "Production system. Example: organic_farming.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
   "/production/prices.json": {
     get: TableEndpoint({
       description: t("production_prices_title"),
@@ -434,6 +453,33 @@ const Paths = (t: Translator) => ({
           description: "Filters the phytosanitary products by the provided state",
           type: "string",
           enum: Object.values(ProductState),
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/usages.json": {
+    get: TableEndpoint({
+      description:
+        t("phytosanitary_usage_title") +
+        ". What each product is authorised for: crop, target, dose, days before harvest, untreated buffer from water.",
+      category: t("phytosanitary_title"),
+      query: {
+        crop: {
+          description:
+            "Crop as E-Phy names it, from its first letters. Example: Blé. Some usages are filed under a group, such as Céréales à paille.",
+          type: "string",
+        },
+        target: {
+          description: "Searches for a target holding this text. Example: pucerons.",
+          type: "string",
+        },
+        product: { description: "Authorisation number of a product.", type: "string" },
+        state: {
+          description: "State of the usage.",
+          type: "string",
+          enum: ["authorized", "withdrawn"],
         },
       },
       resourceSchema: {},
@@ -557,14 +603,316 @@ const Paths = (t: Translator) => ({
       resourceSchema: {},
     }),
   },
+
+  "/geographical-references/cap-parcels/history.json": {
+    get: ResourceEndpoint({
+      description:
+        t("geographical_references_cap_history_title") +
+        ". The crop declared at a point for each campaign of the graphic parcel register, the latest first. 400 without a point.",
+      category: t("geographical_references_title"),
+      query: {
+        longitude: {
+          description: "Required. Longitude of the point (WGS84 degrees).",
+          type: "number",
+        },
+        latitude: {
+          description: "Required. Latitude of the point (WGS84 degrees).",
+          type: "number",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/municipalities/{id}/last-year-weather-reports.json": {
+    get: ResourceEndpoint({
+      description:
+        "Daily weather of the last twelve months at the station nearest to a municipality.",
+      category: t("geographical_references_title"),
+      params: {
+        id: { type: "string", description: "ID of the municipality" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/weather/stations/{station_code}/last-year-temperature-reports.json": {
+    get: ResourceEndpoint({
+      description: "Daily temperatures of a station over the last twelve months.",
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/weather/stations/{station_code}/last-year-humidity-reports.json": {
+    get: ResourceEndpoint({
+      description: "Daily humidity of a station over the last twelve months.",
+      category: t("weather_title"),
+      params: {
+        station_code: {
+          description: "The identifier code of the weather station.",
+          type: "string",
+        },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/enterprises/enterprises.json": {
+    get: TableEndpoint({
+      description:
+        t("enterprises_sirene_title") +
+        ". Every establishment of the SIRENE register, whatever its activity.",
+      category: t("enterprises_title"),
+      query: {
+        name: {
+          description: "Searches for establishments whose name holds this text.",
+          type: "string",
+        },
+        siren: { description: "Filters by SIREN (9 digits).", type: "string" },
+        city: {
+          description: "Searches for establishments whose city holds this text.",
+          type: "string",
+        },
+        code: {
+          description:
+            "Filters by the beginning of the main activity code (APE). Example: 01 for farming.",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/enterprises/enterprises/{siren}.json": {
+    get: ResourceEndpoint({
+      description: "A company and its establishments.",
+      category: t("enterprises_title"),
+      params: {
+        siren: { description: "SIREN of the company (9 digits).", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/enterprises/rica.json": {
+    get: TableEndpoint({
+      description: t("enterprises_rica_title"),
+      category: t("enterprises_title"),
+      query: {
+        year: { description: "Filters the holdings by accounting year.", type: "number" },
+        ote_64: {
+          description: "Filters the holdings by type of farming (OTEX, 64 classes).",
+          type: "string",
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/enterprises/rica/{holding}.json": {
+    get: ResourceEndpoint({
+      description: "A holding of the RICA sample for one year.",
+      category: t("enterprises_title"),
+      params: {
+        holding: { description: "Identifier of the holding.", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/enterprises/rica/{holding}/variables.json": {
+    get: TableEndpoint({
+      description: t("enterprises_rica_variables_title"),
+      category: t("enterprises_title"),
+      params: {
+        holding: { description: "Identifier of the holding.", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/links/communes/{insee}.json": {
+    get: ResourceEndpoint({
+      description:
+        "What Lexicon knows of a commune: postal codes, cadastral parcels, parcels owned by companies, establishments, farming population, nearest weather station. Paris, Lyon and Marseille also exist as whole communes (75056, 69123, 13055), summing their arrondissements.",
+      category: t("documentation_links"),
+      params: {
+        insee: { description: "INSEE code of the commune. Example: 17387.", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/links/enterprises/{siren}.json": {
+    get: ResourceEndpoint({
+      description:
+        "What Lexicon knows of a company: establishments, cadastral parcels it owns, CAP subsidies.",
+      category: t("documentation_links"),
+      reserved: "members",
+      params: {
+        siren: { description: "SIREN of the company (9 digits).", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  ...InputPaths(t),
+
+  "/rd-agri/documents.json": {
+    get: TableEndpoint({
+      description:
+        t("rd_agri_documents_title") +
+        ". Full-text search (accents ignored); when no document holds every word, any word is enough and 'relaxed' is true. Licence CC BY-NC-SA 4.0.",
+      category: t("rd_agri_title"),
+      query: {
+        q: { description: "Words to search for.", type: "string" },
+        production: { description: "Filters by production.", type: "string" },
+        taxon: { description: "Filters by taxon.", type: "string" },
+        pest: { description: "Filters by pest or disease.", type: "string" },
+        "production-system": {
+          description: "Filters by production system (organic farming, for instance).",
+          type: "string",
+        },
+        "area-kind": {
+          description: "Kind of the area a document is about (to use with area-code).",
+          type: "string",
+        },
+        "area-code": { description: "Code of that area.", type: "string" },
+        "year-from": { description: "Documents published this year or after.", type: "number" },
+        "year-to": { description: "Documents published this year or before.", type: "number" },
+        publisher: { description: "Filters by publisher.", type: "string" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/rd-agri/documents/{id}.json": {
+    get: ResourceEndpoint({
+      description: "An R&D document: title, summary, authors, publisher, link to the source.",
+      category: t("rd_agri_title"),
+      params: {
+        id: { description: "Identifier of the document (URL-encoded).", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/catalog.json": {
+    get: ResourceEndpoint({
+      description:
+        "The datasets in service: version, date, tables, licence, access. Also as /catalog.csv.",
+      category: t("documentation_catalog"),
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/catalog/{name}.json": {
+    get: ResourceEndpoint({
+      description: "A dataset in service: its tables, their columns and what links them.",
+      category: t("documentation_catalog"),
+      params: {
+        name: { description: "Name of the dataset. Example: weather.", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/credits/datasources.json": {
+    get: TableEndpoint({
+      description: t("credits_datasources_title"),
+      category: t("credits_title"),
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/bundles/{flavor}/{file}": {
+    get: ResourceEndpoint({
+      description:
+        "A file of a private bundle (a repository of packages: its index, then each package). Read by './lexicon fetch'.",
+      category: t("documentation_catalog"),
+      reserved: "bundle:<flavor>",
+      params: {
+        flavor: { description: "Name of the bundle.", type: "string" },
+        file: { description: "Path of the file inside the bundle.", type: "string" },
+      },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/mcp": {
+    post: {
+      summary:
+        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price. A key is only needed for what is reserved.",
+      tags: [t("tools")],
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {},
+            example: { jsonrpc: "2.0", id: 1, method: "tools/list" },
+          },
+        },
+      },
+      responses: { 200: { content: { "application/json": { schema: {} } } } },
+    },
+  },
 })
+
+// One page per table of inputs, filtered on the fields its page filters on
+const InputPaths = (t: Translator) =>
+  Object.fromEntries(
+    (["open", "reserved"] as const).flatMap((access) =>
+      INPUT_RESOURCES[access].map((resource) => [
+        resource.path + ".json",
+        {
+          get: TableEndpoint({
+            description: t(titleOfInput(resource)),
+            category: t("inputs_title"),
+            reserved: access === "reserved" ? "members" : undefined,
+            query: Object.fromEntries(
+              (resource.filters ?? []).map(([field, how]) => [
+                field,
+                {
+                  description:
+                    how === "is"
+                      ? `Filters on the exact value of ${field}.`
+                      : `Searches for a ${field} holding this text.`,
+                  type: "string",
+                },
+              ]),
+            ),
+            resourceSchema: {},
+          }),
+        },
+      ]),
+    ),
+  )
 
 export function generateDocumentation(t: Translator, output: OutputFormat) {
   const documentation = {
     info: {
       title: "Lexicon API",
       description:
-        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8275731903227, -0.783718835725218) work for /tools/parcel-identifier.",
+        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8295169339847, -0.786978473820221) work for /tools/parcel-identifier. Every page exists as HTML, and as JSON or CSV by adding .json or .csv to its path. Most of the API is open; the endpoints marked as reserved need an API key, sent as 'Authorization: Bearer <key>' or in the 'X-API-Key' header (401 without a key, 403 when the key does not carry the scope).",
       version: packageJson.version,
     },
 
@@ -583,6 +931,10 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
     paths: Paths(t),
 
     components: {
+      securitySchemes: {
+        Bearer: { type: "http", scheme: "bearer" },
+        ApiKey: { type: "apiKey", in: "header", name: "X-API-Key" },
+      },
       schemas: {
         VineVariety: {
           type: "object",
@@ -883,6 +1235,8 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
 type EndpointDoc = {
   description: string
   category: string
+  // Scope a key must carry, when the endpoint is not open
+  reserved?: string
   params?: Record<string, { type: string; description: string }>
   query: Record<
     string,
@@ -925,8 +1279,11 @@ function ResourceEndpoint(doc: EndpointDoc) {
   }
 
   return {
-    summary: doc.description,
+    summary:
+      doc.description +
+      (doc.reserved ? ` Reserved: needs an API key carrying '${doc.reserved}'.` : ""),
     tags: [doc.category],
+    ...(doc.reserved ? { security: [{ Bearer: [] }, { ApiKey: [] }] } : {}),
     produces: [
       "text/html",
       "application/json",
@@ -954,6 +1311,7 @@ function TableEndpoint(doc: EndpointDoc) {
   return ResourceEndpoint({
     description: doc.description,
     category: doc.category,
+    reserved: doc.reserved,
     params: doc.params,
     query: { page: pageParameter, ...doc.query },
     resourceSchema: doc.resourceSchema,

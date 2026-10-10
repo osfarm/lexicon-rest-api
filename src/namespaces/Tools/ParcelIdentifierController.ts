@@ -37,7 +37,6 @@ import {
   ProtectedWaterZoneTable,
   type ProtectedWaterZone,
 } from "../GeographicalReferences/ProtectedWaterZone"
-import { AreaItemTable, type AreaItem } from "../GeographicalReferences/AreaItem"
 import { SoilDepthTable, type SoilDepth } from "../GeographicalReferences/SoilDepth"
 import {
   SoilAvailableWaterCapacityTable,
@@ -58,6 +57,19 @@ import {
   type Enterprise,
 } from "../Enterprise"
 import { MsaPopulationTable, type MsaPopulation } from "../MsaPopulation"
+import {
+  buildingsOn,
+  surroundingsOf,
+  zonesAt,
+  type ZoneAtPoint,
+  type BuildingsOnParcel,
+  type Surroundings,
+  cropContext,
+  grossProductOf,
+  waterNear,
+  type CropContext,
+  type WaterNearby,
+} from "../../parcel-context/ParcelContext"
 
 // The colours of the site (public/style.css): ink for what is measured, water for
 // the rain, each with a lighter tint for the ten-year average
@@ -77,7 +89,16 @@ const DEFAULT_CAP_CODE_YEAR = 2025
 const CAP_CODE_YEAR_MIN = 2017
 const CAP_CODE_YEAR_MAX = 2025
 
-const EXPOSE_OWNERS = import.meta.env.EXPOSE_OWNERS === "true"
+// The owners file of the DGFiP lists legal persons only. Two of its groups can
+// still carry the name of someone: co-owners and partners known by no SIREN
+const GROUPS_NAMING_PEOPLE = ["7", "8"]
+
+// Whether the name of an owner can be shown: a company, a public body, never a person
+const isNameable = (owner: EnrichedParcelOwner) =>
+  Boolean(owner.siren) ||
+  (owner.person_group_code !== undefined &&
+    owner.person_group_code !== null &&
+    !GROUPS_NAMING_PEOPLE.includes(owner.person_group_code.charAt(0)))
 
 type EnrichedParcelOwner = CadastralParcelOwner & Partial<CadastralOwner>
 
@@ -93,13 +114,15 @@ interface ParcelData {
   cadastralParcel?: Parcel
   cadastralParcelPrices?: ParcelPrice[]
   cadastralParcelOwners?: EnrichedParcelOwner[]
+  // Whether the caller holds a key that reads owners
+  ownersReadable?: boolean
   capParcel?: CapParcel
   capCode?: MasterCapCode
   // What was declared here in the campaigns before the latest one
   capHistory?: CropOfCampaign[]
   naturalZones?: NaturalZone[]
   protectedWaterZones?: ProtectedWaterZone[]
-  areaItems?: AreaItem[]
+  areaItems?: ZoneAtPoint[]
   soilDepth?: SoilDepth
   soilWaterCapacity?: SoilAvailableWaterCapacity
   weatherStation?: Station
@@ -119,6 +142,14 @@ interface ParcelData {
   agriculturalEnterprises?: Enterprise[]
   subsidiesBySiren?: Map<string, CapSubsidy[]>
   msaPopulations?: MsaPopulation[]
+  // Water within reach of the parcel, the closest first
+  water?: WaterNearby[]
+  buildings?: BuildingsOnParcel
+  // Dwellings, hedges and vegetation around the cadastral parcel
+  surroundings?: Surroundings
+  // What Lexicon holds about the crop declared here, in this department
+  crop?: CropContext
+  department?: string
 }
 
 export async function ParcelIdentifierController(
@@ -259,13 +290,46 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
       ? buildLinksSection(data.municipality, cxt)
       : undefined,
     cadastre: data.cadastralParcel
-      ? buildCadastreSection(data.cadastralParcel, cxt)
+      ? {
+          ...buildCadastreSection(data.cadastralParcel, cxt),
+          ...(data.buildings !== undefined
+            ? {
+                buildings: Hypermedia.Number({
+                  label: t("tools_parcel_buildings"),
+                  value: data.buildings.count,
+                }),
+                ...(data.buildings.count > 0
+                  ? {
+                      "buildings-ground-area": Hypermedia.Number({
+                        label: t("tools_parcel_buildings_area"),
+                        value: data.buildings.area,
+                        unit: "m²",
+                      }),
+                    }
+                  : {}),
+                ...(data.buildings.agricultural > 0
+                  ? {
+                      "agricultural-buildings": Hypermedia.Number({
+                        label: t("tools_parcel_buildings_agricultural"),
+                        value: data.buildings.agricultural,
+                      }),
+                    }
+                  : {}),
+              }
+            : {}),
+        }
       : undefined,
     cap:
       data.capParcel || data.capHistory?.length
         ? buildCapSection(data.capParcel, data.capCode, cxt, data.capHistory ?? [])
         : undefined,
     rotation: buildRotation(data.capParcel, data.capCode, data.capHistory ?? []),
+    "crop-context":
+      data.crop && data.capCode
+        ? buildCropContext(data.crop, data.capCode, data.historicalYields ?? [])
+        : undefined,
+    water: data.water && data.water.length > 0 ? data.water : undefined,
+    surroundings: data.surroundings,
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -275,9 +339,22 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
         ? buildTransactionsSection(data.cadastralParcelPrices, cxt)
         : undefined,
     owners:
-      EXPOSE_OWNERS && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
+      data.ownersReadable && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
         ? buildOwnersSection(data.cadastralParcelOwners, cxt)
         : undefined,
+    // For a caller without a key: the first characters of what a member reads
+    "owners-preview":
+      !data.ownersReadable && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
+        ? previewOf(buildOwnersSection(data.cadastralParcelOwners, cxt))
+        : undefined,
+    // Why no owner is listed: the caller holds no key, or no legal person owns the parcel
+    "owners-note": !data.cadastralParcel
+      ? undefined
+      : !data.ownersReadable
+        ? "members-only"
+        : data.cadastralParcelOwners?.length === 0
+          ? "no-legal-person"
+          : undefined,
     "natural-zones":
       data.naturalZones && data.naturalZones.length > 0
         ? buildNaturalZonesSection(data.naturalZones, cxt)
@@ -357,7 +434,7 @@ async function retrieveParcelData(
     .and(() =>
       ProtectedWaterZoneTable(db).select().where("shape", "ST_CONTAINS", point).run(),
     )
-    .and(() => AreaItemTable(db).select().where("shape", "ST_CONTAINS", point).run())
+    .and(async () => Ok((await zonesAt(db, pointToCoordinates(point))) ?? []))
     .and(() => SoilDepthTable(db).select().where("shape", "ST_CONTAINS", point).limit(1).run())
     .and(() =>
       SoilAvailableWaterCapacityTable(db)
@@ -414,12 +491,11 @@ async function retrieveParcelData(
             .run(),
         )
           .and(() =>
-            includeOwners
-              ? CadastralParcelOwnerTable(db)
-                  .select()
-                  .where("cadastral_parcel_id", "=", cadastralParcel.id)
-                  .run()
-              : Promise.resolve(Ok([] as CadastralParcelOwner[])),
+            // Read for everyone: a caller without a key is shown the start of each value only
+            CadastralParcelOwnerTable(db)
+              .select()
+              .where("cadastral_parcel_id", "=", cadastralParcel.id)
+              .run(),
           )
           .done()
 
@@ -465,6 +541,8 @@ async function retrieveParcelData(
         .limit(1)
         .run()
     : Ok([] as MasterCapCode[])
+
+  const capCode = capCodeResult.unwrapOr([])[0]
 
   const capHistory = ((await cropHistoryAt(db, pointToCoordinates(point))) ?? []).filter(
     (crop) => !crop.current,
@@ -526,6 +604,14 @@ async function retrieveParcelData(
     [[] as Enterprise[], [] as MsaPopulation[]],
   )
 
+  const coordinates = pointToCoordinates(point)
+  const [water, buildings, surroundings, crop] = await Promise.all([
+    waterNear(db, { ...coordinates, parcelId: cadastralParcel?.id }),
+    cadastralParcel ? buildingsOn(db, cadastralParcel.id) : undefined,
+    cadastralParcel ? surroundingsOf(db, cadastralParcel.id) : undefined,
+    capCode?.production ? cropContext(db, capCode.production, department) : undefined,
+  ])
+
   const subsidiesResult = await fetchSubsidiesBySiren(
     db,
     agriculturalEnterprises.flatMap((e) => (e.siren ? [e.siren] : [])),
@@ -536,7 +622,6 @@ async function retrieveParcelData(
     cadastreDependentResult.unwrapOr([undefined, undefined])
   const lastYearWeatherReports = weatherResult.unwrapOr(undefined)
   const historicalDailyWeather = historicalWeatherResult.unwrapOr(undefined)
-  const capCode = capCodeResult.unwrapOr([])[0]
   const [historicalYields, productionPrices] = productionDataResult.unwrapOr([
     undefined,
     undefined,
@@ -550,6 +635,7 @@ async function retrieveParcelData(
     capParcel,
     capCode,
     capHistory,
+    ownersReadable: includeOwners,
     naturalZones,
     protectedWaterZones,
     areaItems,
@@ -561,6 +647,11 @@ async function retrieveParcelData(
     historicalDailyWeather,
     historicalYields,
     productionPrices,
+    water,
+    buildings,
+    surroundings,
+    crop,
+    department,
     agriculturalEnterprises,
     subsidiesBySiren,
     msaPopulations,
@@ -747,6 +838,70 @@ function buildRotation(
   return rotation.length > 0 ? rotation : undefined
 }
 
+// Where to read more about the crop of the parcel: each figure comes with the
+// page that lists what it counts
+function buildCropContext(
+  crop: CropContext,
+  capCode: MasterCapCode,
+  yields: ProductionYield[],
+): NonNullable<ParcelIdentifierOkPage["crop-context"]> {
+  const latestYield = yields
+    .filter((found) => found.production === crop.production)
+    .sort((a, b) => b.campaign - a.campaign)[0]
+  const harvest = latestYield
+    ? { value: parseFloat(latestYield.yield_value as any), unit: latestYield.yield_unit }
+    : undefined
+  const grossProduct = grossProductOf(harvest, crop.price)
+
+  return {
+    production: crop.production,
+    label: capCode.cap_label,
+    price: crop.price,
+    "gross-product":
+      grossProduct !== undefined && harvest && latestYield && crop.price
+        ? {
+            value: grossProduct,
+            unit: "EUR/ha",
+            yield: harvest.value,
+            "yield-campaign": latestYield.campaign,
+            "price-campaign": crop.price.campaign,
+          }
+        : undefined,
+    usages: crop.usages
+      ? {
+          ...crop.usages,
+          href:
+            "/phytosanitary/usages?state=authorized&crop=" +
+            encodeURIComponent(crop.usages.crop),
+        }
+      : undefined,
+    documents: crop.documents
+      ? {
+          area: crop.documents.area,
+          total: crop.documents.total,
+          href:
+            "/rd-agri/documents?production=" +
+            encodeURIComponent(crop.production) +
+            `&area-kind=${crop.documents.area.kind}&area-code=` +
+            encodeURIComponent(crop.documents.area.code),
+          latest: crop.documents.latest.map((document) => ({
+            ...document,
+            href: "/rd-agri/documents/" + encodeURIComponent(document.id),
+          })),
+        }
+      : undefined,
+    workflows:
+      crop.workflows.length > 0
+        ? {
+            count: crop.workflows.length,
+            href:
+              "/production/technical-workflows?production=" +
+              encodeURIComponent(crop.production),
+          }
+        : undefined,
+  }
+}
+
 function buildSoilSection(
   depth: SoilDepth | undefined,
   awc: SoilAvailableWaterCapacity | undefined,
@@ -817,6 +972,41 @@ function buildTransactionsSection(prices: ParcelPrice[], cxt: Context): TableSec
   }
 }
 
+// How much of a reserved value leaves the server for a caller without a key
+const PREVIEW_LENGTH = 2
+
+export type ReservedPreview = {
+  label: string
+  columns: Record<string, string>
+  // The first characters of each value; the rest never leaves the server
+  rows: Record<string, string>[]
+}
+
+function previewOf(section: TableSection): ReservedPreview {
+  return {
+    label: section.label,
+    columns: section.columns,
+    rows: section.rows.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).flatMap(([field, cell]) => {
+          const value = (cell as { value?: unknown } | undefined)?.value
+
+          return value === undefined || value === null
+            ? []
+            : [[field, String(value).slice(0, PREVIEW_LENGTH)]]
+        }),
+      ),
+    ),
+  }
+}
+
+// The file has one line per fiscal subdivision of the parcel: an owner is listed once
+const distinctOwners = (owners: EnrichedParcelOwner[]) => [
+  ...new Map(
+    owners.map((owner) => [owner.majic_number + "|" + owner.department_code, owner]),
+  ).values(),
+]
+
 function buildOwnersSection(
   owners: EnrichedParcelOwner[],
   cxt: Context,
@@ -828,13 +1018,19 @@ function buildOwnersSection(
       "legal-form": cxt.t("tools_owner_legal_form"),
       siren: cxt.t("tools_owner_siren"),
     },
-    rows: owners.map((owner) => ({
-      denomination: owner.denomination
-        ? Hypermedia.Text({
-            label: cxt.t("tools_owner_denomination"),
-            value: owner.denomination,
-          })
-        : undefined,
+    rows: distinctOwners(owners).map((owner) => ({
+      denomination:
+        owner.denomination && isNameable(owner)
+          ? Hypermedia.Text({
+              label: cxt.t("tools_owner_denomination"),
+              value: owner.denomination,
+            })
+          : owner.person_group_label
+            ? Hypermedia.Text({
+                label: cxt.t("tools_owner_denomination"),
+                value: owner.person_group_label,
+              })
+            : undefined,
       "legal-form": owner.legal_form_short
         ? Hypermedia.Text({
             label: cxt.t("tools_owner_legal_form"),
@@ -906,24 +1102,23 @@ function buildProtectedWaterZonesSection(
   }
 }
 
-function buildAreaItemsSection(items: AreaItem[], cxt: Context): TableSection {
+function buildAreaItemsSection(items: ZoneAtPoint[], cxt: Context): TableSection {
   return {
     label: cxt.t("tools_area_items"),
     columns: {
       name: cxt.t("common_fields_name"),
       nature: cxt.t("tools_zone_nature"),
     },
-    rows: items.map((item) => {
-      const name = resolveMultilingualName(item.name, cxt.language)
-      return {
-        name: name
-          ? Hypermedia.Text({ label: cxt.t("common_fields_name"), value: name })
-          : undefined,
-        nature: item.nature
-          ? Hypermedia.Text({ label: cxt.t("tools_zone_nature"), value: item.nature })
-          : undefined,
-      }
-    }),
+    rows: items.map((item) => ({
+      name: item.name
+        ? Hypermedia.Text({ label: cxt.t("common_fields_name"), value: item.name })
+        : undefined,
+      // What the IGN calls it, or the family it belongs to when it says no more
+      nature: Hypermedia.Text({
+        label: cxt.t("tools_zone_nature"),
+        value: item.kind ?? cxt.t("tools_area_" + item.nature),
+      }),
+    })),
   }
 }
 

@@ -39,10 +39,21 @@ export const DEFAULT_LIMITS: Limits = {
   questionLength: 500,
   rounds: 6,
   toolCalls: 8,
-  toolResultLength: 8000,
+  toolResultLength: 12000,
   historyTurns: 3,
   historyLength: 6000,
   durationMs: 90000,
+}
+
+/**
+ * A tool result cut to what the model is given, saying so: a model that reads
+ * the start of a list as the whole list answers that the rest does not exist.
+ */
+export function shortened(text: string, length: number): string {
+  return text.length <= length
+    ? text
+    : text.slice(0, length) +
+        `\n… (cut: ${text.length - length} more characters were not read. This is NOT the whole result: narrow the question with a filter or a more specific tool before concluding that something is absent.)`
 }
 
 export type Outcome = Readonly<{
@@ -240,7 +251,7 @@ export async function converse(
       if (!result.isError) {
         seen.push(...sourcesOf(name, result.text))
       }
-      answer(result.text.slice(0, limits.toolResultLength))
+      answer(shortened(result.text, limits.toolResultLength))
     }
   }
 }
