@@ -52,6 +52,9 @@ export class API {
   // Scope a caller needs for each path; a path absent from here is open to all
   protected scopes: Record<string, string> = {}
   protected currentScope = OPEN_SCOPE
+  // Reserved pages whose handler knows how to answer a preview to a caller without a key
+  protected previews: Record<string, boolean> = {}
+  protected currentPreview = false
 
   protected constructor() {}
 
@@ -62,8 +65,11 @@ export class API {
   /**
    * The paths declared after this call need the given scope.
    */
-  restrictedTo(scope: string) {
+  restrictedTo(scope: string, options: { preview?: boolean } = {}) {
     this.currentScope = scope
+    // Only say preview when every handler declared after reads `cxt.preview`:
+    // one that does not would serve the reserved data whole
+    this.currentPreview = options.preview ?? false
 
     return this
   }
@@ -81,6 +87,8 @@ export class API {
     variants.forEach((variant) => {
       this.endpoints[variant] = handler
       this.scopes[variant] = this.currentScope
+      // Data formats are never previewed: they stay refused
+      this.previews[variant] = this.currentPreview && !FORMAT_VARIANT.test(variant)
     })
 
     return this
@@ -93,6 +101,7 @@ export class API {
   use(namespace: API) {
     this.endpoints = { ...this.endpoints, ...namespace.dump() }
     this.scopes = { ...this.scopes, ...namespace.scopes }
+    this.previews = { ...this.previews, ...namespace.previews }
 
     return this
   }
@@ -151,7 +160,7 @@ export class API {
           (path, handler) => async (req: BunRequest<any>, server: any) => {
             // The administration and the contribution tool have their own sessions: neither keys in
             // headers nor rate limits apply to them
-            const access =
+            const asked =
               SELF_CHECKED_SCOPES.includes(this.scopes[path])
                 ? undefined
                 : await checkAccess(
@@ -160,6 +169,20 @@ export class API {
                     this.callerAddress(req, server),
                     this.scopes[path] ?? OPEN_SCOPE,
                   )
+
+            // A visitor without a key on a reserved page gets a preview of it,
+            // counted against their allowance as an open page is
+            const preview =
+              asked !== undefined &&
+              !asked.allowed &&
+              asked.denial.status === 401 &&
+              asked.identity?.kind === "anonymous" &&
+              this.previews[path] === true &&
+              req.method === "GET"
+
+            const access = preview
+              ? await checkAccess(pool, req, this.callerAddress(req, server), OPEN_SCOPE)
+              : asked
 
             if (access !== undefined && !access.allowed) {
               countRequest(access, path, access.denial.status)
@@ -172,7 +195,9 @@ export class API {
               )
             }
 
-            const context = applyRequestConfiguration(path, req, access?.identity)
+            const configured = applyRequestConfiguration(path, req, access?.identity)
+            // A preview answers no filter, sort nor page: it could be searched value by value
+            const context = preview ? { ...configured, query: {}, preview: true } : configured
 
             const result = await handler(context)
 

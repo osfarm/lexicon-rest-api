@@ -456,6 +456,6 @@ const open = withPages(
 )
 
 // Readings name the merchants and what each one sells: reserved to the holders of a key
-export const Inputs = withPages(open.restrictedTo(MEMBERS_SCOPE), RESERVED)
+export const Inputs = withPages(open.restrictedTo(MEMBERS_SCOPE, { preview: true }), RESERVED)
 
 export const INPUT_RESOURCES = { open: OPEN, reserved: RESERVED }

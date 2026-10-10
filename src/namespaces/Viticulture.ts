@@ -80,7 +80,7 @@ export const Viticulture = API.new()
     }),
   )
   // The catalogue of vine varieties is under a non commercial licence: reserved to the holders of a key
-  .restrictedTo(MEMBERS_SCOPE)
+  .restrictedTo(MEMBERS_SCOPE, { preview: true })
   .path("/viticulture/vine-varieties", (context) =>
     generateTablePage(context, {
       title: context.t("viticulture_vine_variety_title"),

@@ -486,6 +486,59 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/phytosanitary/purchases.json": {
+    get: TableEndpoint({
+      description:
+        t("phytosanitary_purchase_title") +
+        ". Kilograms of active substance bought, by commune, year, product and substance, over the last five years (BNV-D sales, estimated by the SDES). Purchases, not uses: a quantity is declared at the postal code of the buyer, then shared between its communes in proportion to their farmland outside grassland. Purchases under statistical secrecy are left out.",
+      category: t("phytosanitary_title"),
+      query: {
+        commune: { description: "INSEE code of a commune. Example: 17387.", type: "string" },
+        year: { description: "Year of purchase. Example: 2024.", type: "string" },
+        substance: {
+          description:
+            "Exact name of a substance, in lower case without accents. Example: glyphosate. The names are listed by /phytosanitary/substance-purchases.",
+          type: "string",
+        },
+        product: { description: "Authorisation number of a product.", type: "string" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/commune-purchases.json": {
+    get: TableEndpoint({
+      description:
+        t("phytosanitary_purchase_commune_title") +
+        ". One line per commune and year: kilograms of active substance, number of products and substances, and whether some purchases are masked by statistical secrecy (the quantity is empty when all are).",
+      category: t("phytosanitary_title"),
+      query: {
+        commune: { description: "INSEE code of a commune. Example: 17387.", type: "string" },
+        year: { description: "Year of purchase. Example: 2024.", type: "string" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/phytosanitary/substance-purchases.json": {
+    get: TableEndpoint({
+      description:
+        t("phytosanitary_purchase_substance_title") +
+        ". One line per substance and year: kilograms bought in metropolitan France, number of communes and products, function and hazard class.",
+      category: t("phytosanitary_title"),
+      query: {
+        substance: { description: "Searches for a substance holding this text.", type: "string" },
+        year: { description: "Year of purchase. Example: 2024.", type: "string" },
+        function: {
+          description: "Function of the substance.",
+          type: "string",
+          enum: ["herbicide", "fungicide", "insecticide", "other"],
+        },
+      },
+      resourceSchema: {},
+    }),
+  },
+
   "/phytosanitary/symbols.json": {
     get: TableEndpoint({
       description: t("phytosanitary_symbol_title"),
@@ -862,7 +915,7 @@ const Paths = (t: Translator) => ({
   "/mcp": {
     post: {
       summary:
-        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price. A key is only needed for what is reserved.",
+        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_phytosanitary_purchases, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price. A key is only needed for what is reserved.",
       tags: [t("tools")],
       requestBody: {
         content: {
@@ -912,7 +965,7 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
     info: {
       title: "Lexicon API",
       description:
-        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8295169339847, -0.786978473820221) work for /tools/parcel-identifier. Every page exists as HTML, and as JSON or CSV by adding .json or .csv to its path. Most of the API is open; the endpoints marked as reserved need an API key, sent as 'Authorization: Bearer <key>' or in the 'X-API-Key' header (401 without a key, 403 when the key does not carry the scope).",
+        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8295169339847, -0.786978473820221) work for /tools/parcel-identifier. Every page exists as HTML, and as JSON or CSV by adding .json or .csv to its path. Most of the API is open; the endpoints marked as reserved need an API key, sent as 'Authorization: Bearer <key>' or in the 'X-API-Key' header (401 without a key, 403 when the key does not carry the scope). Without a key, the HTML page of a reserved table shows a preview instead: its first ten rows, with the first two characters of each text and no figure; JSON and CSV stay refused.",
       version: packageJson.version,
     },
 

@@ -233,6 +233,7 @@ tools_soil_available_water_max,Réserve utile (max),Available water (max)
 tools_owners,Propriétaires,Owners
 tools_owners_members_only,"Propriétaire : réservé aux adhérents, sur présentation d'une clé d'accès.","Owner: reserved to members, with an access key."
 tools_reserved_tag,Réservé aux adhérents,Members only
+tools_reserved_rows,"%s lignes montrées sur %s, sans filtre ni tri.","%s rows shown out of %s, with no filter nor sort."
 tools_reserved_why,"Seuls les premiers caractères sont affichés. Les adhérents lisent ces données en entier avec leur clé d'accès.","Only the first characters are shown. Members read this data in full with their access key."
 tools_owners_none,"Propriétaire : aucune société ni organisme public. La parcelle appartient à des particuliers, que le Lexicon ne nomme pas.","Owner: no company nor public body. The parcel belongs to private persons, whom Lexicon does not name."
 tools_owner_denomination,Dénomination,Denomination
@@ -560,6 +561,26 @@ tools_parcel_json,Cette fiche en JSON,This record as JSON
 tools_assistant_question,Votre question,Your question
 tools_assistant_reset,Nouvelle conversation,New conversation
 tools_assistant_from,tirés de la,taken from the
+phytosanitary_purchase_title,Achats estimés par commune et par produit,Purchases estimated by commune and product
+phytosanitary_purchase_commune_title,Achats estimés par commune,Purchases estimated by commune
+phytosanitary_purchase_substance_title,Achats par substance en France,Purchases by substance in France
+phytosanitary_purchase_commune,Commune (code INSEE),Commune (INSEE code)
+phytosanitary_purchase_year,Année,Year
+phytosanitary_purchase_substance,Substance active,Active substance
+phytosanitary_purchase_cas,Numéro CAS,CAS number
+phytosanitary_purchase_function,Fonction,Function
+phytosanitary_purchase_function_herbicide,Herbicide,Herbicide
+phytosanitary_purchase_function_fungicide,"Fongicide, bactéricide","Fungicide, bactericide"
+phytosanitary_purchase_function_insecticide,"Insecticide, acaricide","Insecticide, acaricide"
+phytosanitary_purchase_function_other,"Autres (molluscicides, régulateurs de croissance…)","Others (molluscicides, growth regulators…)"
+phytosanitary_purchase_danger,Classe de danger,Hazard class
+phytosanitary_purchase_biocontrol,Biocontrôle,Biocontrol
+phytosanitary_purchase_organic,Utilisable en agriculture biologique,Usable in organic farming
+phytosanitary_purchase_quantity,Substance active achetée,Active substance bought
+phytosanitary_purchase_products,Produits,Products
+phytosanitary_purchase_substances,Substances,Substances
+phytosanitary_purchase_communes,Communes,Communes
+phytosanitary_purchase_masked,Achats masqués par le secret statistique,Purchases masked by statistical secrecy
 phytosanitary_usage_title,Usages autorisés,Authorised usages
 phytosanitary_usage_product,Produit,Product
 phytosanitary_usage_product_id,Numéro du produit,Product number

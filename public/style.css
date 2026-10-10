@@ -1516,6 +1516,10 @@ body.admin .page .field input {
   max-width: 44rem;
 }
 
+.reserved.wide {
+  max-width: none;
+}
+
 .reserved-tag {
   font-size: var(--step--1);
   font-weight: 400;

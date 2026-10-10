@@ -35,6 +35,7 @@ export type McpBackend = Readonly<{
   parcel: (longitude: unknown, latitude: unknown) => Promise<unknown>
   cropFigures: (args: Record<string, unknown>) => Promise<unknown>
   phytosanitaryProducts: (args: Record<string, unknown>) => Promise<unknown>
+  phytosanitaryPurchases: (args: Record<string, unknown>) => Promise<unknown>
   commune: (inseeCode: string) => Promise<unknown>
   enterprise: (siren: string) => Promise<unknown>
   searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
@@ -139,9 +140,21 @@ export const TOOLS = [
     }),
   },
   {
+    name: "get_phytosanitary_purchases",
+    description:
+      'What France bought of an active substance of plant protection products (BNV-D sales, SDES), in kilograms: the total of each of the last five years, and for one year the ten departments and communes that bought most. substance takes a few letters of its name, without accents ("glyphosate", "prosulfocarbe", "soufre"). For what one commune bought, use get_commune. These are purchases estimated at the postal code of the buyer, not uses: say so.',
+    inputSchema: text({
+      properties: {
+        substance: { type: "string", description: "Name of the active substance" },
+        year: { type: "integer", description: "Year of the ranking; the latest when absent" },
+      },
+      required: ["substance"],
+    }),
+  },
+  {
     name: "get_commune",
     description:
-      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station.",
+      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station; and the plant protection products bought there over five years (kilograms of active substance, per hectare of farmland outside grassland, by function and hazard class, the ten substances bought most). These are purchases estimated from sales, not uses: say so.",
     inputSchema: text({
       properties: {
         insee_code: { type: "string", description: "INSEE code, such as 17387 or 2A004" },
@@ -262,6 +275,7 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     get_parcel: () => backend.parcel(args.longitude, args.latitude),
     get_crop_figures: () => backend.cropFigures(args),
     search_phytosanitary_products: () => backend.phytosanitaryProducts(args),
+    get_phytosanitary_purchases: () => backend.phytosanitaryPurchases(args),
     get_commune: () => backend.commune(String(args.insee_code ?? "")),
     get_enterprise: () => backend.enterprise(String(args.siren ?? "")),
     search_rd_documents: () => backend.searchRdDocuments(args),
@@ -300,7 +314,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_input_price for the price of an input, search_rd_documents for the R&D documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {

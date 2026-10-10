@@ -53,6 +53,7 @@ const backend: McpBackend = {
   parcel: async () => ({}),
   cropFigures: async () => ({ yields: [] }),
   phytosanitaryProducts: async () => ({ total: 0, products: [] }),
+  phytosanitaryPurchases: async () => ({ years: [] }),
 }
 
 const mcp = mcpClient((message) => handleMcpMessage(message, backend))

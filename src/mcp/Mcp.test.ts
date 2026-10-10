@@ -19,6 +19,7 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   parcel: async (longitude, latitude) => ({ point: { longitude, latitude } }),
   cropFigures: async (args) => ({ query: args.production, yields: [] }),
   phytosanitaryProducts: async (args) => ({ total: 0, products: [], asked: args }),
+  phytosanitaryPurchases: async (args) => ({ substance: args.substance, years: [] }),
   ...overrides,
 })
 
@@ -83,6 +84,7 @@ describe("handleMcpMessage", () => {
       "get_parcel",
       "get_crop_figures",
       "search_phytosanitary_products",
+      "get_phytosanitary_purchases",
       "get_commune",
       "get_enterprise",
       "search_rd_documents",

@@ -11,6 +11,7 @@ import { createHref, ObjectMap } from "../utils"
 import { AutoTable, type AutoTableOkInput } from "../templates/views/AutoTable"
 import type { Credit } from "../namespaces/Credits"
 import type { Context } from "../types/Context"
+import { PREVIEW_ROWS, veiledCell } from "../preview/Preview"
 
 interface AutoTableParams<T extends object, F extends string> {
   title: string
@@ -27,11 +28,12 @@ export async function generateTablePage<T extends object, F extends string>(
   context: Context,
   params: AutoTableParams<T, F>,
 ) {
-  const PER_PAGE = 150
+  const PER_PAGE = context.preview ? PREVIEW_ROWS : 150
 
   const { path, request, query: queryParams, t, output } = context
 
-  const page = typeof queryParams?.page === "string" ? parseInt(queryParams.page) : 1
+  const page =
+    !context.preview && typeof queryParams?.page === "string" ? parseInt(queryParams.page) : 1
 
   const basePath = path.split("?")[0].split(".")[0]
 
@@ -70,8 +72,14 @@ export async function generateTablePage<T extends object, F extends string>(
           : undefined,
         table: {
           columns: params.columns,
-          rows: items.map(params.handler),
+          rows: context.preview ? [] : items.map(params.handler),
         },
+        // For a visitor without a key: the start of each value of the first rows
+        preview: context.preview
+          ? items
+              .map(params.handler)
+              .map((row) => ObjectMap(row, (_, cell) => veiledCell(cell)))
+          : undefined,
         credit: credit[0]
           ? {
               provider: Hypermedia.Text({
@@ -191,6 +199,11 @@ export async function generateTablePage<T extends object, F extends string>(
       form: params.form,
       error: error,
     }))
+
+  // A preview is a page: the data formats of a reserved table stay refused
+  if (context.preview && output !== "html") {
+    return new Response("This resource needs an API key", { status: 401 })
+  }
 
   return match(output)
     .returnType<string | object>()

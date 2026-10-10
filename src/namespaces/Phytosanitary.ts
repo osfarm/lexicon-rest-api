@@ -121,6 +121,59 @@ const USAGE_FIELDS = [
   `${USAGES}.state`,
 ] as unknown as (keyof Usage)[]
 
+interface Purchase {
+  insee_code: string
+  year: number
+  product_id: number
+  substance: string
+  cas_number: string | null
+  function: string
+  danger: string | null
+  biocontrol: boolean | null
+  organic: boolean | null
+  quantity: string
+}
+
+const PurchaseTable = Table<Purchase>({
+  table: "registered_phytosanitary_purchases",
+  primaryKey: "insee_code",
+})
+
+interface CommunePurchase {
+  insee_code: string
+  year: number
+  quantity: string | null
+  products_count: number
+  substances_count: number
+  masked: boolean
+}
+
+const CommunePurchaseTable = Table<CommunePurchase>({
+  table: "registered_phytosanitary_purchase_communes",
+  primaryKey: "insee_code",
+})
+
+interface SubstancePurchase {
+  substance: string
+  year: number
+  cas_number: string | null
+  function: string
+  danger: string | null
+  quantity: string
+  communes_count: number
+  products_count: number
+}
+
+const SubstancePurchaseTable = Table<SubstancePurchase>({
+  table: "registered_phytosanitary_purchase_substances",
+  primaryKey: "substance",
+})
+
+const PURCHASE_FUNCTIONS = ["herbicide", "fungicide", "insecticide", "other"]
+
+const yearOf = (value: unknown) =>
+  /^(19|20)\d\d$/.test(String(value ?? "")) ? Number(value) : undefined
+
 const usageField = (name: string) => `${USAGES}.${name}` as keyof Usage
 
 const Breadcrumbs = (t: Translator) => [
@@ -162,6 +215,21 @@ export const Phytosanitary = API.new()
             value: t("phytosanitary_symbol_title"),
             method: "GET",
             href: "/phytosanitary/symbols",
+          }),
+          Hypermedia.Link({
+            value: t("phytosanitary_purchase_title"),
+            method: "GET",
+            href: "/phytosanitary/purchases",
+          }),
+          Hypermedia.Link({
+            value: t("phytosanitary_purchase_commune_title"),
+            method: "GET",
+            href: "/phytosanitary/commune-purchases",
+          }),
+          Hypermedia.Link({
+            value: t("phytosanitary_purchase_substance_title"),
+            method: "GET",
+            href: "/phytosanitary/substance-purchases",
           }),
         ],
       },
@@ -250,6 +318,276 @@ export const Phytosanitary = API.new()
         }),
       }),
       credits: CreditTable(cxt.db).select().where("datasource", "=", "phytosanitary"),
+    }),
+  )
+  .path("/phytosanitary/purchases", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("phytosanitary_purchase_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      form: {
+        commune: Field.Text({ label: cxt.t("phytosanitary_purchase_commune"), required: false }),
+        year: Field.Text({ label: cxt.t("phytosanitary_purchase_year"), required: false }),
+        substance: Field.Text({
+          label: cxt.t("phytosanitary_purchase_substance"),
+          required: false,
+        }),
+        product: Field.Text({
+          label: cxt.t("phytosanitary_usage_product_id"),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.commune) {
+          query.where("insee_code", "=", String(input.commune).trim().toUpperCase())
+        }
+        if (yearOf(input.year)) {
+          query.where("year", "=", yearOf(input.year) as number)
+        }
+        // Substances are written in lower case, without accents
+        if (input.substance) {
+          query.where("substance", "=", String(input.substance).trim().toLowerCase())
+        }
+        if (input.product && /^\d+$/.test(String(input.product))) {
+          query.where("product_id", "=", Number(input.product))
+        }
+      },
+
+      query: PurchaseTable(cxt.db)
+        .select()
+        .orderBy("insee_code", "ASC")
+        .orderBy("year", "ASC")
+        .orderBy("product_id", "ASC")
+        .orderBy("substance", "ASC"),
+
+      columns: {
+        commune: cxt.t("phytosanitary_purchase_commune"),
+        year: cxt.t("phytosanitary_purchase_year"),
+        "product-id": cxt.t("phytosanitary_usage_product_id"),
+        substance: cxt.t("phytosanitary_purchase_substance"),
+        "cas-number": cxt.t("phytosanitary_purchase_cas"),
+        function: cxt.t("phytosanitary_purchase_function"),
+        danger: cxt.t("phytosanitary_purchase_danger"),
+        biocontrol: cxt.t("phytosanitary_purchase_biocontrol"),
+        organic: cxt.t("phytosanitary_purchase_organic"),
+        quantity: cxt.t("phytosanitary_purchase_quantity"),
+      },
+      handler: (purchase) => ({
+        commune: Hypermedia.Link({
+          label: cxt.t("phytosanitary_purchase_commune"),
+          value: purchase.insee_code,
+          method: "GET",
+          href: `/links/communes/${purchase.insee_code}`,
+        }),
+        year: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_year"),
+          value: String(purchase.year),
+        }),
+        "product-id": Hypermedia.Text({
+          label: cxt.t("phytosanitary_usage_product_id"),
+          value: String(purchase.product_id),
+        }),
+        substance: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_substance"),
+          value: purchase.substance,
+        }),
+        "cas-number": purchase.cas_number
+          ? Hypermedia.Text({
+              label: cxt.t("phytosanitary_purchase_cas"),
+              value: purchase.cas_number,
+            })
+          : undefined,
+        function: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_function"),
+          value: cxt.t("phytosanitary_purchase_function_" + purchase.function),
+        }),
+        danger: purchase.danger
+          ? Hypermedia.Text({
+              label: cxt.t("phytosanitary_purchase_danger"),
+              value: purchase.danger,
+            })
+          : undefined,
+        biocontrol:
+          purchase.biocontrol === null
+            ? undefined
+            : Hypermedia.Boolean({
+                label: cxt.t("phytosanitary_purchase_biocontrol"),
+                value: purchase.biocontrol,
+              }),
+        organic:
+          purchase.organic === null
+            ? undefined
+            : Hypermedia.Boolean({
+                label: cxt.t("phytosanitary_purchase_organic"),
+                value: purchase.organic,
+              }),
+        quantity: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_quantity"),
+          value: Number(purchase.quantity),
+          unit: "kg",
+        }),
+      }),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "phytosanitary_purchases"),
+    }),
+  )
+  .path("/phytosanitary/commune-purchases", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("phytosanitary_purchase_commune_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      form: {
+        commune: Field.Text({ label: cxt.t("phytosanitary_purchase_commune"), required: false }),
+        year: Field.Text({ label: cxt.t("phytosanitary_purchase_year"), required: false }),
+      },
+      formHandler: (input, query) => {
+        if (input.commune) {
+          query.where("insee_code", "=", String(input.commune).trim().toUpperCase())
+        }
+        if (yearOf(input.year)) {
+          query.where("year", "=", yearOf(input.year) as number)
+        }
+      },
+
+      query: CommunePurchaseTable(cxt.db)
+        .select()
+        .orderBy("insee_code", "ASC")
+        .orderBy("year", "ASC"),
+
+      columns: {
+        commune: cxt.t("phytosanitary_purchase_commune"),
+        year: cxt.t("phytosanitary_purchase_year"),
+        quantity: cxt.t("phytosanitary_purchase_quantity"),
+        products: cxt.t("phytosanitary_purchase_products"),
+        substances: cxt.t("phytosanitary_purchase_substances"),
+        masked: cxt.t("phytosanitary_purchase_masked"),
+      },
+      handler: (purchase) => ({
+        commune: Hypermedia.Link({
+          label: cxt.t("phytosanitary_purchase_commune"),
+          value: purchase.insee_code,
+          method: "GET",
+          href: `/links/communes/${purchase.insee_code}`,
+        }),
+        year: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_year"),
+          value: String(purchase.year),
+        }),
+        quantity:
+          purchase.quantity === null
+            ? undefined
+            : Hypermedia.Number({
+                label: cxt.t("phytosanitary_purchase_quantity"),
+                value: Number(purchase.quantity),
+                unit: "kg",
+              }),
+        products: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_products"),
+          value: purchase.products_count,
+        }),
+        substances: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_substances"),
+          value: purchase.substances_count,
+        }),
+        masked: Hypermedia.Boolean({
+          label: cxt.t("phytosanitary_purchase_masked"),
+          value: purchase.masked,
+        }),
+      }),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "phytosanitary_purchases"),
+    }),
+  )
+  .path("/phytosanitary/substance-purchases", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("phytosanitary_purchase_substance_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      form: {
+        substance: Field.Text({
+          label: cxt.t("phytosanitary_purchase_substance"),
+          required: false,
+        }),
+        year: Field.Text({ label: cxt.t("phytosanitary_purchase_year"), required: false }),
+        function: Field.Select({
+          label: cxt.t("phytosanitary_purchase_function"),
+          options: Object.fromEntries(
+            PURCHASE_FUNCTIONS.map((name) => [
+              name,
+              cxt.t("phytosanitary_purchase_function_" + name),
+            ]),
+          ),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.substance) {
+          query.where("substance", "ILIKE", `%${String(input.substance).trim()}%`)
+        }
+        if (yearOf(input.year)) {
+          query.where("year", "=", yearOf(input.year) as number)
+        }
+        if (PURCHASE_FUNCTIONS.includes(String(input.function))) {
+          query.where("function", "=", String(input.function))
+        }
+      },
+
+      query: SubstancePurchaseTable(cxt.db)
+        .select()
+        .orderBy("year", "DESC")
+        .orderBy("quantity", "DESC"),
+
+      columns: {
+        substance: cxt.t("phytosanitary_purchase_substance"),
+        year: cxt.t("phytosanitary_purchase_year"),
+        "cas-number": cxt.t("phytosanitary_purchase_cas"),
+        function: cxt.t("phytosanitary_purchase_function"),
+        danger: cxt.t("phytosanitary_purchase_danger"),
+        quantity: cxt.t("phytosanitary_purchase_quantity"),
+        communes: cxt.t("phytosanitary_purchase_communes"),
+        products: cxt.t("phytosanitary_purchase_products"),
+      },
+      handler: (purchase) => ({
+        substance: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_substance"),
+          value: purchase.substance,
+        }),
+        year: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_year"),
+          value: String(purchase.year),
+        }),
+        "cas-number": purchase.cas_number
+          ? Hypermedia.Text({
+              label: cxt.t("phytosanitary_purchase_cas"),
+              value: purchase.cas_number,
+            })
+          : undefined,
+        function: Hypermedia.Text({
+          label: cxt.t("phytosanitary_purchase_function"),
+          value: cxt.t("phytosanitary_purchase_function_" + purchase.function),
+        }),
+        danger: purchase.danger
+          ? Hypermedia.Text({
+              label: cxt.t("phytosanitary_purchase_danger"),
+              value: purchase.danger,
+            })
+          : undefined,
+        quantity: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_quantity"),
+          value: Number(purchase.quantity),
+          unit: "kg",
+        }),
+        communes: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_communes"),
+          value: purchase.communes_count,
+        }),
+        products: Hypermedia.Number({
+          label: cxt.t("phytosanitary_purchase_products"),
+          value: purchase.products_count,
+        }),
+      }),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "phytosanitary_purchases"),
     }),
   )
   .path("/phytosanitary/usages", async (cxt) =>

@@ -17,6 +17,12 @@ import { compactPage } from "../mcp/Compact"
 import { parcelSummaryOf } from "../mcp/Parcel"
 import { cropFigures, figuresQueryOf } from "../crop-figures/CropFigures"
 import { productQueryOf, searchProducts } from "../phytosanitary/ProductSearch"
+import {
+  communePurchases,
+  PURCHASES_CAVEAT,
+  substancePurchases,
+  substanceQueryOf,
+} from "../phytosanitary/Purchases"
 import { coordinatesOf, cropHistoryAt } from "../cap-history/CapHistory"
 import {
   priceQueryOf,
@@ -208,12 +214,42 @@ export function backendFor(cxt: Context): McpBackend {
         throw new Error("An INSEE code has five characters, such as 17387 or 2A004")
       }
 
-      return communeLinkOf(
+      const link = communeLinkOf(
         await required(
           await readCommuneLink(cxt.db, inseeCode),
           `No commune ${inseeCode}`,
         ),
       )
+      const purchases = await communePurchases(cxt.db, inseeCode)
+
+      return purchases === undefined
+        ? link
+        : {
+            ...link,
+            "phytosanitary-purchases-kg-of-active-substance": {
+              ...purchases,
+              note: PURCHASES_CAVEAT,
+            },
+          }
+    },
+
+    phytosanitaryPurchases: async (args) => {
+      const asked = await required(
+        substanceQueryOf(args),
+        "A substance is needed: a few letters of its name, such as glyphosate",
+      )
+      const purchases = await required(
+        await substancePurchases(cxt.db, asked),
+        "The purchases of plant protection products are not in service",
+      )
+
+      if (purchases.substance === undefined) {
+        throw new Error(
+          `No substance named ${asked.substance} among the purchases. Names are in French without accents; read /phytosanitary/substance-purchases for the list.`,
+        )
+      }
+
+      return { ...purchases, note: PURCHASES_CAVEAT }
     },
 
     enterprise: async (siren) => {

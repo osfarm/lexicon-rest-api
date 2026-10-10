@@ -7,6 +7,8 @@ import { Error } from "./../components/Error"
 import { Form, type FieldType, type FormDefinition } from "./../components/Form"
 import { Card } from "./../components/Card"
 import type { Context } from "../../types/Context"
+import type { Veiled } from "../../preview/Preview"
+import { Reserved, Veil } from "./../components/Reserved"
 
 export interface AutoTableOkInput {
   title: string
@@ -16,6 +18,8 @@ export interface AutoTableOkInput {
     columns: Record<string, string>
     rows: Record<string, HypermediaType["any"] | undefined>[]
   }
+  // The first rows of a reserved table, veiled, for a visitor without a key
+  preview?: Record<string, Veiled | undefined>[]
   credit?: {
     provider: HypermediaType["Text"]
     website: HypermediaType["Link"]
@@ -65,7 +69,41 @@ export function AutoTable(props: PageData) {
         <Error error={page.error} />
       </Layout>
     ),
-    Ok: ({ val: page }) => (
+    Ok: ({ val: page }) =>
+      page.preview ? (
+        <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={context.t}>
+          <Reserved wide t={context.t}>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    {Object.values(page.table.columns).map((field) => (
+                      <th>{field}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {page.preview.map((row) => (
+                    <tr>
+                      {Object.keys(page.table.columns).map((field) => (
+                        <td>
+                          <Veil value={row[field]} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="quiet">
+              {context
+                .t("tools_reserved_rows")
+                .replace("%s", context.numberFormatter(page.preview.length))
+                .replace("%s", context.numberFormatter(page["items-total"]))}
+            </p>
+          </Reserved>
+        </Layout>
+      ) : (
       <Layout title={page.title} breadcrumbs={page.breadcrumbs} t={context.t}>
         {page.form && (
           <Form method={"GET"} definition={page.form} submitLabel={context.t("filter")} />
@@ -181,7 +219,7 @@ export function AutoTable(props: PageData) {
           </Card>
         )}
       </Layout>
-    ),
+      ),
   })
 }
 

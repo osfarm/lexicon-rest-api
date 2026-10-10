@@ -14,6 +14,9 @@ export interface Context {
   db: Pool
   // Who is calling, and what their plan lets them read
   identity: Identity
+  // The caller holds no key and the path is reserved: the handler answers a
+  // preview, the first rows with their values veiled (src/preview)
+  preview?: boolean
   dateTimeFormatter: {
     DateTime: (date: Date) => string
     Date: (date: Date) => string
