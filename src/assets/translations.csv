@@ -291,7 +291,7 @@ tools_agricultural_enterprises,Entreprises agricoles sur la commune,Agricultural
 tools_enterprise_siren,SIREN,SIREN
 tools_enterprise_activity_code,Code NAF,NAF code
 enterprises_title,Entreprises,Enterprises
-enterprises_agricultural_title,Entreprises agricoles,Agricultural enterprises
+enterprises_sirene_title,Établissements (SIRENE),Establishments (SIRENE)
 enterprises_siret,SIRET,SIRET
 enterprises_activity_code_prefix,Préfixe code NAF (01 = agriculture),NAF code prefix (01 = agriculture)
 enterprises_establishments,Établissements,Establishments
@@ -421,7 +421,7 @@ contribute_title,Proposer un jeu de données,Propose a dataset
 contribute_catalog_link,Proposer un jeu de données à partir d'un tableau,Propose a dataset from a spreadsheet
 explore_lead,"Les données du Lexicon, rangées par thème. Chaque page se consulte ici, ou se récupère en JSON et en CSV.","The data of Lexicon, by theme. Each page can be read here, or fetched as JSON and CSV."
 explore_geographical_references,"Communes, parcelles du cadastre et leurs prix, parcelles déclarées à la PAC et leurs cultures.","Communes, cadastral parcels and their prices, parcels declared to the CAP and their crops."
-explore_enterprises,"Entreprises agricoles, aides de la PAC, résultats économiques des exploitations.","Farming companies, CAP subsidies, economic results of farms."
+explore_enterprises,"Établissements de toutes activités, aides de la PAC, résultats économiques des exploitations.","Establishments of every activity, CAP subsidies, economic results of farms."
 explore_production,"Productions végétales et animales, leurs codes, rendements et prix.","Plant and animal productions, their codes, yields and prices."
 explore_phytosanitary,"Produits autorisés, usages, doses et mentions de risque.","Authorised products, uses, doses and risk statements."
 explore_seeds,Variétés de semences inscrites au catalogue.,Seed varieties of the official catalogue.

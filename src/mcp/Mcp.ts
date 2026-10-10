@@ -88,7 +88,7 @@ export const TOOLS = [
   {
     name: "get_commune",
     description:
-      "Everything the datasets know about a French commune, joined in advance: cadastre totals, agricultural enterprises, MSA farm chiefs, nearest weather station.",
+      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station.",
     inputSchema: text({
       properties: {
         insee_code: { type: "string", description: "INSEE code, such as 17387 or 2A004" },
@@ -99,7 +99,7 @@ export const TOOLS = [
   {
     name: "get_enterprise",
     description:
-      "Everything the datasets know about a company (legal entities only): parcels it owns, agricultural establishments, CAP payments. Reserved to members: needs an API key.",
+      "Everything the datasets know about a company (legal entities only): parcels it owns, its establishments, CAP payments. Reserved to members: needs an API key.",
     inputSchema: text({
       properties: { siren: { type: "string", description: "SIREN, nine digits" } },
       required: ["siren"],

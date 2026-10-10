@@ -33,7 +33,7 @@ describe("communeLinkOf", () => {
       "area-m2": 16373913,
       "parcels-with-enterprise-owner": 16,
     })
-    expect(link["agricultural-enterprises"]).toBe(41)
+    expect(link.establishments).toBe(41)
     expect(link.msa).toEqual({ year: 2019, "farm-chiefs": 10 })
     expect(link.links["weather-station"]).toBe("/weather/stations/FR17415003")
   })
@@ -110,7 +110,7 @@ describe("enterpriseLinkOf", () => {
     expect(await readCapYears(db as any, "662043116")).toEqual([])
   })
 
-  test("a company without agricultural establishment nor CAP payment", () => {
+  test("a company without establishment nor CAP payment", () => {
     const link = enterpriseLinkOf({ ...row, establishments_count: 0, cap_year: null })
 
     expect(link.cap).toBeNull()

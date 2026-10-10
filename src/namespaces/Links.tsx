@@ -123,7 +123,7 @@ async function commune(cxt: Context) {
           ],
           [
             "Établissements (toutes activités)",
-            cxt.numberFormatter(link["agricultural-enterprises"]),
+            cxt.numberFormatter(link.establishments),
           ],
           [
             "Chefs d'exploitation (MSA)",

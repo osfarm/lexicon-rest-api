@@ -15,7 +15,8 @@ export type CommuneLink = Readonly<{
     "area-m2": number
     "parcels-with-enterprise-owner": number
   }
-  "agricultural-enterprises": number
+  // Establishments of every activity: registered_enterprises is no longer limited to agriculture
+  establishments: number
   msa: { year: number; "farm-chiefs": number | null } | null
   "weather-station": string | null
   links: Record<string, string>
@@ -64,7 +65,7 @@ export function communeLinkOf(row: Record<string, any>): CommuneLink {
       "parcels-with-enterprise-owner":
         row.enterprise_owner_parcels_count ?? row.agricultural_owner_parcels_count,
     },
-    "agricultural-enterprises": row.enterprises_count,
+    establishments: row.enterprises_count,
     msa:
       row.msa_year === null
         ? null
