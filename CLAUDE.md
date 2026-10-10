@@ -112,6 +112,12 @@ The contribution tool itself is served under `/contribute/outil` (`src/contribut
 - **Home page**: `src/home/Weave.ts` holds, by hand, the datasets and the keys linking them; `Weave.test.ts` keeps it consistent, but only a look at the schema tells whether a knot is true. Figures come from the catalogue. `src/templates/components/Weave.tsx` renders it as a real table (readable without styles nor scripts), `public/weave.js` adds the hovering. `/explore` holds what the home page used to list.
 - `/public/*` only serves files of the `public` folder (`publicFileOf` in `API.ts`).
 
+### The two tools
+
+`/tools/parcel-identifier` (`ParcelIdentifierController.ts`, `templates/pages/ParcelIdentifier.tsx`) is a record of a point: the map (`PlacePicker`, `public/place-picker.js`: a click, a drag or typed coordinates put the point; the wheel scrolls the page until the map is clicked), a line that names the parcel, then sections in the colours of the four families. Its one loud element is the rotation, the crops of the place campaign after campaign. Three rules of method: a CAP code that also stands for a seed production is named by the crop itself (`ORDER BY is_seed`); the weather window ends at the latest report of the station, not today; in Paris, Lyon and Marseille the point is told by its arrondissement. The JSON keeps its keys; `rotation`, `point`, and the `distance` and `until` of the weather were added.
+
+`/tools/assistant` (Duke) shows, between the question and the answer, the thread of what was read in the Lexicon: each MCP call is a knot that unfolds, named in plain words (`STEPS`). The answer is put in the page as text nodes, with the few marks a model writes (bold, lists, links) rendered by the script: nothing a model or a dataset wrote is ever inserted as markup.
+
 ### Templates
 
 `src/templates/` contains JSX components (pages, views, layouts, components). These render **server-side to HTML strings** — no React, no client state, no hooks. JSX factory is `Html.createElement` from `@elysiajs/html`. SVG icons live in `public/icons/` and are referenced as `/public/icons/<name>.svg`; the `/public/*` route in `API.ts` serves them with a 1-day cache.

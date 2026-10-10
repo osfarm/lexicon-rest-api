@@ -372,7 +372,7 @@ tools_assistant_failed,échec,failed
 tools_assistant_sources,Documents cités,Documents quoted
 tools_assistant_lexicon_record,fiche Lexicon,Lexicon record
 tools_assistant_remaining,Il vous reste %d question(s) aujourd'hui.,You have %d question(s) left today.
-tools_assistant_how,"Duke interroge le Lexicon par son serveur MCP, comme le ferait n'importe quel agent : chaque appel d'outil est affiché. Documents de R&D :","Duke queries Lexicon through its MCP server, as any agent would: each tool call is shown. R&D documents:"
+tools_assistant_how,"Duke interroge le Lexicon par son serveur MCP, comme le ferait n'importe quel agent : chaque appel est affiché au-dessus de la réponse, et se déplie. Documents de R&D :","Duke queries Lexicon through its MCP server, as any agent would: each call is shown above the answer, and unfolds. R&D documents:"
 tools_assistant_error_quota,Le modèle a atteint son quota. Réessayez dans quelques minutes : votre question n'a pas été décomptée.,The model has reached its quota. Try again in a few minutes: your question was not counted.
 tools_assistant_error_busy,Trop de questions sont en attente. Réessayez dans un instant : votre question n'a pas été décomptée.,Too many questions are waiting. Try again in a moment: your question was not counted.
 tools_assistant_error_down,Duke n'a pas pu répondre. Réessayez plus tard.,Duke could not answer. Try again later.
@@ -519,3 +519,38 @@ inputs_field_value,Valeur,Value
 inputs_field_variant_reference_name,Article de référence,Reference article
 inputs_field_variety,Variété,Variety
 inputs_field_variety_id,Variété au catalogue officiel,Variety in the official catalogue
+tools_station_distance,Distance de la station,Distance to the station
+tools_station_until,Dernier relevé,Latest report
+tools_parcel_map,Carte : cliquez pour poser le point,Map: click to put the point
+tools_parcel_pick_title,Où est la parcelle ?,Where is the parcel?
+tools_parcel_pick_help,"Cliquez sur la carte ou déplacez le repère. Les coordonnées se saisissent aussi à la main.","Click on the map or drag the marker. The coordinates can also be typed."
+tools_parcel_identify,Identifier cette parcelle,Identify this parcel
+tools_parcel_searching,Recherche de la parcelle…,Looking for the parcel…
+tools_parcel_locate,Me localiser,Use my location
+tools_parcel_locating,Recherche de votre position…,Looking for your position…
+tools_parcel_locate_failed,Votre position n'a pas pu être trouvée : posez le point à la main.,Your position could not be found: put the point by hand.
+tools_parcel_empty,"Posez un point : le Lexicon dit quelle parcelle s'y trouve, ce qui y est cultivé, son sol, sa commune et la météo de la station la plus proche.","Put a point: Lexicon tells which parcel is there, what is grown on it, its soil, its commune and the weather of the nearest station."
+tools_parcel_example,Voir un exemple à Saint-Porchaire.,See an example in Saint-Porchaire.
+tools_parcel_nothing,"Le Lexicon ne connaît rien à cet endroit : ni parcelle cadastrale, ni commune, ni déclaration PAC. Il couvre la France métropolitaine.","Lexicon knows nothing at this point: no cadastral parcel, no commune, no CAP declaration. It covers metropolitan France."
+tools_parcel_parcel,Parcelle,Parcel
+tools_parcel_no_cadastre,Aucune parcelle cadastrale à cet endroit,No cadastral parcel at this point
+tools_parcel_commune,Commune,Commune
+tools_parcel_in,en,in
+tools_parcel_at,à,at
+tools_parcel_soil_of,sol de,soil of
+tools_parcel_contents,Dans cette fiche,In this record
+tools_parcel_section_crop,Cultures,Crops
+tools_parcel_section_place,Lieu,Place
+tools_parcel_section_environment,Sol et zonages,Soil and zoning
+tools_parcel_section_weather,Météo,Weather
+tools_parcel_section_farms,Exploitations de la commune,Farms of the commune
+tools_parcel_rotation_none,Aucune déclaration PAC à cet endroit.,No CAP declaration at this point.
+tools_parcel_no_zone,"Aucune zone naturelle, zone de protection des eaux ni zonage administratif à cet endroit.","No natural zone, protected water zone nor administrative zoning at this point."
+tools_parcel_weather_stale,Les relevés de cette station s'arrêtent le %s.,The reports of this station stop on %s.
+tools_parcel_weather_window,Les 30 jours avant le %s : température maximale et pluie de chaque jour,The 30 days before %s: maximum temperature and rain of each day
+tools_parcel_no_report,Cette station n'a pas de relevé.,This station has no report.
+tools_parcel_enterprises_summary,%d établissements agricoles dans la commune (code NAF 01) dont %d ont reçu des aides de la PAC.,"%d farming establishments in the commune (NAF code 01), %d of which received CAP subsidies."
+tools_parcel_json,Cette fiche en JSON,This record as JSON
+tools_assistant_question,Votre question,Your question
+tools_assistant_reset,Nouvelle conversation,New conversation
+tools_assistant_from,tirés de la,taken from the

@@ -59,11 +59,19 @@ import {
 } from "../Enterprise"
 import { MsaPopulationTable, type MsaPopulation } from "../MsaPopulation"
 
-const RED = "#EE6666"
-const RED_FADED = "#B85C5C"
-const BLUE = "#5470C6"
-const BLUE_FADED = "#8FA3D9"
+// The colours of the site (public/style.css): ink for what is measured, water for
+// the rain, each with a lighter tint for the ten-year average
+const TEMPERATURE = "#0e3d48"
+const TEMPERATURE_AVERAGE = "#9db4b9"
+const RAIN = "#5b99c7"
+const RAIN_AVERAGE = "#c5dcec"
 const WEATHER_HISTORY_YEARS = 10
+const WEATHER_WINDOW_DAYS = 30
+const ONE_DAY_IN_MS = 24 * 3600 * 1000
+
+// Paris, Lyon and Marseille are in the reference twice: as whole communes and as
+// arrondissements. A point is told by its arrondissement, which the other datasets use.
+const WHOLE_COMMUNES = ["75056", "69123", "13055"]
 
 const DEFAULT_CAP_CODE_YEAR = 2025
 const CAP_CODE_YEAR_MIN = 2017
@@ -95,6 +103,8 @@ interface ParcelData {
   soilDepth?: SoilDepth
   soilWaterCapacity?: SoilAvailableWaterCapacity
   weatherStation?: Station
+  // The day of the latest report of the station: the reports shown end there
+  weatherUntil?: Date
   lastYearWeatherReports?: Array<{
     station_id: string
     started_at: Date
@@ -120,11 +130,14 @@ export async function ParcelIdentifierController(
   const latitude = cxt.query.latitude ? parseFloat(cxt.query.latitude) : undefined
   const longitude = cxt.query.longitude ? parseFloat(cxt.query.longitude) : undefined
 
-  const requestedYear = cxt.query.year ? parseInt(cxt.query.year) : DEFAULT_CAP_CODE_YEAR
+  // Without a year asked for, the crop is named as in the campaign of the declaration
+  const requestedYear = cxt.query.year ? parseInt(cxt.query.year) : undefined
   const capCodeYear =
-    requestedYear >= CAP_CODE_YEAR_MIN && requestedYear <= CAP_CODE_YEAR_MAX
+    requestedYear !== undefined &&
+    requestedYear >= CAP_CODE_YEAR_MIN &&
+    requestedYear <= CAP_CODE_YEAR_MAX
       ? requestedYear
-      : DEFAULT_CAP_CODE_YEAR
+      : undefined
 
   const form = {
     latitude: Field.Number({
@@ -151,28 +164,29 @@ export async function ParcelIdentifierController(
       label: cxt.t("weather_station_hourly_report_temperature_max"),
       unit: "°C",
       type: "line",
-      color: RED,
+      color: TEMPERATURE,
       side: "left",
     },
     "temperature-max-avg": {
       label: cxt.t("weather_station_hourly_report_temperature_max_10y_avg"),
       unit: "°C",
       type: "line",
-      color: RED_FADED,
+      color: TEMPERATURE_AVERAGE,
+      dashed: true,
       side: "left",
     },
     rain: {
       label: cxt.t("weather_station_hourly_report_rain"),
       unit: "mm",
       type: "bar",
-      color: BLUE,
+      color: RAIN,
       side: "right",
     },
     "rain-avg": {
       label: cxt.t("weather_station_hourly_report_rain_10y_avg"),
       unit: "mm",
       type: "bar",
-      color: BLUE_FADED,
+      color: RAIN_AVERAGE,
       side: "right",
     },
   }
@@ -237,6 +251,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     title: p.title,
     breadcrumbs: p.breadcrumbs,
     form: p.form,
+    point: coordinates,
     information: data.municipality
       ? buildMunicipalitySection(data.municipality, cxt)
       : undefined,
@@ -250,6 +265,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
       data.capParcel || data.capHistory?.length
         ? buildCapSection(data.capParcel, data.capCode, cxt, data.capHistory ?? [])
         : undefined,
+    rotation: buildRotation(data.capParcel, data.capCode, data.capHistory ?? []),
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -303,6 +319,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
             data.historicalDailyWeather,
             cxt,
             legend,
+            { until: data.weatherUntil, from: point },
           )
         : undefined,
     geolocation: data.cadastralParcel?.shape
@@ -318,12 +335,12 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
 async function retrieveParcelData(
   db: Pool,
   point: Point,
-  capCodeYear: number,
+  capCodeYear: number | undefined,
   // Owners of parcels are reserved to the holders of a key
   includeOwners: boolean,
 ): AsyncResult<Error, ParcelData> {
   const wave1 = await Concurrently.run(() =>
-    MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(1).run(),
+    MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(5).run(),
   )
     .and(() =>
       ParcelTable(db).select().where("shape", "ST_CONTAINS", point).limit(1).run(),
@@ -367,17 +384,22 @@ async function retrieveParcelData(
     soilWaterCapacities,
   ] = wave1.val
 
-  const municipality = municipalities[0]
+  const municipality =
+    municipalities.find((found) => !WHOLE_COMMUNES.includes(found.code)) ??
+    municipalities[0]
   const cadastralParcel = cadastralParcels[0]
   const capParcel = capParcels[0]
   const station = stations[0]
 
-  const WEATHER_WINDOW_DAYS = 30
-  const weatherStartDate = (() => {
-    const d = new Date()
-    d.setDate(d.getDate() - WEATHER_WINDOW_DAYS)
-    return d.toISOString()
-  })()
+  // The reports of a station may stop months ago: the window ends at its latest
+  // report, not today, which would show an empty chart
+  const weatherUntil = station
+    ? await latestReportOf(db, station.reference_name)
+    : undefined
+  const weatherEnd = weatherUntil ?? new Date()
+  const weatherStartDate = new Date(
+    weatherEnd.getTime() - WEATHER_WINDOW_DAYS * ONE_DAY_IN_MS,
+  ).toISOString()
 
   // Each wave-2 branch is independent: failure in one does not gate the others,
   // and absence of an upstream dependency falls back to `undefined`.
@@ -430,14 +452,16 @@ async function retrieveParcelData(
     : Ok(undefined)
 
   const historicalWeatherResult = station
-    ? await fetchHistoricalDailyWeather(db, station.reference_name)
+    ? await fetchHistoricalDailyWeather(db, station.reference_name, weatherEnd)
     : Ok(undefined)
 
   const capCodeResult = capParcel?.cap_crop_code
     ? await MasterCapCodeTable(db)
         .select()
         .where("cap_code", "=", capParcel.cap_crop_code)
-        .where("year", "=", capCodeYear)
+        .where("year", "=", capCodeYear ?? capParcel.campaign ?? DEFAULT_CAP_CODE_YEAR)
+        // A code that also stands for a seed production: the crop itself comes first
+        .orderBy("is_seed", "ASC")
         .limit(1)
         .run()
     : Ok([] as MasterCapCode[])
@@ -532,6 +556,7 @@ async function retrieveParcelData(
     soilDepth: soilDepths[0],
     soilWaterCapacity: soilWaterCapacities[0],
     weatherStation: station,
+    weatherUntil,
     lastYearWeatherReports,
     historicalDailyWeather,
     historicalYields,
@@ -689,6 +714,37 @@ function buildCapSection(
   }
 
   return section
+}
+
+/**
+ * What was grown at the point, campaign after campaign, oldest first: the latest
+ * declaration, then the ones of the place in earlier campaigns.
+ */
+function buildRotation(
+  capParcel: CapParcel | undefined,
+  capCode: MasterCapCode | undefined,
+  history: CropOfCampaign[],
+): NonNullable<ParcelIdentifierOkPage["rotation"]> | undefined {
+  const past = history.map((crop) => ({
+    campaign: crop.campaign,
+    crop: crop.crop ?? crop["crop-code"] ?? "",
+    code: crop["crop-code"] ?? "",
+    current: false,
+  }))
+  const latest = Math.max(0, ...past.map((crop) => crop.campaign))
+  const current = capParcel
+    ? [
+        {
+          campaign: capParcel.campaign ?? capCode?.year ?? latest + 1,
+          crop: capCode?.cap_label ?? capParcel.cap_crop_code ?? "",
+          code: capParcel.cap_crop_code ?? "",
+          current: true,
+        },
+      ]
+    : []
+  const rotation = [...past, ...current].sort((a, b) => a.campaign - b.campaign)
+
+  return rotation.length > 0 ? rotation : undefined
 }
 
 function buildSoilSection(
@@ -871,6 +927,7 @@ function buildAreaItemsSection(items: AreaItem[], cxt: Context): TableSection {
   }
 }
 
+// The leaf of the logo, the colour of the crops
 const YIELD_CHART_COLOR = "#2f8f89"
 
 function buildHistoricalYieldsChart(
@@ -1063,9 +1120,34 @@ function buildMsaPopulationsSection(
   }
 }
 
+async function latestReportOf(db: Pool, stationId: string): Promise<Date | undefined> {
+  const schema = import.meta.env.DB_SCHEMA
+
+  return db
+    .query(
+      `SELECT max(started_at) AS latest FROM "${schema}".registered_hourly_weathers WHERE station_id = $1`,
+      [stationId],
+    )
+    .then((result) => (result.rows[0]?.latest ? new Date(result.rows[0].latest) : undefined))
+    .catch(() => undefined)
+}
+
+// Great-circle distance, enough to say how far a station is
+function kilometersBetween(a: Point, b: Point): number {
+  const radians = (degrees: number) => (degrees * Math.PI) / 180
+  const [lonA, latA] = a.coordinates
+  const [lonB, latB] = b.coordinates
+  const h =
+    Math.sin(radians(latB - latA) / 2) ** 2 +
+    Math.cos(radians(latA)) * Math.cos(radians(latB)) * Math.sin(radians(lonB - lonA) / 2) ** 2
+
+  return 2 * 6371 * Math.asin(Math.sqrt(h))
+}
+
 async function fetchHistoricalDailyWeather(
   db: Pool,
   stationId: string,
+  until: Date,
 ): AsyncResult<Error, HistoricalDailyAggregate[]> {
   const schema = import.meta.env.DB_SCHEMA
   const q = `
@@ -1081,14 +1163,14 @@ async function fetchHistoricalDailyWeather(
         SUM(COALESCE(rain, 0)) AS daily_rain
       FROM "${schema}".registered_hourly_weathers
       WHERE station_id = $1
-        AND started_at >= NOW() - INTERVAL '${WEATHER_HISTORY_YEARS} years'
-        AND started_at < NOW() - INTERVAL '30 days'
+        AND started_at >= $2::timestamptz - INTERVAL '${WEATHER_HISTORY_YEARS} years'
+        AND started_at < $2::timestamptz - INTERVAL '${WEATHER_WINDOW_DAYS} days'
       GROUP BY day
     ) daily
     GROUP BY month, day
   `
   try {
-    const result = await db.query(q, [stationId])
+    const result = await db.query(q, [stationId, until.toISOString()])
     return Ok(result.rows as HistoricalDailyAggregate[])
   } catch (e) {
     return Err(e as Error)
@@ -1101,6 +1183,7 @@ function buildWeatherReportsSection(
   historical: HistoricalDailyAggregate[] | undefined,
   cxt: Context,
   legend: any,
+  place: { until: Date | undefined; from: Point },
 ) {
   // Aggregate current 30-day window by day: daily max temp + daily rain sum.
   type DayAcc = {
@@ -1170,6 +1253,19 @@ function buildWeatherReportsSection(
       method: "GET",
       href: "/weather/stations/" + station.reference_name,
     }),
+    // How far the station is, and when its reports stop: they are not always of yesterday
+    distance: Hypermedia.Number({
+      label: cxt.t("tools_station_distance"),
+      value: Math.round(kilometersBetween(place.from, station.centroid)),
+      unit: "km",
+    }),
+    until: place.until
+      ? Hypermedia.Date({
+          label: cxt.t("tools_station_until"),
+          value: cxt.dateTimeFormatter.Date(place.until),
+          iso: place.until.toISOString(),
+        })
+      : undefined,
     legend,
     values,
   }

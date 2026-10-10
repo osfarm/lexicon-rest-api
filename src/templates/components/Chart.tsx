@@ -9,6 +9,8 @@ type Legend = Record<
     type: "line" | "bar"
     side: "left" | "right"
     stack?: string
+    // A line drawn dashed, as an average beside what was measured
+    dashed?: boolean
   }
 >
 
@@ -17,6 +19,10 @@ type Values = Record<string, Record<string, unknown>>
 interface Props {
   legend: Legend
   values: Values
+  // Pixels; 400 when not given
+  height?: number
+  // Without the toolbox, in the typeface of the page: a chart read in passing, inside a record
+  plain?: boolean
 }
 
 export function Chart(props: Props) {
@@ -66,11 +72,23 @@ export function Chart(props: Props) {
     yAxisIndex: sides.indexOf(item.side),
     data: Object.values(values).map((entry) => entry[key]),
     stack: item.stack,
+    ...(item.dashed ? { lineStyle: { type: "dashed" }, symbol: "none" } : {}),
+    ...(props.plain && item.type === "line" ? { smooth: false, lineStyle: { width: 3, ...(item.dashed ? { type: "dashed", width: 2 } : {}) } } : {}),
+    ...(props.plain && item.type === "bar" ? { barMaxWidth: 18 } : {}),
   }))
+
+  const height = props.height ?? 400
+  const toolbox = props.plain
+    ? {}
+    : { feature: { dataView: { show: true, readOnly: false }, saveAsImage: { show: true } } }
+  const textStyle = props.plain
+    ? { fontFamily: '"OSFarm Ubuntu", "Helvetica Neue", Arial, sans-serif', color: "#0e3d48" }
+    : {}
+  const grid = props.plain ? { left: 8, right: 8, top: 48, bottom: 8, containLabel: true } : undefined
 
   return (
     <>
-      <div id={"chart-" + uniqid} style="width: 100%;height:400px;"></div>
+      <div id={"chart-" + uniqid} style={`width: 100%;height:${height}px;`}></div>
 
       <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
 
@@ -87,12 +105,9 @@ let option = {
     }
   },
 
-  toolbox: {
-    feature: {
-      dataView: { show: true, readOnly: false },
-      saveAsImage: { show: true }
-    }
-  },
+  toolbox: ${JSON.stringify(toolbox)},
+  textStyle: ${JSON.stringify(textStyle)},
+  ${grid ? `grid: ${JSON.stringify(grid)},` : ""}
   legend: ${JSON.stringify(echartsLegend)},
   xAxis: ${JSON.stringify(echartsX)},
   yAxis: ${JSON.stringify(echartsY)},
@@ -100,6 +115,8 @@ let option = {
 };
 
 option && myChart.setOption(option);
+window.addEventListener('resize', function () { myChart.resize() });
+window.addEventListener('load', function () { myChart.resize() });
 
        
         }`}{" "}
