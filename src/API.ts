@@ -2,7 +2,7 @@ import { match } from "shulk"
 import type { Context } from "./types/Context"
 import { applyRequestConfiguration, pool } from "./applyRequestConfiguration"
 import { checkAccess, countRequest, startAccessControl } from "./access"
-import { ADMIN_SCOPE, OPEN_SCOPE } from "./access/Plan"
+import { OPEN_SCOPE, SELF_CHECKED_SCOPES } from "./access/Plan"
 import { callerAddress } from "./access/CallerAddress"
 import type { BunRequest } from "bun"
 import { ObjectFlatMap, ObjectMap } from "./utils"
@@ -149,9 +149,10 @@ export class API {
         ...ObjectMap(
           this.endpoints,
           (path, handler) => async (req: BunRequest<any>, server: any) => {
-            // The administration has its own sessions: neither keys nor rate limits apply to it
+            // The administration and the contribution tool have their own sessions: neither keys in
+            // headers nor rate limits apply to them
             const access =
-              this.scopes[path] === ADMIN_SCOPE
+              SELF_CHECKED_SCOPES.includes(this.scopes[path])
                 ? undefined
                 : await checkAccess(
                     pool,

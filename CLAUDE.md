@@ -81,6 +81,8 @@ Each namespace under `src/namespaces/` exports an `API.new()...` chain. Larger o
 
 `src/namespaces/Contribute.tsx` serves `/contribute`, the guide of `./lexicon contribute` (the review of a tabular contribution on the build side) for someone who proposes a dataset. It is in French, as the command answers in French; only its title and the links to it are translated. Its content (`src/contribute/Guide.ts`) quotes the answers of `Contribution::Review` in the `lexicon` repository: change both together.
 
+The contribution tool itself is served under `/contribute/outil` (`src/contribute/Workshop.ts`). It is not written here: it is the Ruby tool of the `lexicon` repository, run as the `contribute` service of the serving stack (`CONTRIBUTE_URL`, `CONTRIBUTE_SECRET`). The API asks for an API key at `/contribute/outil/cle`, keeps it in a cookie limited to the tool, checks it at each request (`holderOfKey`) and relays the request with the prefix of the key as the name of the workspace and the shared secret. These paths carry the scope `CONTRIBUTE_SCOPE`: like the administration, they check their caller themselves, so neither keys in headers nor rate limits apply (the page of the tool asks every two seconds whether its files changed). Without `CONTRIBUTE_SECRET`, the page says the tool is not available.
+
 ### R&D documents and Duke, the assistant
 
 - `src/rd-agri/RdAgri.ts` searches `registered_rd_agri_documents` through its `search` tsvector column. Accents are removed on both sides with the same `translate()` mapping as `lib/datasources/rd_agri.rb` in the lexicon repository: keep the two in step. `src/namespaces/RdAgri.tsx` serves `/rd-agri/documents`; the MCP tools `search_rd_documents` and `get_rd_document` use the same module.

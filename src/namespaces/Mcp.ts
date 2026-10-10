@@ -27,7 +27,14 @@ const PORT = import.meta.env.PORT
 const RESOURCE_PATH = /^\/[a-z0-9][a-zA-Z0-9/_.:-]*$/
 
 // What a model has no business reading through read_resource
-const CLOSED_PREFIXES = ["/admin", "/mcp", "/bundles", "/public", "/documentation"]
+const CLOSED_PREFIXES = [
+  "/admin",
+  "/mcp",
+  "/bundles",
+  "/public",
+  "/documentation",
+  "/contribute/outil",
+]
 
 const isClosed = (path: string) =>
   path === "/" ||

@@ -1,5 +1,6 @@
 import type { Pool } from "pg"
-import { authorize, type Decision } from "./AccessControl"
+import { authorize, identify, type Decision, type Identity } from "./AccessControl"
+import { OPEN_SCOPE } from "./Plan"
 import { emptyKeyStore, refreshKeyStore } from "./KeyStore"
 import { emptyRateLimitState, forgetIdleCallers } from "./RateLimit"
 import { setUpAccessSchema } from "./Schema"
@@ -56,6 +57,30 @@ export async function checkAccess(
     scope,
     now,
   })
+}
+
+/**
+ * The holder of a key presented outside the headers of a request, such as the one
+ * the contribution tool keeps in a cookie. Undefined when the key is not valid,
+ * or when keys cannot be checked.
+ */
+export async function holderOfKey(db: Pool, key: string): Promise<Identity | undefined> {
+  if (IS_DISABLED) {
+    return undefined
+  }
+
+  const now = Date.now()
+  await refreshKeyStore(store, db, now)
+
+  const identity = identify(store, {
+    authorization: null,
+    apiKeyHeader: key,
+    ip: "",
+    scope: OPEN_SCOPE,
+    now,
+  })
+
+  return "status" in identity || identity.kind !== "key" ? undefined : identity
 }
 
 export function countRequest(decision: Decision, path: string, status: number) {

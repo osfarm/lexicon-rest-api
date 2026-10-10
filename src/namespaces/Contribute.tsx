@@ -13,6 +13,19 @@ import {
   TABLE_EXAMPLE,
   TYPES,
 } from "../contribute/Guide"
+import {
+  expiredKeyCookie,
+  keyCookie,
+  keyIn,
+  relay,
+  WORKSHOP_PATH,
+  workshopOf,
+} from "../contribute/Workshop"
+import { holderOfKey } from "../access"
+import { forgetLoginAttempts, mayAttemptLogin } from "../access/AdminSession"
+import { CONTRIBUTE_SCOPE } from "../access/Plan"
+import { addressOf, isPost, isSecure, redirect } from "./Admin/session"
+import type { Context } from "../types/Context"
 import { Hypermedia } from "../Hypermedia"
 import { Layout } from "../templates/layouts/Layout"
 import type { Translator } from "../Translator"
@@ -105,6 +118,15 @@ export function ContributePage(props: { t: Translator }) {
         <p>
           La commande ne publie rien et n'envoie rien : elle lit vos fichiers sur votre
           poste. Rien n'est mis en service sans la relecture d'un mainteneur.
+        </p>
+      </div>
+      <div class="notice" id="en-ligne">
+        <p>
+          <strong>Sans rien installer :</strong> avec une clé d'API du Lexicon,{" "}
+          <a href={WORKSHOP_PATH}>l'outil de contribution en ligne</a> fait la même
+          relecture dans le navigateur. On y dépose son tableau (CSV, Excel ou
+          LibreOffice), on remplit la fiche dans un formulaire, puis on propose le jeu
+          d'un bouton.
         </p>
       </div>
 
@@ -258,4 +280,131 @@ export function ContributePage(props: { t: Translator }) {
   )
 }
 
-export const Contribute = API.new().path("/contribute", ({ t }) => ContributePage({ t }))
+const workshop = workshopOf({
+  CONTRIBUTE_URL: import.meta.env.CONTRIBUTE_URL,
+  CONTRIBUTE_SECRET: import.meta.env.CONTRIBUTE_SECRET,
+})
+const keyAttempts = new Map<string, number[]>()
+
+/**
+ * Where a visitor gives the key that opens the tool, or reads that this site has no tool to offer.
+ */
+export function WorkshopDoor(props: { t: Translator; available: boolean; error?: string }) {
+  const { t } = props
+
+  return (
+    <Layout
+      title="Outil de contribution"
+      breadcrumbs={[
+        Hypermedia.Link({ value: t("home_title"), method: "GET", href: "/" }),
+        Hypermedia.Link({ value: t("contribute_title"), method: "GET", href: "/contribute" }),
+      ]}
+      t={t}
+      section="catalog"
+    >
+      {props.available ? (
+        <>
+          <p class="prose">
+            L'outil relit votre tableau comme le fera un mainteneur d'OSFarm : déposez-le,
+            remplissez la fiche, proposez le jeu. Vos jeux sont gardés sur le serveur du
+            Lexicon, dans un espace propre à votre clé d'API ; rien n'est mis en service
+            sans la relecture d'un mainteneur.
+          </p>
+          {props.error ? <p class="card error">{e(props.error)}</p> : ""}
+          <form method="POST" action={WORKSHOP_PATH + "/cle"}>
+            <div class="field">
+              <label for="key">Votre clé d'API</label>
+              <br />
+              <input
+                type="password"
+                name="key"
+                id="key"
+                required
+                autocomplete="off"
+                placeholder="lex_…"
+                size="50"
+              />
+            </div>
+            <button class="button" type="submit">
+              Ouvrir l'outil
+            </button>
+          </form>
+          <p class="prose">
+            Pas de clé ? Elle se demande à OSFarm. Sans clé, l'outil s'installe aussi sur
+            son poste : voir <a href="/contribute#installer">le guide</a>.
+          </p>
+        </>
+      ) : (
+        <p class="prose">
+          L'outil de contribution en ligne n'est pas disponible sur ce site. Il s'installe
+          sur son poste : voir <a href="/contribute#installer">le guide</a>.
+        </p>
+      )}
+    </Layout>
+  )
+}
+
+function door(cxt: Context, error?: string, status = 200) {
+  return new Response(
+    String(WorkshopDoor({ t: cxt.t, available: workshop !== undefined, error })),
+    {
+      status,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    },
+  )
+}
+
+// The key is asked once, then kept in a cookie for the tool alone
+async function enter(cxt: Context) {
+  if (workshop === undefined || !isPost(cxt)) {
+    return redirect(WORKSHOP_PATH)
+  }
+
+  const address = addressOf(cxt)
+  if (!mayAttemptLogin(keyAttempts, address, Date.now())) {
+    return door(cxt, "Trop de tentatives. Réessayez dans un quart d'heure.", 429)
+  }
+
+  const key = String((await cxt.request.formData()).get("key") ?? "").trim()
+  const holder = await holderOfKey(cxt.db, key)
+
+  if (holder === undefined) {
+    return door(cxt, "Cette clé n'est pas reconnue, ou n'est plus valable.", 401)
+  }
+  forgetLoginAttempts(keyAttempts, address)
+
+  return redirect(WORKSHOP_PATH, { "Set-Cookie": keyCookie(key, isSecure(cxt)) })
+}
+
+function leave() {
+  return redirect(WORKSHOP_PATH, { "Set-Cookie": expiredKeyCookie() })
+}
+
+// Every page and every change of the tool: relayed for the holder of the key, to their workspace
+async function work(cxt: Context) {
+  const key = keyIn(cxt.request.headers.get("cookie"))
+  const holder =
+    workshop === undefined || key === undefined
+      ? undefined
+      : await holderOfKey(cxt.db, key)
+
+  if (workshop === undefined || holder === undefined) {
+    return cxt.request.method === "GET" &&
+      new URL(cxt.request.url).pathname === WORKSHOP_PATH
+      ? door(cxt)
+      : new Response("Votre session est terminée : rouvrez l'outil avec votre clé.", {
+          status: 401,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        })
+  }
+
+  return relay(workshop, cxt.request, holder.label)
+}
+
+export const Contribute = API.new()
+  .path("/contribute", ({ t }) => ContributePage({ t }))
+  .restrictedTo(CONTRIBUTE_SCOPE)
+  .path(WORKSHOP_PATH, work)
+  .path(WORKSHOP_PATH + "/cle", enter)
+  .path(WORKSHOP_PATH + "/sortir", leave)
+  .path(WORKSHOP_PATH + "/*", work)
