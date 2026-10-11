@@ -96,6 +96,7 @@ const STEPS: Record<string, { fr: string; en: string }> = {
   get_rd_document: { fr: "Lecture du document", en: "Reading the document" },
   get_crop_history: { fr: "Cultures déclarées au point", en: "Crops declared at the point" },
   get_input_price: { fr: "Prix de l'intrant", en: "Price of the input" },
+  find_agricultural_trainings: { fr: "Recherche de formations agricoles", en: "Searching agricultural trainings" },
 }
 
 // What the page does once loaded: it sends the question, then shows each event as it comes.

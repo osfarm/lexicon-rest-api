@@ -961,7 +961,7 @@ const Paths = (t: Translator) => ({
   "/mcp": {
     post: {
       summary:
-        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_phytosanitary_purchases, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price. A key is only needed for what is reserved.",
+        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_phytosanitary_purchases, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price, find_agricultural_trainings. get_commune and get_parcel carry the quality signs, the organic farming, the farms certified HVE, the canteens and the agricultural schools of a commune. A key is only needed for what is reserved.",
       tags: [t("tools")],
       requestBody: {
         content: {

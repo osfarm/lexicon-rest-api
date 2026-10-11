@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { figuresQueryOf, fold, productionsNamed } from "./CropFigures"
+import { documentationsOf, figuresQueryOf, fold, productionsNamed } from "./CropFigures"
 import { productQueryOf } from "../phytosanitary/ProductSearch"
 import { grossProductOf } from "../parcel-context/ParcelContext"
 import { shortened } from "../assistant/Conversation"
@@ -83,5 +83,25 @@ describe("shortened", () => {
     expect(cut.startsWith("x".repeat(10) + "\n")).toBe(true)
     expect(cut).toContain("40 more characters")
     expect(cut).toContain("NOT the whole result")
+  })
+})
+
+describe("documentationsOf", () => {
+  test("gives the page of each production, and nothing when the package is not in service", async () => {
+    const asked: unknown[][] = []
+    const db = {
+      query: async (_sql: string, values: unknown[]) => {
+        asked.push(values)
+
+        return { rows: [{ reference: "almond", url: "https://wiki.tripleperformance.fr/wiki/Amande" }] }
+      },
+    } as never
+    const broken = { query: async () => Promise.reject(new Error("relation does not exist")) } as never
+
+    expect((await documentationsOf(db, ["almond", "quinoa"])).get("almond")).toBe(
+      "https://wiki.tripleperformance.fr/wiki/Amande",
+    )
+    expect(asked[0]).toEqual([["almond", "quinoa"]])
+    expect((await documentationsOf(broken)).size).toBe(0)
   })
 })

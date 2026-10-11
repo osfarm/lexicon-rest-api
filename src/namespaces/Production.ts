@@ -10,6 +10,7 @@ import type { Translator } from "../Translator"
 import type { Context } from "../types/Context"
 import { isString, ObjectFlatMap } from "../utils"
 import { API } from "../API"
+import { documentationsOf } from "../crop-figures/CropFigures"
 import { AdministrativeAreaTable } from "./GeographicalReferences/AdministrativeArea"
 import { Concurrently } from "shulk"
 
@@ -243,8 +244,11 @@ export const Production = API.new()
         .where("datasource", "=", "technical_workflows"),
     }),
   )
-  .path("/production/productions", async (cxt) =>
-    generateTablePage(cxt, {
+  .path("/production/productions", async (cxt) => {
+    // Where the wiki Triple Performance documents each production
+    const documentations = await documentationsOf(cxt.db)
+
+    return generateTablePage(cxt, {
       title: cxt.t("productions_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
       query: ProductionTable(cxt.db).select().orderBy("reference_name", "ASC"),
@@ -252,6 +256,8 @@ export const Production = API.new()
         name: cxt.t("common_fields_name"),
         family: cxt.t("activity_family"),
         usage: cxt.t("usage"),
+        documentation: cxt.t("productions_documentation"),
+        reference: cxt.t("productions_reference"),
       },
       form: {
         family: Field.Select({
@@ -292,10 +298,25 @@ export const Production = API.new()
               value: cxt.t("productions_usage_" + resource.usage),
             })
           : undefined,
+        documentation: documentations.has(resource.reference_name)
+          ? Hypermedia.Link({
+              label: cxt.t("productions_documentation"),
+              value: "Triple Performance",
+              method: "GET",
+              href: documentations.get(resource.reference_name) as string,
+            })
+          : undefined,
+        reference: Hypermedia.Text({
+          label: cxt.t("productions_reference"),
+          value: resource.reference_name,
+        }),
       }),
-      credits: CreditTable(cxt.db).select().where("datasource", "=", "productions"),
-    }),
-  )
+      credits: CreditTable(cxt.db)
+        .select()
+        // productions and production_documentations
+        .where("datasource", "LIKE", "production%"),
+    })
+  })
   .path("/production/prices", async (cxt) => {
     const species = await fetchDistinctSpecies(cxt)
 

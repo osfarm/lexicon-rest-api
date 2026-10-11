@@ -70,6 +70,30 @@ const rowsOf = <Row>(db: Pool, sql: string, values: unknown[]) =>
     .then((result) => result.rows as Row[])
     .catch(() => undefined)
 
+export const DOCUMENTATION_CREDIT =
+  "Documentation: page of the production on the wiki Triple Performance (tripleperformance.fr), CC-BY-SA 4.0."
+
+/**
+ * Where each production is documented on the wiki Triple Performance, by
+ * reference name. Without references, every production that has a page. Empty
+ * when the package is not in service.
+ */
+export function documentationsOf(
+  db: Pick<Pool, "query">,
+  references?: string[],
+): Promise<Map<string, string>> {
+  return db
+    .query(
+      `SELECT production_reference_name AS reference, url
+       FROM ${table("master_production_documentations")}
+       WHERE source = 'tripleperformance' AND ($1::varchar[] IS NULL OR production_reference_name = ANY($1))
+       ORDER BY 1;`,
+      [references ?? null],
+    )
+    .then((result) => new Map(result.rows.map((row) => [row.reference as string, row.url as string])))
+    .catch(() => new Map())
+}
+
 /**
  * Yields by campaign and latest prices of the productions a query names, in a
  * department or, without one, as the average of the departments.
@@ -128,20 +152,26 @@ export async function cropFigures(db: Pool, asked: FiguresQuery) {
     [species, asked.department ? [asked.department, "0"] : ["0"]],
   )
   const withYields = new Set((yields ?? []).map((row) => row.production))
+  // The productions that have figures come first: many names have none
+  const kept = [...named]
+    .sort((a, b) => Number(withYields.has(b.reference)) - Number(withYields.has(a.reference)))
+    .slice(0, PRODUCTIONS_KEPT)
+  const documentations = await documentationsOf(
+    db,
+    kept.map((production) => production.reference),
+  )
 
   return {
     query: asked.production,
     ...(asked.department ? { department: asked.department } : {}),
-    // The productions that have figures come first: many names have none
-    productions: [...named]
-      .sort((a, b) => Number(withYields.has(b.reference)) - Number(withYields.has(a.reference)))
-      .slice(0, PRODUCTIONS_KEPT)
-      .map((production) => ({
-        reference: production.reference,
-        name: production.fra,
-        specie: production.specie,
-        "has-yields": withYields.has(production.reference),
-      })),
+    productions: kept.map((production) => ({
+      reference: production.reference,
+      name: production.fra,
+      specie: production.specie,
+      "has-yields": withYields.has(production.reference),
+      // The page of the production on the wiki Triple Performance, when it has one
+      documentation: documentations.get(production.reference),
+    })),
     yields: (yields ?? []).map((row) => ({
       production: row.production,
       campaign: row.campaign,

@@ -43,6 +43,7 @@ const backend: McpBackend = {
   listResources: async () => [],
   readResource: async () => ({}),
   commune: async () => ({}),
+  trainings: async () => ({}),
   enterprise: async () => {
     throw new Error("This needs an API key")
   },

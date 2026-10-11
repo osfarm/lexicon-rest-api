@@ -37,6 +37,7 @@
   /* Families of datasets, as the discs of the logo */
   --family-places: var(--place);
   --family-farms: var(--ink);
+  --family-territory: #8a4f9e;
   --family-crops: var(--leaf);
   --family-environment: var(--water);
 
@@ -770,13 +771,11 @@ textarea {
 .hero h1 {
   font-size: clamp(var(--step-3), 4.2vw, 2.7rem);
   letter-spacing: -0.02em;
-  max-width: 18ch;
   margin-bottom: 0.4em;
 }
 
 .hero .lead {
   font-size: var(--step-1);
-  max-width: var(--measure);
   color: var(--muted);
 }
 
@@ -788,7 +787,7 @@ textarea {
 
 /* The one thing wider than the page */
 .weave-scroll {
-  width: min(1340px, 100vw - 2.5rem);
+  width: min(1600px, 100vw - 2.5rem);
   margin-left: 50%;
   transform: translateX(-50%);
   overflow-x: auto;
@@ -796,7 +795,7 @@ textarea {
 }
 
 .weave table {
-  min-width: 1040px;
+  min-width: 1560px;
   table-layout: fixed;
   font-size: var(--step--1);
 }
@@ -1050,6 +1049,10 @@ a.chip:visited {
 
 .family-farms {
   --family: var(--family-farms);
+}
+
+.family-territory {
+  --family: var(--family-territory);
 }
 
 .family-crops {

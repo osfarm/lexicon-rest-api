@@ -64,11 +64,16 @@ export function compact(value: Json): Json {
 const isTable = (value: Json): value is { columns: Record<string, string>; rows: Json[] } =>
   isObject(value) && isObject(value.columns) && Array.isArray(value.rows)
 
-// In a row a link is its text alone: the address of every cell would double the table
+// In a row a link is its text alone: the address of every cell would double the table.
+// A link that leaves the API is its address: that is what the cell is there to give
 function cellOf(cell: Json): Json {
   const value = compact(cell) ?? null
 
-  return isObject(cell) && cell["@type"] === "Link" && isObject(value) ? value.value : value
+  if (!isObject(cell) || cell["@type"] !== "Link" || !isObject(value)) {
+    return value
+  }
+
+  return typeof value.href === "string" && /^https?:\/\//.test(value.href) ? value.href : value.value
 }
 
 /**

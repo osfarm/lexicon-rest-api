@@ -434,8 +434,9 @@ footer_association,L'association,The association
 footer_version,Version,Version
 footer_licence,Code sous licence MIT,Code under the MIT licence
 home_headline,"Les référentiels agricoles français, reliés entre eux.","French agricultural reference data, linked together."
+home_headline_count,"%count de données agricoles françaises, reliées entre elles.","%count French agricultural records, linked together."
 home_lead,"Cadastre, parcelles déclarées à la PAC, entreprises, produits phytosanitaires, météo, travaux de recherche : le Lexicon rassemble ces données publiques et les relie par des clés communes.","Cadastre, parcels declared to the CAP, companies, plant protection products, weather, research: Lexicon gathers this public data and links it through shared keys."
-home_action_explore,Explorer les données,Explore the data
+home_action_identify,Identifier une parcelle,Identify a parcel
 home_action_ask,Poser une question à Duke,Ask Duke a question
 home_weave_caption,"Les jeux de données du Lexicon en colonnes, les clés qui les relient en lignes : un point marque chaque jeu qui porte la clé.","The datasets of Lexicon as columns, the keys linking them as rows: a dot marks each dataset carrying the key."
 home_weave_hint,"Chaque fil est une clé commune à plusieurs jeux de données. Survolez une clé ou un jeu pour voir ce qu'il relie.","Each thread is a key shared by several datasets. Hover a key or a dataset to see what it links."
@@ -679,3 +680,5 @@ tools_parcel_crop_documents_department,"sur cette culture dans le département. 
 tools_parcel_crop_documents_region,"sur cette culture dans la région. Les plus récents :","about this crop in the region. The latest:"
 tools_trainings,Trouver une formation agricole,Find an agricultural training
 explore_tools_trainings,"Les établissements de l'enseignement agricole par lieu, diplôme, spécialité et voie.","Schools of agricultural education by place, diploma, speciality and route."
+productions_documentation,Documentation,Documentation
+productions_reference,Référence,Reference

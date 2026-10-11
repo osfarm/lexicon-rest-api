@@ -16,6 +16,7 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   rdDocument: async (id) => ({ id }),
   cropHistory: async (longitude, latitude) => ({ longitude, latitude, campaigns: [] }),
   inputPrices: async (args) => ({ query: args.query, prices: [] }),
+  trainings: async (args) => ({ place: args.place, schools: [] }),
   parcel: async (longitude, latitude) => ({ point: { longitude, latitude } }),
   cropFigures: async (args) => ({ query: args.production, yields: [] }),
   phytosanitaryProducts: async (args) => ({ total: 0, products: [], asked: args }),
@@ -91,8 +92,15 @@ describe("handleMcpMessage", () => {
       "get_rd_document",
       "get_crop_history",
       "get_input_price",
+      "find_agricultural_trainings",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
+  })
+
+  test("trainings are searched with the arguments of the caller", async () => {
+    const response: any = await call("find_agricultural_trainings", { place: "17387", diploma: "BTSA" })
+
+    expect(JSON.parse(response.result.content[0].text)).toEqual({ place: "17387", schools: [] })
   })
 
   test("the price of an input is asked with the arguments of the caller", async () => {

@@ -1,6 +1,6 @@
 import { Html } from "@elysiajs/html"
 import { readCatalog } from "../../catalog/Catalog"
-import { DATASETS, figuresOf, JOURNEY } from "../../home/Weave"
+import { DATASETS, figuresOf, JOURNEY, roundedCount } from "../../home/Weave"
 import type { Context } from "../../types/Context"
 import { asset } from "../Assets"
 import { Weave } from "../components/Weave"
@@ -15,6 +15,8 @@ export async function Home(cxt: Context) {
   const { t } = cxt
   const language = t.language === "en" ? "en" : "fr"
   const catalog = await readCatalog(cxt.db)
+  // Every line of every dataset in service; the title falls back on words when the catalogue is not read
+  const records = (catalog ?? []).reduce((total, dataset) => total + dataset.rows, 0)
 
   return (
     <Layout title={t("home_title")} breadcrumbs={[]} t={t} section="home" bare>
@@ -26,11 +28,15 @@ export async function Home(cxt: Context) {
       </div>
 
       <div class="hero">
-        <h1>{t("home_headline")}</h1>
+        <h1>
+          {records > 0
+            ? t("home_headline_count").replace("%count", roundedCount(records, language))
+            : t("home_headline")}
+        </h1>
         <p class="lead">{t("home_lead")}</p>
         <div class="actions">
-          <a class="button primary" href="/explore">
-            {t("home_action_explore")}
+          <a class="button primary" href="/tools/parcel-identifier">
+            {t("home_action_identify")}
           </a>
           <a class="button" href="/tools/assistant">
             {t("home_action_ask")}
@@ -50,7 +56,7 @@ export async function Home(cxt: Context) {
       </p>
 
       <h2>{t("home_journey_title")}</h2>
-      <p class="prose">{t("home_journey_lead")}</p>
+      <p>{t("home_journey_lead")}</p>
       <ol class="journey">
         {JOURNEY.map((step) => (
           <li

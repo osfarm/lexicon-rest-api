@@ -38,7 +38,7 @@ describe("the weave", () => {
     const { first, last } = threadOf(siren)
 
     expect(DATASETS[first].name).toBe("cadastre_owners")
-    expect(DATASETS[last].name).toBe("cap_beneficiaries")
+    expect(DATASETS[last].name).toBe("hve_farms")
   })
 })
 

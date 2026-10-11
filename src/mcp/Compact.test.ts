@@ -68,6 +68,19 @@ describe("compactPage", () => {
     expect(text.indexOf("rows-total")).toBeLessThan(text.indexOf('"rows"'))
   })
 
+  test("in a row, a link is its text unless it leaves the API", () => {
+    const link = (href: string) => ({ "@type": "Link", label: "Lien", value: "Lire", method: "GET", href })
+    const compacted = compactPage({
+      title: "Productions",
+      table: {
+        columns: { inside: "Fiche", outside: "Documentation" },
+        rows: [{ inside: link("/production/productions/almond"), outside: link("https://wiki.example.org/Amande") }],
+      },
+    }) as Record<string, any>
+
+    expect(compacted.rows).toEqual([["Lire", "https://wiki.example.org/Amande"]])
+  })
+
   test("a record keeps its sections without the chrome of the page", () => {
     expect(
       compactPage({

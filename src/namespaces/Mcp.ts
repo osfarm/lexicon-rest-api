@@ -15,7 +15,7 @@ import {
 import { handleMcpMessage, type McpBackend } from "../mcp/Mcp"
 import { compactPage } from "../mcp/Compact"
 import { parcelSummaryOf } from "../mcp/Parcel"
-import { cropFigures, figuresQueryOf } from "../crop-figures/CropFigures"
+import { cropFigures, DOCUMENTATION_CREDIT, figuresQueryOf } from "../crop-figures/CropFigures"
 import { productQueryOf, searchProducts } from "../phytosanitary/ProductSearch"
 import {
   communePurchases,
@@ -31,6 +31,9 @@ import {
 } from "../input-prices/InputPrices"
 import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
 import { addressOf } from "./Admin/session"
+import { foodProjectsOf } from "../food-projects/FoodProjects"
+import { SCHOOLS_CAVEAT, territoryOf } from "../territory/Territory"
+import { choicesOf, findSchools, placeOf, ROUTES } from "../territory/Trainings"
 import type { Context } from "../types/Context"
 
 const PORT = import.meta.env.PORT
@@ -201,7 +204,9 @@ export function backendFor(cxt: Context): McpBackend {
 
       return {
         ...figures,
-        note: "Yields: Agreste, by department. Prices before tax. Source: Lexicon OSFarm, dataset productions.",
+        note:
+          "Yields: Agreste, by department. Prices before tax. Source: Lexicon OSFarm, dataset productions. " +
+          DOCUMENTATION_CREDIT,
       }
     },
 
@@ -231,17 +236,32 @@ export function backendFor(cxt: Context): McpBackend {
           `No commune ${inseeCode}`,
         ),
       )
-      const purchases = await communePurchases(cxt.db, inseeCode)
+      const [purchases, territory, projects] = await Promise.all([
+        communePurchases(cxt.db, inseeCode),
+        // Who the farms certified HVE are is for the holders of a key
+        territoryOf(cxt.db, inseeCode, {
+          member: givesScope(cxt.identity.scopes, MEMBERS_SCOPE),
+        }),
+        foodProjectsOf(cxt.db, inseeCode),
+      ])
 
-      return purchases === undefined
-        ? link
-        : {
-            ...link,
-            "phytosanitary-purchases-kg-of-active-substance": {
-              ...purchases,
-              note: PURCHASES_CAVEAT,
-            },
-          }
+      return {
+        ...link,
+        ...(purchases === undefined
+          ? {}
+          : {
+              "phytosanitary-purchases-kg-of-active-substance": {
+                ...purchases,
+                note: PURCHASES_CAVEAT,
+              },
+            }),
+        "quality-signs": territory["quality-signs"],
+        organic: territory.organic,
+        hve: territory.hve,
+        canteens: territory.canteens,
+        "agricultural-schools": territory.schools,
+        "territorial-food-projects": projects,
+      }
     },
 
     phytosanitaryPurchases: async (args) => {
@@ -374,6 +394,46 @@ export function backendFor(cxt: Context): McpBackend {
             }
           : {}),
         note: "Prices before tax, metropolitan France. A negotiated price is the one of a purchasing group. Source: Lexicon OSFarm, dataset prices.",
+      }
+    },
+
+    trainings: async (args) => {
+      const said = (value: unknown) => (typeof value === "string" ? value.trim() : "")
+      const filters = {
+        diploma: said(args.diploma) || undefined,
+        speciality: said(args.speciality) || undefined,
+        route: ROUTES.includes(said(args.route)) ? said(args.route) : undefined,
+        q: said(args.query) || undefined,
+        boarding: args.boarding === true || undefined,
+      }
+      const choices = await required(
+        await choicesOf(cxt.db),
+        "The agricultural schools are not in service",
+      )
+      const place = said(args.place) ? await placeOf(cxt.db, said(args.place)) : undefined
+
+      if (said(args.place) && place === undefined) {
+        throw new Error(
+          `No commune matches ${said(args.place)}. Give an INSEE code, a postal code or the name of a commune.`,
+        )
+      }
+      if (place === undefined && Object.values(filters).every((value) => value === undefined)) {
+        throw new Error("Give a place, a diploma, a speciality, a route or a query")
+      }
+
+      const schools = await required(
+        await findSchools(cxt.db, filters, place),
+        "The agricultural schools are not in service",
+      )
+
+      return {
+        place,
+        schools,
+        // What one can filter by, when nothing matched or to narrow down
+        ...(schools.length === 0 || (!filters.diploma && !filters.speciality)
+          ? { diplomas: choices.diplomas, specialities: choices.specialities }
+          : {}),
+        note: SCHOOLS_CAVEAT,
       }
     },
   }

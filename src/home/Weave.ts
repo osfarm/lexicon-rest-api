@@ -5,7 +5,7 @@
 
 export type Text = Readonly<{ fr: string; en: string }>
 
-export type Family = "places" | "farms" | "crops" | "environment"
+export type Family = "places" | "farms" | "territory" | "crops" | "environment"
 
 export type WeaveDataset = Readonly<{
   // Name of the datasource in the catalogue
@@ -34,6 +34,7 @@ export type WeaveStep = Readonly<{
 export const FAMILIES: Readonly<Record<Family, Text>> = {
   places: { fr: "Lieux", en: "Places" },
   farms: { fr: "Exploitations", en: "Farms" },
+  territory: { fr: "Territoire et alimentation", en: "Territory and food" },
   crops: { fr: "Cultures", en: "Crops" },
   environment: { fr: "Milieu", en: "Climate" },
 }
@@ -41,14 +42,14 @@ export const FAMILIES: Readonly<Record<Family, Text>> = {
 export const DATASETS: readonly WeaveDataset[] = [
   {
     name: "postal_codes",
-    label: { fr: "Communes", en: "Communes" },
+    label: { fr: "Com\u00admunes", en: "Com\u00admunes" },
     family: "places",
     source: "La Poste",
     href: "/geographical-references/municipalities",
   },
   {
     name: "cadastre",
-    label: { fr: "Cadastre", en: "Cadastre" },
+    label: { fr: "Ca\u00addastre", en: "Ca\u00addastre" },
     family: "places",
     source: "Etalab",
     href: "/geographical-references/cadastral-parcels",
@@ -89,11 +90,53 @@ export const DATASETS: readonly WeaveDataset[] = [
     href: "/catalog/cap_beneficiaries",
   },
   {
+    name: "hve_farms",
+    label: { fr: "Exploi\u00adtations HVE", en: "HVE farms" },
+    family: "farms",
+    source: "Min. Agriculture",
+    href: "/catalog/hve_farms",
+  },
+  {
     name: "msa_populations",
-    label: { fr: "Population agricole", en: "Farming population" },
+    label: { fr: "Popu\u00adlation agricole", en: "Farming popu\u00adlation" },
     family: "farms",
     source: "MSA",
     href: "/catalog/msa_populations",
+  },
+  {
+    name: "quality_and_origin_signs",
+    label: { fr: "Signes de qualité", en: "Quality signs" },
+    family: "territory",
+    source: "INAO",
+    href: "/catalog/quality_and_origin_signs",
+  },
+  {
+    name: "organic_farming",
+    label: { fr: "Agri\u00adculture bio", en: "Organic farming" },
+    family: "territory",
+    source: "Agence Bio",
+    href: "/catalog/organic_farming",
+  },
+  {
+    name: "canteens",
+    label: { fr: "Can\u00adtines", en: "Can\u00adteens" },
+    family: "territory",
+    source: "ma cantine",
+    href: "/catalog/canteens",
+  },
+  {
+    name: "pat",
+    label: { fr: "Projets alimen\u00adtaires", en: "Food projects" },
+    family: "territory",
+    source: "France PAT",
+    href: "/geographical-references/food-projects",
+  },
+  {
+    name: "agricultural_schools",
+    label: { fr: "Ensei\u00adgnement agricole", en: "Farming schools" },
+    family: "territory",
+    source: "RefEA",
+    href: "/tools/trainings",
   },
   {
     name: "productions",
@@ -110,8 +153,15 @@ export const DATASETS: readonly WeaveDataset[] = [
     href: "/phytosanitary",
   },
   {
+    name: "phytosanitary_purchases",
+    label: { fr: "Achats de phyto\u00adsanitaires", en: "Purchases of plant protection" },
+    family: "crops",
+    source: "SDES",
+    href: "/phytosanitary/purchases",
+  },
+  {
     name: "rd_agri",
-    label: { fr: "Documents de R&D", en: "R&D documents" },
+    label: { fr: "Docu\u00adments de R&D", en: "R&D docu\u00adments" },
     family: "crops",
     source: "ACTA",
     href: "/rd-agri/documents",
@@ -139,6 +189,7 @@ export const KEYS: readonly WeaveKey[] = [
       "cadastral_prices",
       "graphic_parcels",
       "enterprises",
+      "quality_and_origin_signs",
       "weather",
     ],
   },
@@ -154,7 +205,14 @@ export const KEYS: readonly WeaveKey[] = [
       "cadastre",
       "enterprises",
       "cap_beneficiaries",
+      "hve_farms",
       "msa_populations",
+      "quality_and_origin_signs",
+      "organic_farming",
+      "canteens",
+      "pat",
+      "agricultural_schools",
+      "phytosanitary_purchases",
     ],
   },
   {
@@ -173,7 +231,16 @@ export const KEYS: readonly WeaveKey[] = [
       fr: "Le numéro à neuf chiffres d'une entreprise.",
       en: "The nine-digit number of a company.",
     },
-    carriedBy: ["cadastre_owners", "enterprises", "cap_beneficiaries"],
+    carriedBy: ["cadastre_owners", "enterprises", "cap_beneficiaries", "hve_farms"],
+  },
+  {
+    id: "food_project",
+    label: { fr: "le projet alimentaire", en: "the food project" },
+    definition: {
+      fr: "L'identifiant d'un projet alimentaire territorial (PAT) : chaque cantine porte celui des projets qui la couvrent.",
+      en: "The identifier of a territorial food project (PAT): each canteen carries that of the projects covering it.",
+    },
+    carriedBy: ["canteens", "pat"],
   },
   {
     id: "cap_crop_code",
@@ -192,6 +259,15 @@ export const KEYS: readonly WeaveKey[] = [
       en: "A plant or animal production of the reference list.",
     },
     carriedBy: ["productions", "rd_agri"],
+  },
+  {
+    id: "amm",
+    label: { fr: "l'autorisation du produit", en: "the product authorisation" },
+    definition: {
+      fr: "Le numéro d'autorisation de mise sur le marché (AMM) d'un produit phytosanitaire : il relie un produit autorisé aux quantités achetées dans chaque commune.",
+      en: "The marketing authorisation number (AMM) of a plant protection product: it ties an authorised product to the quantities bought in each commune.",
+    },
+    carriedBy: ["phytosanitary", "phytosanitary_purchases"],
   },
   {
     id: "pest",
@@ -240,8 +316,8 @@ export const JOURNEY: readonly WeaveStep[] = [
   },
   {
     text: {
-      fr: "La parcelle est dans une commune : ses établissements, ses aides, ses chefs d'exploitation.",
-      en: "The parcel is in a commune: its establishments, their subsidies, its farm chiefs.",
+      fr: "La parcelle est dans une commune : ses établissements, ses aides, ses chefs d'exploitation, ses signes de qualité, son agriculture bio, ses cantines.",
+      en: "The parcel is in a commune: its establishments, their subsidies, its farm chiefs, its quality signs, its organic farming, its canteens.",
     },
     link: {
       label: { fr: "Fiche d'une commune", en: "Record of a commune" },
@@ -253,6 +329,11 @@ export const JOURNEY: readonly WeaveStep[] = [
       "enterprises",
       "cap_beneficiaries",
       "msa_populations",
+      "hve_farms",
+      "quality_and_origin_signs",
+      "organic_farming",
+      "canteens",
+      "pat",
     ],
     keys: ["commune", "siren"],
   },
@@ -262,7 +343,7 @@ export const JOURNEY: readonly WeaveStep[] = [
       en: "The crop leads to its production, then to the research that deals with it.",
     },
     link: {
-      label: { fr: "Documents de R&D", en: "R&D documents" },
+      label: { fr: "Docu\u00adments de R&D", en: "R&D docu\u00adments" },
       href: "/rd-agri/documents",
     },
     datasets: ["graphic_parcels", "productions", "rd_agri"],

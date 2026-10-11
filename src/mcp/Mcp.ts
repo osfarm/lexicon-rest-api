@@ -42,6 +42,7 @@ export type McpBackend = Readonly<{
   rdDocument: (id: string) => Promise<unknown>
   cropHistory: (longitude: unknown, latitude: unknown) => Promise<unknown>
   inputPrices: (args: Record<string, unknown>) => Promise<unknown>
+  trainings: (args: Record<string, unknown>) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -101,7 +102,7 @@ export const TOOLS = [
   {
     name: "get_parcel",
     description:
-      "Everything the datasets know at a point of metropolitan France: commune, cadastral parcel and its area, crop declared to the CAP and the rotation of the last campaigns, yields of the department, selling price and what Lexicon holds about that crop, soil depth and available water, water nearby (distances in metres), zonings, land transactions, the weather of the last 30 days at the nearest station, farms of the commune. Use it for any question about a place given by coordinates.",
+      "Everything the datasets know at a point of metropolitan France: commune, cadastral parcel and its area, crop declared to the CAP and the rotation of the last campaigns, yields of the department, selling price and what Lexicon holds about that crop, soil depth and available water, water nearby (distances in metres), zonings, land transactions, the weather of the last 30 days at the nearest station, farms of the commune; the territorial food projects covering the commune; the farming and food of the commune as get_commune gives them (quality signs, organic farming, farms certified HVE, canteens, agricultural schools); and the zones delimited for wines under AOC that hold the point. Use it for any question about a place given by coordinates.",
     inputSchema: text({
       properties: {
         longitude: { type: "number", description: "Longitude, such as -0.78" },
@@ -113,7 +114,7 @@ export const TOOLS = [
   {
     name: "get_crop_figures",
     description:
-      'Yields (quintals per hectare, by campaign, 2021 onwards) and selling prices of a crop in France, by department. production takes a few French or English words such as "blé tendre", "tournesol" or "maize"; department is a code such as 17. Without a department, yields are averaged over the departments. Prices are few: many are national quotations (zone France).',
+      'Yields (quintals per hectare, by campaign, 2021 onwards) and selling prices of a crop in France, by department. production takes a few French or English words such as "blé tendre", "tournesol" or "maize"; department is a code such as 17. Without a department, yields are averaged over the departments. Prices are few: many are national quotations (zone France). Each production also comes with documentation, the address of its page on the wiki Triple Performance when it has one: give it to who wants to read about growing or raising it.',
     inputSchema: text({
       properties: {
         production: { type: "string", description: "Name of the crop" },
@@ -154,7 +155,7 @@ export const TOOLS = [
   {
     name: "get_commune",
     description:
-      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station; and the plant protection products bought there over five years (kilograms of active substance, per hectare of farmland outside grassland, by function and hazard class, the ten substances bought most). These are purchases estimated from sales, not uses: say so.",
+      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station; and the plant protection products bought there over five years (kilograms of active substance, per hectare of farmland outside grassland, by function and hazard class, the ten substances bought most). These are purchases estimated from sales, not uses: say so. Also its farming and food, each part with a note saying what the figures do not say, to be repeated: quality-signs (areas of AOC/AOP, IGP and IG covering it, with their products; INAO, for information only), organic (operators, farms and organic area year by year, Agence Bio; an area of fewer than three farms is masked and the intercommunality gives the order of magnitude; parcels are counted at the seat of the farm), hve (farms of the HVE directory seated there, a minimum; their names with a member key), canteens (canteens of the national register and the organic share of the purchases they declared; only canteens that declared), agricultural-schools (those of the commune, or the three nearest), territorial-food-projects (PAT covering it).",
     inputSchema: text({
       properties: {
         insee_code: { type: "string", description: "INSEE code, such as 17387 or 2A004" },
@@ -245,6 +246,28 @@ export const TOOLS = [
       required: ["query"],
     }),
   },
+  {
+    name: "find_agricultural_trainings",
+    description:
+      'Where a diploma of French agricultural education is prepared (RefEA, ministry of agriculture): schools, apprentice training centres and adult training centres, with their address, telephone, boarding, and the trainings matching. Give a place to get the nearest first (distances in kilometres between centres of communes: a school is placed in its commune, not at its address). diploma is one of "Bac Pro", "CAPA", "BTSA", "BP", "CS", "Bac Techno", "Seconde Pro"…; speciality such as "Viticulture", "Polyculture élevage", "Horticulture", "Grandes cultures"; query matches words of the name of the training. The answer lists every diploma and speciality one can filter by. Forty schools at most.',
+    inputSchema: text({
+      properties: {
+        place: {
+          type: "string",
+          description: "A commune: INSEE code, postal code or name, such as 17387 or Saintes",
+        },
+        diploma: { type: "string", description: "Diploma, such as BTSA" },
+        speciality: { type: "string", description: "Speciality, such as Viticulture" },
+        route: {
+          type: "string",
+          enum: ["school", "apprenticeship", "continuing", "higher_education"],
+          description: "How the training is followed",
+        },
+        query: { type: "string", description: "Words the name of the training holds" },
+        boarding: { type: "boolean", description: "Schools with boarding only" },
+      },
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -282,6 +305,7 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     get_rd_document: () => backend.rdDocument(String(args.id ?? "")),
     get_crop_history: () => backend.cropHistory(args.longitude, args.latitude),
     get_input_price: () => backend.inputPrices(args),
+    find_agricultural_trainings: () => backend.trainings(args),
   }
 
   return calls[name]
@@ -314,7 +338,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents, find_agricultural_trainings for where a diploma is prepared. get_commune and get_parcel also give the quality signs (AOC/AOP, IGP), the organic farming, the farms certified HVE and the canteens of a commune: each of these parts carries a caveat, repeat it with the figures. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {
