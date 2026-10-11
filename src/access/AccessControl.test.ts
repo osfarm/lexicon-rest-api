@@ -209,3 +209,30 @@ describe("authorize", () => {
     expect(reserved.allowed).toBe(false)
   })
 })
+
+describe("a key narrowed by its holder", () => {
+  const narrowed = member({
+    restrictions: { addresses: ["203.0.113.0/24"], domains: ["app.example.org"] },
+  })
+  const ask = (overrides: Partial<AccessRequest>) =>
+    authorize(
+      storeWith([narrowed.stored]),
+      emptyRateLimitState(),
+      request({ apiKeyHeader: narrowed.key, scope: "members", ...overrides }),
+    )
+
+  test("is served from an address it allows", () => {
+    expect(ask({ ip: "203.0.113.7" }).allowed).toBe(true)
+  })
+
+  test("is served to a page of a domain it allows", () => {
+    expect(ask({ ip: "198.51.100.1", origin: "https://app.example.org" }).allowed).toBe(true)
+  })
+
+  test("is refused elsewhere, and not served as an anonymous caller", () => {
+    const decision = ask({ ip: "198.51.100.1", origin: "https://other.example.org", scope: "open" })
+
+    expect(decision.allowed).toBe(false)
+    expect(decision.allowed ? undefined : decision.denial.status).toBe(403)
+  })
+})

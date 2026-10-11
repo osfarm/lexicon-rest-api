@@ -175,6 +175,9 @@ export function Layout(props: Props) {
                   <a href="/contribute">{t("contribute_title")}</a>
                 </li>
                 <li>
+                  <a href="/account">{t("footer_account")}</a>
+                </li>
+                <li>
                   <a href="/credits">{t("footer_credits")}</a>
                 </li>
               </ul>

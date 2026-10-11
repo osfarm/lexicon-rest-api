@@ -28,7 +28,7 @@ const Paths = (t: Translator) => ({
     get: ResourceEndpoint({
       description:
         t("tools_parcel_identifier") +
-        " (JSON). Everything Lexicon knows at a point: commune (the arrondissement in Paris, Lyon and Marseille), cadastral parcel, CAP parcel and the crops declared there campaign by campaign (rotation), what Lexicon holds about that crop (crop-context: selling price, gross product per hectare, authorised plant protection products, R&D documents, technical workflows), buildings on the parcel with their ground area, soil, water within about 500 m with its distance in metres and what the IGN says of it (water: permanent, ditch, water-police « Inscrit » for a watercourse listed by the water police, width), what stands around the cadastral parcel (surroundings: dwellings within 100 m and the closest one, schools, hospitals and homes for the elderly within 500 m, metres of hedge along it, woods, vines and orchards on it or within 100 m, high-voltage lines over it or within 100 m), the territorial food projects covering the commune (food-projects, an empty list when none does), zonings including protected areas and public forests, land transactions, the companies and public bodies that own the parcel (owners, with a member key; without a key, owners-preview gives the first two characters of each value and owners-note says members-only; no-legal-person when private persons own it), yields of the department, farms of the commune, and the 30 days before the latest report of the nearest weather station (distance and until). Example uses a point inside Saint-Porchaire (17250).",
+        " (JSON). Everything Lexicon knows at a point: commune (the arrondissement in Paris, Lyon and Marseille), cadastral parcel, CAP parcel and the crops declared there campaign by campaign (rotation), what Lexicon holds about that crop (crop-context: selling price, gross product per hectare, authorised plant protection products, R&D documents, technical workflows), buildings on the parcel with their ground area, soil, water within about 500 m with its distance in metres and what the IGN says of it (water: permanent, ditch, water-police « Inscrit » for a watercourse listed by the water police, width), what stands around the cadastral parcel (surroundings: dwellings within 100 m and the closest one, schools, hospitals and homes for the elderly within 500 m, metres of hedge along it, woods, vines and orchards on it or within 100 m, high-voltage lines over it or within 100 m), the territorial food projects covering the commune (food-projects, an empty list when none does), the farming and food of the commune (territory: quality-signs, organic, hve, canteens, schools, as in /links/communes/{insee}.json), the zones delimited for wines under AOC that hold the point (quality-zones, an empty list when none does), the owners that are in the HVE directory (hve-owners, with a member key), zonings including protected areas and public forests, land transactions, the companies and public bodies that own the parcel (owners, with a member key; without a key, owners-preview gives the first two characters of each value and owners-note says members-only; no-legal-person when private persons own it), yields of the department, farms of the commune, and the 30 days before the latest report of the nearest weather station (distance and until). Example uses a point inside Saint-Porchaire (17250).",
       category: t("tools"),
       query: {
         latitude: {
@@ -815,10 +815,38 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/tools/trainings.json": {
+    get: ResourceEndpoint({
+      description:
+        t("tools_trainings") +
+        " (JSON). Schools of agricultural education and what each prepares for, from RefEA: the nearest to a place first, forty at most. A school is placed in its commune, not at its address: distances are between centres of communes. The answer also lists the diplomas, specialities and routes one can filter by. Example: ?place=17387&diploma=BTSA&route=apprenticeship.",
+      category: t("tools"),
+      query: {
+        place: {
+          description: "A commune: INSEE code, postal code or name. Example: 17387.",
+          type: "string",
+        },
+        diploma: { description: "Diploma, as listed in diplomas. Example: BTSA.", type: "string" },
+        speciality: {
+          description: "Speciality, as listed in specialities. Example: Viticulture.",
+          type: "string",
+        },
+        route: {
+          description: "school, apprenticeship, continuing or higher_education.",
+          type: "string",
+        },
+        q: { description: "Words the name of the training holds.", type: "string" },
+        boarding: { description: "1 to keep schools with boarding only.", type: "string" },
+        school: { description: "Code of one school (id), to read all it prepares for.", type: "string" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
   "/links/communes/{insee}.json": {
     get: ResourceEndpoint({
       description:
-        "What Lexicon knows of a commune: postal codes, cadastral parcels, parcels owned by companies, establishments, farming population, nearest weather station. Paris, Lyon and Marseille also exist as whole communes (75056, 69123, 13055), summing their arrondissements.",
+        "What Lexicon knows of a commune: postal codes, cadastral parcels, parcels owned by companies, establishments, farming population, nearest weather station. Paris, Lyon and Marseille also exist as whole communes (75056, 69123, 13055), summing their arrondissements. The farming and food of the commune come with it: quality-signs (areas of AOC/AOP, IGP and IG covering it, by family, with their products; for information, the specification of a product alone being official), organic (operators, farms and organic area year by year from the Agence Bio; an area of fewer than three farms is masked, and the intercommunality gives the order of magnitude; parcels are counted at the seat of the farm), hve (number of farms of the HVE directory seated there, a minimum; their names with a member key), canteens (canteens of the national register and what they declared of their purchases: organic share and share under another quality sign, median and weighted by meals; only canteens that declared), agricultural-schools (schools of the commune, or the three nearest).",
       category: t("documentation_links"),
       params: {
         insee: { description: "INSEE code of the commune. Example: 17387.", type: "string" },
@@ -983,7 +1011,7 @@ export function generateDocumentation(t: Translator, output: OutputFormat) {
     info: {
       title: "Lexicon API",
       description:
-        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8295169339847, -0.786978473820221) work for /tools/parcel-identifier. Every page exists as HTML, and as JSON or CSV by adding .json or .csv to its path. Most of the API is open; the endpoints marked as reserved need an API key, sent as 'Authorization: Bearer <key>' or in the 'X-API-Key' header (401 without a key, 403 when the key does not carry the scope). Without a key, the HTML page of a reserved table shows a preview instead: its first ten rows, with the first two characters of each text and no figure; JSON and CSV stay refused.",
+        "Documentation of Lexicon. Response examples throughout this document use the commune of Saint-Porchaire (postal 17250, INSEE 17387, Charente-Maritime) as a consistent reference point — the same coordinates (45.8295169339847, -0.786978473820221) work for /tools/parcel-identifier. Every page exists as HTML, and as JSON or CSV by adding .json or .csv to its path. Most of the API is open; the endpoints marked as reserved need an API key, sent as 'Authorization: Bearer <key>' or in the 'X-API-Key' header (401 without a key, 403 when the key does not carry the scope, or is used from an address or a site its holder did not allow). A member of OSFarm makes, narrows and revokes their own keys under /account. The data can be read from the pages of other sites (Access-Control-Allow-Origin: *). Without a key, the HTML page of a reserved table shows a preview instead: its first ten rows, with the first two characters of each text and no figure; JSON and CSV stay refused.",
       version: packageJson.version,
     },
 

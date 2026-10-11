@@ -1,6 +1,6 @@
 {
   "name": "rest-api",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "homepage": "https://lexicon.osfarm.org",
   "module": "src/index.ts",
   "type": "module",
@@ -15,6 +15,7 @@
   ],
   "devDependencies": {
     "@types/bun": "^1.2.4",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.11.10"
   },
   "peerDependencies": {
@@ -23,6 +24,7 @@
   "dependencies": {
     "@elysiajs/html": "^1.2.0",
     "csv-parse": "^5.6.0",
+    "nodemailer": "^6.10.1",
     "pg": "^8.13.1",
     "recharts": "^2.15.1",
     "shulk": "^0.15.0"

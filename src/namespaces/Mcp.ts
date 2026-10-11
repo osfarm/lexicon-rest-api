@@ -30,6 +30,7 @@ import {
   unpricedProducts,
 } from "../input-prices/InputPrices"
 import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
+import { addressOf } from "./Admin/session"
 import type { Context } from "../types/Context"
 
 const PORT = import.meta.env.PORT
@@ -44,6 +45,8 @@ const CLOSED_PREFIXES = [
   "/public",
   "/documentation",
   "/contribute/outil",
+  "/account",
+  "/collections",
 ]
 
 const isClosed = (path: string) =>
@@ -92,9 +95,17 @@ export function backendFor(cxt: Context): McpBackend {
       `${path} is not a readable resource. Use list_resources to see the paths.`,
     )
     const search = new URLSearchParams(query).toString()
+    // The address and the site of the caller go along: a key narrowed to them is checked again there
     const headers = new Headers({
-      "X-Forwarded-For": cxt.identity.caller.replace(/^ip:/, ""),
+      "X-Forwarded-For":
+        cxt.identity.kind === "key"
+          ? addressOf(cxt)
+          : cxt.identity.caller.replace(/^ip:/, ""),
     })
+    const origin = cxt.request.headers.get("origin") ?? cxt.request.headers.get("referer")
+    if (origin !== null) {
+      headers.set("Origin", origin)
+    }
     const key =
       cxt.request.headers.get("authorization") ?? cxt.request.headers.get("x-api-key")
     if (key !== null) {

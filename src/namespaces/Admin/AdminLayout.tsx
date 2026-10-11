@@ -6,11 +6,21 @@ type Props = {
   // Undefined on the login page
   admin?: { email: string }
   csrf?: string
+  // The member area borrows this layout: its own home, name, sections and logout
+  area?: Area
   children: any
 }
 
+export type Area = Readonly<{
+  home: string
+  name: string
+  logout: string
+  sections: readonly (readonly [string, string])[]
+}>
+
 const SECTIONS = [
   ["/admin", "Synthèse"],
+  ["/admin/members", "Adhérents"],
   ["/admin/keys", "Clés"],
   ["/admin/plans", "Plans"],
   ["/admin/usage", "Consommation"],
@@ -26,6 +36,13 @@ export const e = (value: unknown) => Html.escapeHtml(String(value ?? ""))
  * script from another site: nothing foreign runs where keys are managed.
  */
 export function AdminLayout(props: Props) {
+  const area: Area = props.area ?? {
+    home: "/admin",
+    name: "administration",
+    logout: "/admin/logout",
+    sections: SECTIONS as [string, string][],
+  }
+
   return (
     <html lang="fr">
       <head>
@@ -39,34 +56,45 @@ export function AdminLayout(props: Props) {
           type="image/x-icon"
           href="/public/images/favicon.ico"
         />
-        <title>{e(props.title)} — Lexicon, administration</title>
+        <title>
+          {e(props.title)} — Lexicon, {e(area.name)}
+        </title>
       </head>
       <body class="admin">
         <header class="site-header">
           <div class="site-header-inner">
-            <a class="brand" href="/admin">
+            <a class="brand" href={area.home}>
               <img src="/public/images/lexicon-mark.svg" alt="" width="40" height="40" />
-              lexicon <small>administration</small>
+              lexicon <small>{e(area.name)}</small>
             </a>
             {props.admin ? (
-              <nav class="site-nav" aria-label="Administration">
-                {SECTIONS.map(([href, label]) => (
-                  <a href={href}>{label}</a>
-                ))}
-              </nav>
-            ) : (
-              ""
-            )}
-            {props.admin ? (
-              <div class="account">
-                <span>{e(props.admin.email)}</span>
-                <form method="POST" action="/admin/logout">
-                  <input type="hidden" name="csrf" value={props.csrf} />
-                  <button class="button small" type="submit">
-                    Déconnexion
-                  </button>
-                </form>
-              </div>
+              // The menu opens from the top right corner. It is a <details>: no script is needed
+              <details class="console-menu">
+                <summary aria-label="Menu">
+                  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <path
+                      d="M4 6.5h16M4 12h16M4 17.5h16"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </summary>
+                <div class="console-menu-panel">
+                  <p class="console-menu-account">{e(props.admin.email)}</p>
+                  <nav aria-label={e(area.name)}>
+                    {area.sections.map(([href, label]) => (
+                      <a href={href}>{label}</a>
+                    ))}
+                  </nav>
+                  <form method="POST" action={area.logout}>
+                    <input type="hidden" name="csrf" value={props.csrf} />
+                    <button class="button small" type="submit">
+                      Déconnexion
+                    </button>
+                  </form>
+                </div>
+              </details>
             ) : (
               ""
             )}

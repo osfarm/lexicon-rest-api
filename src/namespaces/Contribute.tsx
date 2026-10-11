@@ -122,11 +122,15 @@ export function ContributePage(props: { t: Translator }) {
       </div>
       <div class="notice" id="en-ligne">
         <p>
-          <strong>Sans rien installer :</strong> avec une clé d'API du Lexicon,{" "}
-          <a href={WORKSHOP_PATH}>l'outil de contribution en ligne</a> fait la même
-          relecture dans le navigateur. On y dépose son tableau (CSV, Excel ou
-          LibreOffice), on remplit la fiche dans un formulaire, puis on propose le jeu
-          d'un bouton.
+          <strong>Sans rien installer :</strong> avec une clé d'API du Lexicon, l'outil
+          de contribution en ligne fait la même relecture dans le navigateur. On y dépose
+          son tableau (CSV, Excel ou LibreOffice), on remplit la fiche dans un
+          formulaire, puis on propose le jeu d'un bouton.
+        </p>
+        <p>
+          <a class="button primary" href={WORKSHOP_PATH}>
+            Ouvrir l'outil de contribution
+          </a>
         </p>
       </div>
 
@@ -294,7 +298,7 @@ export function WorkshopDoor(props: { t: Translator; available: boolean; error?:
 
   return (
     <Layout
-      title="Outil de contribution"
+      title={t("tools_contribution")}
       breadcrumbs={[
         Hypermedia.Link({ value: t("home_title"), method: "GET", href: "/" }),
         Hypermedia.Link({ value: t("contribute_title"), method: "GET", href: "/contribute" }),
@@ -330,7 +334,8 @@ export function WorkshopDoor(props: { t: Translator; available: boolean; error?:
             </button>
           </form>
           <p class="prose">
-            Pas de clé ? Elle se demande à OSFarm. Sans clé, l'outil s'installe aussi sur
+            Pas de clé ? Un adhérent d'OSFarm crée les siennes dans son{" "}
+            <a href="/account">espace adhérent</a>. Sans clé, l'outil s'installe aussi sur
             son poste : voir <a href="/contribute#installer">le guide</a>.
           </p>
         </>
@@ -366,10 +371,10 @@ async function enter(cxt: Context) {
   }
 
   const key = String((await cxt.request.formData()).get("key") ?? "").trim()
-  const holder = await holderOfKey(cxt.db, key)
+  const holder = await holderOfKey(cxt.db, key, cxt.request, address)
 
   if (holder === undefined) {
-    return door(cxt, "Cette clé n'est pas reconnue, ou n'est plus valable.", 401)
+    return door(cxt, "Cette clé n'est pas reconnue, n'est plus valable, ou ne peut pas servir d'ici.", 401)
   }
   forgetLoginAttempts(keyAttempts, address)
 
@@ -386,7 +391,7 @@ async function work(cxt: Context) {
   const holder =
     workshop === undefined || key === undefined
       ? undefined
-      : await holderOfKey(cxt.db, key)
+      : await holderOfKey(cxt.db, key, cxt.request, addressOf(cxt))
 
   if (workshop === undefined || holder === undefined) {
     return cxt.request.method === "GET" &&

@@ -14,6 +14,8 @@ import { Seeds } from "./namespaces/Seeds"
 import { Enterprises } from "./namespaces/Enterprises"
 import { Rica } from "./namespaces/Rica"
 import { Admin } from "./namespaces/Admin"
+import { Account } from "./namespaces/Account"
+import { Collections } from "./namespaces/Collections"
 import { Bundles } from "./namespaces/Bundles"
 import { Catalog } from "./namespaces/Catalog"
 import { Links } from "./namespaces/Links"
@@ -40,6 +42,8 @@ API.new()
   .use(Weather)
   .use(Credits)
   .use(Admin)
+  .use(Account)
+  .use(Collections)
   .use(Bundles)
   .use(Catalog)
   .use(Links)

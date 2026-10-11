@@ -100,6 +100,73 @@ export function setUpAccessSchema(db: Pick<Pool, "query">): Promise<void> {
         updated_at timestamptz NOT NULL DEFAULT now()
       );
 
+      -- A member of the association: an administrator creates the account, the member
+      -- chooses a password from the link sent by e-mail and manages their own keys
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".members (
+        id               bigserial PRIMARY KEY,
+        name             varchar NOT NULL,
+        email            varchar NOT NULL,
+        plan             varchar NOT NULL REFERENCES "${ACCESS_SCHEMA}".plans(name),
+        membership_until date,
+        extra_scopes     text[] NOT NULL DEFAULT '{}',
+        note             text,
+        password_hash    varchar,
+        created_at       timestamptz NOT NULL DEFAULT now(),
+        created_by       bigint REFERENCES "${ACCESS_SCHEMA}".admins(id),
+        disabled_at      timestamptz,
+        last_login_at    timestamptz
+      );
+
+      CREATE UNIQUE INDEX IF NOT EXISTS members_email
+        ON "${ACCESS_SCHEMA}".members (lower(email));
+
+      -- Links sent by e-mail to choose a password: only their hash is kept, and each serves once
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".member_tokens (
+        token_hash varchar PRIMARY KEY,
+        member_id  bigint NOT NULL REFERENCES "${ACCESS_SCHEMA}".members(id),
+        purpose    varchar NOT NULL,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        expires_at timestamptz NOT NULL,
+        used_at    timestamptz
+      );
+
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".member_sessions (
+        token_hash varchar PRIMARY KEY,
+        member_id  bigint NOT NULL REFERENCES "${ACCESS_SCHEMA}".members(id),
+        created_at timestamptz NOT NULL DEFAULT now(),
+        expires_at timestamptz NOT NULL
+      );
+
+      ALTER TABLE "${ACCESS_SCHEMA}".api_keys
+        ADD COLUMN IF NOT EXISTS member_id bigint REFERENCES "${ACCESS_SCHEMA}".members(id),
+        ADD COLUMN IF NOT EXISTS label varchar,
+        -- Where the key may be used from (src/access/Restriction.ts); empty means anywhere
+        ADD COLUMN IF NOT EXISTS allowed_addresses text[] NOT NULL DEFAULT '{}',
+        ADD COLUMN IF NOT EXISTS allowed_domains text[] NOT NULL DEFAULT '{}';
+
+      -- Parcels a member gathered with what the Lexicon knows of each, kept as a GeoJSON
+      -- document they rework. share_id, when set, is the address anyone can read it at
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".collections (
+        id           bigserial PRIMARY KEY,
+        member_id    bigint NOT NULL REFERENCES "${ACCESS_SCHEMA}".members(id),
+        name         varchar NOT NULL,
+        kind         varchar NOT NULL,
+        criteria     jsonb NOT NULL,
+        datasets     text[] NOT NULL DEFAULT '{}',
+        features     integer NOT NULL DEFAULT 0,
+        -- json, not jsonb: the order of the properties is the one of the columns a member sees
+        document     json NOT NULL,
+        collected_at timestamptz NOT NULL DEFAULT now(),
+        updated_at   timestamptz NOT NULL DEFAULT now(),
+        share_id     varchar UNIQUE,
+        shared_at    timestamptz
+      );
+
+      CREATE INDEX IF NOT EXISTS collections_member ON "${ACCESS_SCHEMA}".collections (member_id);
+
+      ALTER TABLE "${ACCESS_SCHEMA}".audit_log
+        ADD COLUMN IF NOT EXISTS member_id bigint REFERENCES "${ACCESS_SCHEMA}".members(id);
+
       INSERT INTO "${ACCESS_SCHEMA}".plans
         (name, per_minute, per_day, max_page_size, statement_timeout_ms, scopes)
       VALUES ${seeds}

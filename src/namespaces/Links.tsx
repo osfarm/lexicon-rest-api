@@ -16,6 +16,8 @@ import type { Context } from "../types/Context"
 import { veiled } from "../preview/Preview"
 import { communePurchases, type CommunePurchases } from "../phytosanitary/Purchases"
 import { Reserved, Veil } from "../templates/components/Reserved"
+import { TerritorySections } from "../templates/components/Territory"
+import { territoryOf } from "../territory/Territory"
 
 const e = (value: unknown) => Html.escapeHtml(String(value ?? ""))
 
@@ -119,10 +121,22 @@ async function commune(cxt: Context) {
   }
 
   const link = communeLinkOf(row)
-  const purchases = await communePurchases(cxt.db, identifier)
+  const [purchases, territory] = await Promise.all([
+    communePurchases(cxt.db, identifier),
+    // Who the farms certified HVE are is for the holders of a key
+    territoryOf(cxt.db, identifier, { member: cxt.identity.scopes.includes(MEMBERS_SCOPE) }),
+  ])
 
   if (wantsJson) {
-    return Response.json({ ...link, "phytosanitary-purchases": purchases ?? null })
+    return Response.json({
+      ...link,
+      "phytosanitary-purchases": purchases ?? null,
+      "quality-signs": territory["quality-signs"] ?? null,
+      organic: territory.organic ?? null,
+      hve: territory.hve ?? null,
+      canteens: territory.canteens ?? null,
+      "agricultural-schools": territory.schools ?? null,
+    })
   }
 
   return (
@@ -158,6 +172,8 @@ async function commune(cxt: Context) {
           ["Station météo la plus proche", link["weather-station"]],
         ]}
       />
+      <h2>Agriculture et alimentation</h2>
+      <TerritorySections territory={territory} format={cxt.numberFormatter} />
       {purchases ? <Purchases purchases={purchases} cxt={cxt} /> : ""}
       <p>
         <a href={`/links/communes/${e(link["insee-code"])}.json`}>JSON</a>

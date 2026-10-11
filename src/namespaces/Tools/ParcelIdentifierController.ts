@@ -1,5 +1,13 @@
 import { MEMBERS_SCOPE } from "../../access/Plan"
 import { foodProjectsOf, type FoodProject } from "../../food-projects/FoodProjects"
+import {
+  hveBySiren,
+  qualityZonesAt,
+  territoryOf,
+  type HveFarm,
+  type QualityZone,
+  type Territory,
+} from "../../territory/Territory"
 import { Concurrently, Err, match, None, Ok, Some, type AsyncResult } from "shulk"
 import { Hypermedia, hypermedia2json, type HypermediaType } from "../../Hypermedia"
 import { Field } from "../../templates/components/Form"
@@ -84,6 +92,7 @@ const ONE_DAY_IN_MS = 24 * 3600 * 1000
 
 // Paris, Lyon and Marseille are in the reference twice: as whole communes and as
 // arrondissements. A point is told by its arrondissement, which the other datasets use.
+const MUNICIPALITIES_AT_A_POINT = 40
 const WHOLE_COMMUNES = ["75056", "69123", "13055"]
 
 const DEFAULT_CAP_CODE_YEAR = 2025
@@ -150,6 +159,12 @@ interface ParcelData {
   surroundings?: Surroundings
   // Territorial food projects covering the commune; empty when none does
   foodProjects?: FoodProject[]
+  // Quality signs, organic farming, HVE farms, canteens and schools of the commune
+  territory?: Territory
+  // Zones delimited for wines under AOC that hold the point
+  qualityZones?: QualityZone[]
+  // Owners of the parcel that are in the HVE directory; read with the owners only
+  hveOwners?: HveFarm[]
   // What Lexicon holds about the crop declared here, in this department
   crop?: CropContext
   department?: string
@@ -334,6 +349,9 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     water: data.water && data.water.length > 0 ? data.water : undefined,
     surroundings: data.surroundings,
     "food-projects": data.foodProjects,
+    territory: data.territory,
+    "quality-zones": data.qualityZones,
+    "hve-owners": data.hveOwners && data.hveOwners.length > 0 ? data.hveOwners : undefined,
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -421,7 +439,12 @@ async function retrieveParcelData(
   includeOwners: boolean,
 ): AsyncResult<Error, ParcelData> {
   const wave1 = await Concurrently.run(() =>
-    MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(5).run(),
+    // Paris holds the point once per postal code, twenty times, beside its arrondissement
+    MunicipalityTable(db)
+      .select()
+      .where("city_shape", "ST_CONTAINS", point)
+      .limit(MUNICIPALITIES_AT_A_POINT)
+      .run(),
   )
     .and(() =>
       ParcelTable(db).select().where("shape", "ST_CONTAINS", point).limit(1).run(),
@@ -609,13 +632,16 @@ async function retrieveParcelData(
   )
 
   const coordinates = pointToCoordinates(point)
-  const [water, buildings, surroundings, foodProjects, crop] = await Promise.all([
-    waterNear(db, { ...coordinates, parcelId: cadastralParcel?.id }),
-    cadastralParcel ? buildingsOn(db, cadastralParcel.id) : undefined,
-    cadastralParcel ? surroundingsOf(db, cadastralParcel.id) : undefined,
-    municipality ? foodProjectsOf(db, municipality.code) : undefined,
-    capCode?.production ? cropContext(db, capCode.production, department) : undefined,
-  ])
+  const [water, buildings, surroundings, foodProjects, crop, territory, qualityZones] =
+    await Promise.all([
+      waterNear(db, { ...coordinates, parcelId: cadastralParcel?.id }),
+      cadastralParcel ? buildingsOn(db, cadastralParcel.id) : undefined,
+      cadastralParcel ? surroundingsOf(db, cadastralParcel.id) : undefined,
+      municipality ? foodProjectsOf(db, municipality.code) : undefined,
+      capCode?.production ? cropContext(db, capCode.production, department) : undefined,
+      municipality ? territoryOf(db, municipality.code, { member: includeOwners }) : undefined,
+      qualityZonesAt(db, coordinates),
+    ])
 
   const subsidiesResult = await fetchSubsidiesBySiren(
     db,
@@ -625,6 +651,16 @@ async function retrieveParcelData(
 
   const [cadastralParcelPrices, cadastralParcelOwners] =
     cadastreDependentResult.unwrapOr([undefined, undefined])
+  const hveOwners = includeOwners
+    ? [
+        ...(
+          await hveBySiren(
+            db,
+            (cadastralParcelOwners ?? []).flatMap((owner) => (owner.siren ? [owner.siren] : [])),
+          )
+        ).values(),
+      ]
+    : undefined
   const lastYearWeatherReports = weatherResult.unwrapOr(undefined)
   const historicalDailyWeather = historicalWeatherResult.unwrapOr(undefined)
   const [historicalYields, productionPrices] = productionDataResult.unwrapOr([
@@ -656,6 +692,9 @@ async function retrieveParcelData(
     buildings,
     surroundings,
     foodProjects,
+    territory,
+    qualityZones,
+    hveOwners,
     crop,
     department,
     agriculturalEnterprises,

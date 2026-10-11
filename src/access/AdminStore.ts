@@ -22,6 +22,11 @@ export type KeyRow = Readonly<{
   created_at: Date
   extra_scopes: string[]
   note: string | null
+  // What its member calls it, and where they allow it from; absent on a key read before these columns existed
+  label?: string | null
+  allowed_addresses?: string[]
+  allowed_domains?: string[]
+  member_id?: string | null
 }>
 
 export type NewKeyInput = Readonly<{
@@ -111,9 +116,11 @@ export async function audit(
 
 export async function auditLog(db: Db) {
   const result = await db.query(
-    `SELECT audit.at, admins.email, audit.action, audit.target, audit.detail
+    `SELECT audit.at, COALESCE(admins.email, members.email || ' (adhérent)') AS email,
+            audit.action, audit.target, audit.detail
        FROM ${table("audit_log")} AS audit
        LEFT JOIN ${table("admins")} AS admins ON admins.id = audit.admin_id
+       LEFT JOIN ${table("members")} AS members ON members.id = audit.member_id
       ORDER BY audit.id DESC LIMIT 200;`,
   )
 
@@ -128,7 +135,7 @@ export async function auditLog(db: Db) {
 
 // --- keys
 
-const KEY_COLUMNS = `prefix, owner_name, owner_email, plan, membership_until::text, expires_at, revoked_at, last_used_at, created_at, extra_scopes, note`
+const KEY_COLUMNS = `prefix, owner_name, owner_email, plan, membership_until::text, expires_at, revoked_at, last_used_at, created_at, extra_scopes, note, label, allowed_addresses, allowed_domains, member_id::text`
 
 export async function listKeys(db: Db): Promise<KeyRow[]> {
   const result = await db.query(

@@ -16,6 +16,20 @@ const TRUSTED_PROXIES = parseInt(import.meta.env.TRUSTED_PROXIES ?? "1")
 
 const FORMAT_VARIANT = /\.(json|csv|geojson)$/
 
+// The data is read from the pages of other sites too: a key narrowed to a domain
+// is meant for that. No cookie is ever accepted across sites, so nothing of a
+// session can be read this way; the administration and the member area are left out.
+const CROSS_ORIGIN_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Expose-Headers": "RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset, Retry-After",
+}
+const PREFLIGHT_HEADERS: Record<string, string> = {
+  ...CROSS_ORIGIN_HEADERS,
+  "Access-Control-Allow-Methods": "GET, POST",
+  "Access-Control-Allow-Headers": "Authorization, X-API-Key, Content-Type, Accept",
+  "Access-Control-Max-Age": "86400",
+}
+
 let servedPaths: string[] = []
 
 /**
@@ -158,10 +172,17 @@ export class API {
         ...ObjectMap(
           this.endpoints,
           (path, handler) => async (req: BunRequest<any>, server: any) => {
+            const isSelfChecked = SELF_CHECKED_SCOPES.includes(this.scopes[path])
+
+            // What a browser asks before sending a key from the page of another site
+            if (req.method === "OPTIONS" && !isSelfChecked) {
+              return new Response(null, { status: 204, headers: PREFLIGHT_HEADERS })
+            }
+
             // The administration and the contribution tool have their own sessions: neither keys in
             // headers nor rate limits apply to them
             const asked =
-              SELF_CHECKED_SCOPES.includes(this.scopes[path])
+              isSelfChecked
                 ? undefined
                 : await checkAccess(
                     pool,
@@ -187,12 +208,10 @@ export class API {
             if (access !== undefined && !access.allowed) {
               countRequest(access, path, access.denial.status)
 
-              return this.refusal(
-                path,
-                access.denial.status,
-                access.denial.message,
-                access.denial.headers,
-              )
+              return this.refusal(path, access.denial.status, access.denial.message, {
+                ...CROSS_ORIGIN_HEADERS,
+                ...access.denial.headers,
+              })
             }
 
             const configured = applyRequestConfiguration(path, req, access?.identity)
@@ -209,7 +228,7 @@ export class API {
                   })
 
             if (access !== undefined) {
-              Object.entries(access.headers).forEach(([name, value]) =>
+              Object.entries({ ...CROSS_ORIGIN_HEADERS, ...access.headers }).forEach(([name, value]) =>
                 response.headers.set(name, value),
               )
               countRequest(access, path, response.status)

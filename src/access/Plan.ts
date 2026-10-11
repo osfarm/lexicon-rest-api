@@ -13,8 +13,14 @@ export const MEMBERS_SCOPE = "members"
 export const ADMIN_SCOPE = "admin"
 // Paths of the contribution tool: the key of the visitor is in a cookie, which their own handler checks
 export const CONTRIBUTE_SCOPE = "contribute"
+// Paths of the member area: a member logs in there to manage their own keys
+export const ACCOUNT_SCOPE = "account"
 // Scopes whose paths check the caller themselves: neither keys in headers nor rate limits apply to them
-export const SELF_CHECKED_SCOPES: readonly string[] = [ADMIN_SCOPE, CONTRIBUTE_SCOPE]
+export const SELF_CHECKED_SCOPES: readonly string[] = [
+  ADMIN_SCOPE,
+  CONTRIBUTE_SCOPE,
+  ACCOUNT_SCOPE,
+]
 export const ANONYMOUS_PLAN_NAME = "anonymous"
 
 // What a caller without key gets, also when the plans cannot be read

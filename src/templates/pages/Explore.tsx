@@ -24,6 +24,8 @@ const SECTIONS: [string, string, Family][] = [
 const TOOLS: [string, string][] = [
   ["/tools/parcel-identifier", "tools_parcel_identifier"],
   ["/tools/assistant", "tools_assistant"],
+  ["/tools/trainings", "tools_trainings"],
+  ["/contribute/outil", "tools_contribution"],
 ]
 
 /**

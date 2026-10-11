@@ -37,6 +37,10 @@ export async function startAccessControl(db: Pool) {
   }, ONE_MINUTE_IN_MS).unref()
 }
 
+function originOf(request: Request) {
+  return request.headers.get("origin") ?? request.headers.get("referer")
+}
+
 export async function checkAccess(
   db: Pool,
   request: Request,
@@ -54,6 +58,7 @@ export async function checkAccess(
     authorization: request.headers.get("authorization"),
     apiKeyHeader: request.headers.get("x-api-key"),
     ip,
+    origin: originOf(request),
     scope,
     now,
   })
@@ -62,9 +67,14 @@ export async function checkAccess(
 /**
  * The holder of a key presented outside the headers of a request, such as the one
  * the contribution tool keeps in a cookie. Undefined when the key is not valid,
- * or when keys cannot be checked.
+ * may not be used by this caller, or when keys cannot be checked.
  */
-export async function holderOfKey(db: Pool, key: string): Promise<Identity | undefined> {
+export async function holderOfKey(
+  db: Pool,
+  key: string,
+  request: Request,
+  ip: string,
+): Promise<Identity | undefined> {
   if (IS_DISABLED) {
     return undefined
   }
@@ -75,7 +85,8 @@ export async function holderOfKey(db: Pool, key: string): Promise<Identity | und
   const identity = identify(store, {
     authorization: null,
     apiKeyHeader: key,
-    ip: "",
+    ip,
+    origin: originOf(request),
     scope: OPEN_SCOPE,
     now,
   })

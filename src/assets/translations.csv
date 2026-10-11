@@ -429,6 +429,7 @@ nav_menu,Menu,Menu
 nav_skip,Aller au contenu,Skip to content
 nav_language,Langue,Language
 footer_credits,Crédits,Credits
+footer_account,Espace adhérent,Member area
 footer_association,L'association,The association
 footer_version,Version,Version
 footer_licence,Code sous licence MIT,Code under the MIT licence
@@ -469,6 +470,8 @@ explore_viticulture,Cépages et stades phénologiques de la vigne.,Vine varietie
 explore_rd_agri,"Rapports d'essais, guides et articles de la recherche agricole.","Trial reports, guides and articles of agricultural research."
 explore_weather,Stations et relevés météorologiques.,Weather stations and records.
 explore_tools_parcel_identifier,"Un point sur la carte : sa parcelle, sa culture, sa commune, sa météo.","A point on the map: its parcel, its crop, its commune, its weather."
+tools_contribution,Outil de contribution,Contribution tool
+explore_tools_contribution,"Déposer un tableau, remplir sa fiche et le proposer, dans le navigateur.","Drop a table, fill in its sheet and propose it, in the browser."
 explore_tools_assistant,Une question en langage naturel sur les données du Lexicon.,A question in plain language about the data of Lexicon.
 inputs_title,Intrants,Inputs
 explore_inputs,"Engrais, semences, produits phytosanitaires, carburant : composition et prix.","Fertilisers, seeds, plant protection products, fuel: composition and prices."
@@ -674,3 +677,5 @@ tools_parcel_crop_workflows,%s itinéraires techniques de référence,%s referen
 tools_parcel_crop_documents,%s documents de R&D,%s R&D documents
 tools_parcel_crop_documents_department,"sur cette culture dans le département. Les plus récents :","about this crop in the department. The latest:"
 tools_parcel_crop_documents_region,"sur cette culture dans la région. Les plus récents :","about this crop in the region. The latest:"
+tools_trainings,Trouver une formation agricole,Find an agricultural training
+explore_tools_trainings,"Les établissements de l'enseignement agricole par lieu, diplôme, spécialité et voie.","Schools of agricultural education by place, diploma, speciality and route."

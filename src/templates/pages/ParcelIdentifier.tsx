@@ -11,6 +11,8 @@ import { PlacePicker } from "../components/PlacePicker"
 import { Chart } from "../components/Chart"
 import type { Context } from "../../types/Context"
 import { Table } from "../../Database"
+import { TerritorySections } from "../components/Territory"
+import type { HveFarm, QualityZone, Territory } from "../../territory/Territory"
 
 export interface TableSection {
   label: string
@@ -85,6 +87,12 @@ export interface ParcelIdentifierOkPage {
   transactions?: TableSection
   owners?: TableSection
   // Why no owner is listed
+  // Quality signs, organic farming, HVE farms, canteens and schools of the commune
+  territory?: Territory
+  // Zones delimited for wines under AOC that hold the point
+  "quality-zones"?: QualityZone[]
+  // Owners of the parcel that are in the HVE directory
+  "hve-owners"?: HveFarm[]
   // Territorial food projects (PAT) covering the commune, the smallest territory
   // first; an empty list when none does. farms and organic-farmland-share are
   // figures of the whole territory of the project
@@ -270,6 +278,16 @@ function renderRecord(val: ParcelIdentifierOkPage, context: Context) {
           </div>
         </div>
         {val["food-projects"] ? renderFoodProjects(val["food-projects"], context) : ""}
+        {val.territory ? (
+          <TerritorySections
+            territory={val.territory}
+            format={numberFormatter}
+            zones={val["quality-zones"]}
+            owners={val["hve-owners"]}
+          />
+        ) : (
+          ""
+        )}
         {val.transactions
           ? renderTableSection(val.transactions, context, t("tools_no_transaction"))
           : ""}

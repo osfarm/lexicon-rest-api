@@ -42,6 +42,7 @@ import {
 } from "../../assistant/Runtime"
 import type { Context } from "../../types/Context"
 import { AdminLayout, e, Table } from "./AdminLayout"
+import { memberDetail, members, newMember } from "./Members"
 import {
   addressOf,
   administered,
@@ -420,8 +421,23 @@ const keyDetail = administered(async ({ cxt, admin, csrf, form }) => {
       <Table
         columns={["", ""]}
         rows={[
-          ["Adhérent", e(key.owner_name)],
+          [
+            "Adhérent",
+            key.member_id ? (
+              <a href={`/admin/members/${e(key.member_id)}`}>{e(key.owner_name)}</a>
+            ) : (
+              e(key.owner_name)
+            ),
+          ],
           ["E-mail", e(key.owner_email)],
+          ["Usage", e(key.label ?? "—")],
+          [
+            "Utilisable depuis",
+            e(
+              [...(key.allowed_addresses ?? []), ...(key.allowed_domains ?? [])].join(", ") ||
+                "partout",
+            ),
+          ],
           ["Plan", e(key.plan)],
           ["Portées supplémentaires", e(key.extra_scopes.join(", ") || "—")],
           ["Fin d'adhésion", e(key.membership_until ?? "—")],
@@ -769,7 +785,7 @@ const auditPage = administered(async ({ cxt, admin, csrf }) => {
     <AdminLayout title="Journal des actions" admin={admin} csrf={csrf}>
       <Table
         empty="Aucune action enregistrée."
-        columns={["Date (UTC)", "Administrateur", "Action", "Cible", "Détail"]}
+        columns={["Date (UTC)", "Auteur", "Action", "Cible", "Détail"]}
         rows={entries.map((entry) => [
           moment(entry.at),
           e(entry.email ?? "—"),
@@ -787,6 +803,9 @@ export const Admin = API.new()
   .path("/admin/login", login)
   .path("/admin/logout", logout)
   .path("/admin", dashboard)
+  .path("/admin/members", members)
+  .path("/admin/members/new", newMember)
+  .path("/admin/members/:id", memberDetail)
   .path("/admin/keys", keys)
   .path("/admin/keys/new", newKey)
   .path("/admin/keys/:prefix", keyDetail)

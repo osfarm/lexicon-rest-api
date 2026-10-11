@@ -1,5 +1,6 @@
 import type { Pool } from "pg"
 import { ANONYMOUS_PLAN, ANONYMOUS_PLAN_NAME, type Plan } from "./Plan"
+import type { Restrictions } from "./Restriction"
 import { ACCESS_SCHEMA } from "./Schema"
 
 const REFRESH_INTERVAL_IN_MS = 30000
@@ -11,6 +12,8 @@ export type StoredKey = Readonly<{
   extraScopes: readonly string[]
   expiresAt: number | null
   revokedAt: number | null
+  // Addresses and domains the key is narrowed to; absent or empty, it works from anywhere
+  restrictions?: Restrictions
 }>
 
 export type KeyStore = {
@@ -40,8 +43,12 @@ function toTime(value: unknown): number | null {
 
 async function read(store: KeyStore, db: Pick<Pool, "query">) {
   const plans = await db.query(`SELECT * FROM "${ACCESS_SCHEMA}".plans;`)
+  // Read through to_jsonb: the columns of the restrictions are absent until the schema was set up again
   const keys = await db.query(
-    `SELECT prefix, secret_hash, plan, extra_scopes, expires_at, revoked_at FROM "${ACCESS_SCHEMA}".api_keys;`,
+    `SELECT prefix, secret_hash, plan, extra_scopes, expires_at, revoked_at,
+            to_jsonb(k)->'allowed_addresses' AS allowed_addresses,
+            to_jsonb(k)->'allowed_domains' AS allowed_domains
+       FROM "${ACCESS_SCHEMA}".api_keys AS k;`,
   )
 
   store.plans = new Map(
@@ -67,6 +74,10 @@ async function read(store: KeyStore, db: Pick<Pool, "query">) {
         extraScopes: row.extra_scopes,
         expiresAt: toTime(row.expires_at),
         revokedAt: toTime(row.revoked_at),
+        restrictions: {
+          addresses: row.allowed_addresses ?? [],
+          domains: row.allowed_domains ?? [],
+        },
       },
     ]),
   )

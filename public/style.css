@@ -1230,35 +1230,89 @@ body.admin .brand small {
   color: #b9d3d6;
 }
 
-body.admin .site-nav a:hover {
-  border-bottom-color: #5d8c95;
+body.admin .site-header-inner {
+  position: relative;
 }
 
-body.admin .site-nav a[aria-current="page"] {
-  border-bottom-color: var(--place);
-}
-
-body.admin .account {
+/* The menu of the administration and of the member area: a button in the top right corner */
+.console-menu {
   margin-left: auto;
+}
+
+.console-menu summary {
+  list-style: none;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  color: #d5e6e7;
-  font-size: var(--step--1);
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid #5d8c95;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
 }
 
-body.admin .account form {
+.console-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.console-menu summary:hover,
+.console-menu[open] summary {
+  background: var(--lexicon);
+}
+
+.console-menu summary:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.console-menu-panel {
+  position: absolute;
+  top: calc(100% - 0.2rem);
+  right: 1.25rem;
+  z-index: 20;
+  min-width: 15rem;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 45, 52, 0.18);
+}
+
+.console-menu-account {
+  margin: 0;
+  padding: 0.4rem 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.console-menu-panel nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0;
+}
+
+.console-menu-panel nav a,
+.console-menu-panel nav a:link,
+.console-menu-panel nav a:visited {
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.console-menu-panel nav a:hover,
+.console-menu-panel nav a:focus-visible {
+  background: #eef4f4;
+}
+
+.console-menu-panel form {
   width: auto;
   margin: 0;
-}
-
-body.admin .account .button {
-  color: #fff;
-  border-color: #5d8c95;
-}
-
-body.admin .account .button:hover {
-  background: var(--lexicon);
+  padding: 0.5rem 0.7rem 0.3rem;
+  border-top: 1px solid var(--rule);
 }
 
 body.admin .page .field {
@@ -1271,6 +1325,7 @@ body.admin .page input[type="email"],
 body.admin .page input[type="password"],
 body.admin .page input[type="number"],
 body.admin .page input[type="date"],
+body.admin .page textarea,
 body.admin .page select {
   border: 1px solid var(--rule);
   border-radius: 8px;
@@ -1279,9 +1334,21 @@ body.admin .page select {
   max-width: 100%;
 }
 
-body.admin .page .field input {
+body.admin .page .field input,
+body.admin .page .field textarea {
   border: none;
   padding: 0;
+}
+
+body.admin .page .field textarea {
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+}
+
+body.admin .page details {
+  max-width: 44rem;
+  margin: 0.75rem 0;
 }
 
 /* An element marked hidden stays hidden, whatever its class displays as */
@@ -1844,4 +1911,45 @@ body.admin .page .field input {
     animation: none;
     border-right-color: var(--leaf);
   }
+}
+
+body.admin .page fieldset {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  margin: 0 0 1rem;
+  padding: 0.5rem 1rem 0.75rem;
+  max-width: 44rem;
+}
+
+body.admin .page fieldset legend {
+  font-weight: 600;
+  padding: 0 0.35rem;
+}
+
+body.admin .page fieldset p {
+  margin: 0.35rem 0;
+}
+
+body.admin .page form + form {
+  margin-top: 0.75rem;
+}
+
+/* Farming and food of a commune: quality signs, organic farming, HVE, canteens, schools */
+.territory-part {
+  margin: 1.5rem 0;
+}
+.territory-part details {
+  margin: 0.4rem 0;
+}
+.territory-part summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.training-school {
+  margin: 1.2rem 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+}
+.training-school h3 {
+  margin-bottom: 0.3rem;
 }

@@ -4,6 +4,7 @@ import { AutoList } from "../../templates/views/AutoList"
 import { API } from "../../API"
 import { ParcelIdentifierController } from "./ParcelIdentifierController"
 import { askAssistant, AssistantPage } from "./AssistantController"
+import { TrainingsController } from "./TrainingsController"
 
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
@@ -37,6 +38,16 @@ export const Tools = API.new()
             method: "GET",
             href: "/tools/assistant",
           }),
+          Hypermedia.Link({
+            value: cxt.t("tools_trainings"),
+            method: "GET",
+            href: "/tools/trainings",
+          }),
+          Hypermedia.Link({
+            value: cxt.t("tools_contribution"),
+            method: "GET",
+            href: "/contribute/outil",
+          }),
         ],
       },
     }),
@@ -44,5 +55,6 @@ export const Tools = API.new()
   .path("/tools/parcel-identifier", (cxt) =>
     ParcelIdentifierController(cxt, Breadcrumbs(cxt.t)),
   )
+  .path("/tools/trainings", (cxt) => TrainingsController(cxt, Breadcrumbs(cxt.t)))
   .path("/tools/assistant", (cxt) => AssistantPage(cxt, Breadcrumbs(cxt.t)))
   .path("/tools/assistant/ask", askAssistant)

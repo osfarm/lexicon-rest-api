@@ -3,6 +3,7 @@ import { parseKey, secretMatches } from "./ApiKey"
 import type { KeyStore } from "./KeyStore"
 import { ANONYMOUS_PLAN, ANONYMOUS_PLAN_NAME, OPEN_SCOPE, type Plan } from "./Plan"
 import { consume, type RateLimitState, type RateLimitVerdict } from "./RateLimit"
+import { allowsCaller, NO_RESTRICTION } from "./Restriction"
 import { givesScope } from "./Scope"
 
 export type Identity = Readonly<{
@@ -30,6 +31,8 @@ export type AccessRequest = Readonly<{
   authorization: string | null
   apiKeyHeader: string | null
   ip: string
+  // The page the request says it comes from: its Origin header, its Referer otherwise
+  origin?: string | null
   scope: string
   now: number
 }>
@@ -91,6 +94,9 @@ export function identify(store: KeyStore, request: AccessRequest): Identity | De
   }
   if (stored.expiresAt !== null && stored.expiresAt <= request.now) {
     return deny(401, "This API key has expired")
+  }
+  if (!allowsCaller(stored.restrictions ?? NO_RESTRICTION, request.ip, request.origin)) {
+    return deny(403, "This API key cannot be used from this address or this site")
   }
 
   return {

@@ -148,6 +148,13 @@ export function parcelSummaryOf(page: Page) {
       Array.isArray(page["food-projects"]) && page["food-projects"].length === 0
         ? "none covers this commune"
         : page["food-projects"],
+    // Quality signs, organic farming, HVE farms, canteens and schools of the commune, each with its caveat
+    "farming-and-food-of-the-commune": page.territory,
+    "aoc-wine-zones-at-this-point":
+      Array.isArray(page["quality-zones"]) && page["quality-zones"].length === 0
+        ? "none holds this point"
+        : page["quality-zones"],
+    "owners-certified-hve": page["hve-owners"],
     "land-transactions": listOf(page.transactions),
     owners:
       page["owners-note"] === "members-only"
