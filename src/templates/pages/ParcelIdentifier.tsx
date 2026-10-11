@@ -85,6 +85,26 @@ export interface ParcelIdentifierOkPage {
   transactions?: TableSection
   owners?: TableSection
   // Why no owner is listed
+  // Territorial food projects (PAT) covering the commune, the smallest territory
+  // first; an empty list when none does. farms and organic-farmland-share are
+  // figures of the whole territory of the project
+  "food-projects"?: {
+    id: number
+    name: string
+    "label-level"?: number
+    "labelled-in"?: number
+    holder?: string
+    "holder-kind"?: string
+    "co-holders"?: string[]
+    // The co-holder the commune comes by, when the sheet does not list the commune itself
+    through?: string
+    themes: string[]
+    communes: number
+    "sheet-url"?: string
+    website?: string
+    farms?: number
+    "organic-farmland-share"?: number
+  }[]
   "owners-note"?: "members-only" | "no-legal-person"
   // For a visitor without a key: the first two characters of each value of the owners
   "owners-preview"?: {
@@ -249,6 +269,7 @@ function renderRecord(val: ParcelIdentifierOkPage, context: Context) {
             )}
           </div>
         </div>
+        {val["food-projects"] ? renderFoodProjects(val["food-projects"], context) : ""}
         {val.transactions
           ? renderTableSection(val.transactions, context, t("tools_no_transaction"))
           : ""}
@@ -508,6 +529,82 @@ function renderReserved(
       <p class="quiet">
         {t("tools_reserved_why")} <a href="https://www.osfarm.org/">{t("home_commons_join")}</a>
       </p>
+    </div>
+  )
+}
+
+// The territorial food projects the commune belongs to, each with where to read its sheet
+function renderFoodProjects(
+  projects: NonNullable<ParcelIdentifierOkPage["food-projects"]>,
+  context: Context,
+) {
+  const { t, numberFormatter } = context
+  const fill = (key: string, ...values: (string | number)[]) =>
+    values.reduce<string>((text, value) => text.replace("%s", String(value)), t(key))
+
+  return (
+    <div class="food-projects">
+      <h3>{t("tools_parcel_food_projects")}</h3>
+      {projects.length === 0 ? (
+        <p class="quiet">{t("tools_parcel_food_projects_none")}</p>
+      ) : (
+        <ul>
+          {projects.map((project) => (
+            <li>
+              {project["sheet-url"] ? (
+                <a href={project["sheet-url"]}>{Html.escapeHtml(project.name)}</a>
+              ) : (
+                Html.escapeHtml(project.name)
+              )}
+              {" — "}
+              {project["label-level"] === undefined
+                ? t("tools_parcel_food_project_pending")
+                : project["labelled-in"] === undefined
+                  ? fill("tools_parcel_food_project_level", project["label-level"])
+                  : fill(
+                      "tools_parcel_food_project_level_in",
+                      project["label-level"],
+                      project["labelled-in"],
+                    )}
+              {project.holder
+                ? ", " + fill("tools_parcel_food_project_holder", Html.escapeHtml(project.holder))
+                : ""}
+              {project["co-holders"]
+                ? " " +
+                  fill(
+                    "tools_parcel_food_project_co_holders",
+                    Html.escapeHtml(project["co-holders"].join(", ")),
+                  )
+                : ""}
+              {", " +
+                (project.communes === 1
+                  ? t("tools_parcel_food_project_commune")
+                  : fill("tools_parcel_food_project_communes", numberFormatter(project.communes)))}
+              {"."}
+              {project.through ? (
+                <span class="quiet">
+                  {" "}
+                  {fill("tools_parcel_food_project_through", Html.escapeHtml(project.through))}
+                </span>
+              ) : (
+                ""
+              )}
+              {project.themes.length > 0 ? (
+                <span class="quiet">
+                  {" "}
+                  {Html.escapeHtml(
+                    project.themes.map((theme) => t("food_project_theme_" + theme)).join(", "),
+                  )}
+                  {"."}
+                </span>
+              ) : (
+                ""
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p class="quiet">{t("tools_parcel_food_projects_why")}</p>
     </div>
   )
 }

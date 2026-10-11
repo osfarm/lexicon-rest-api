@@ -1,4 +1,5 @@
 import { MEMBERS_SCOPE } from "../../access/Plan"
+import { foodProjectsOf, type FoodProject } from "../../food-projects/FoodProjects"
 import { Concurrently, Err, match, None, Ok, Some, type AsyncResult } from "shulk"
 import { Hypermedia, hypermedia2json, type HypermediaType } from "../../Hypermedia"
 import { Field } from "../../templates/components/Form"
@@ -147,6 +148,8 @@ interface ParcelData {
   buildings?: BuildingsOnParcel
   // Dwellings, hedges and vegetation around the cadastral parcel
   surroundings?: Surroundings
+  // Territorial food projects covering the commune; empty when none does
+  foodProjects?: FoodProject[]
   // What Lexicon holds about the crop declared here, in this department
   crop?: CropContext
   department?: string
@@ -330,6 +333,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
         : undefined,
     water: data.water && data.water.length > 0 ? data.water : undefined,
     surroundings: data.surroundings,
+    "food-projects": data.foodProjects,
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -605,10 +609,11 @@ async function retrieveParcelData(
   )
 
   const coordinates = pointToCoordinates(point)
-  const [water, buildings, surroundings, crop] = await Promise.all([
+  const [water, buildings, surroundings, foodProjects, crop] = await Promise.all([
     waterNear(db, { ...coordinates, parcelId: cadastralParcel?.id }),
     cadastralParcel ? buildingsOn(db, cadastralParcel.id) : undefined,
     cadastralParcel ? surroundingsOf(db, cadastralParcel.id) : undefined,
+    municipality ? foodProjectsOf(db, municipality.code) : undefined,
     capCode?.production ? cropContext(db, capCode.production, department) : undefined,
   ])
 
@@ -650,6 +655,7 @@ async function retrieveParcelData(
     water,
     buildings,
     surroundings,
+    foodProjects,
     crop,
     department,
     agriculturalEnterprises,

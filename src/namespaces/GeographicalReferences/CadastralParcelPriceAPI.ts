@@ -9,6 +9,8 @@ import { generateResourcePage } from "../../page-generators/generateResourcePage
 import { API } from "../../API"
 import { Ok } from "shulk"
 
+const INSEE_CODE_LENGTH = 5
+
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
     value: t("home_title"),
@@ -156,19 +158,27 @@ export const CadastralParcelPriceAPI = API.new()
       handler: async (id) => {
         const readParcelPriceResult = await ParcelPriceTable(cxt.db).read(id)
 
+        // The commune is the one of the parcel, whose identifier starts with its INSEE
+        // code: a postal code is shared by several communes
         const searchMunicipalitiesResult = await readParcelPriceResult.flatMapAsync(
           (parcel) =>
             MunicipalityTable(cxt.db)
               .select()
-              .where("postal_code", "=", parcel.postal_code)
-              .limit(1)
+              .where("code", "=", parcel.cadastral_parcel_id.slice(0, INSEE_CODE_LENGTH))
               .run(),
         )
 
+        const postalCode = readParcelPriceResult
+          .toMaybe()
+          .map((parcel) => parcel.postal_code)
+          .unwrapOr(undefined)
         const associatedMunicipality = searchMunicipalitiesResult
           .toMaybe()
-          .filter((municipalities) => municipalities.length > 0)
-          .map((municipalities) => municipalities[0])
+          .map(
+            (municipalities) =>
+              municipalities.find((found) => found.postal_code === postalCode) ??
+              municipalities[0],
+          )
           .unwrapOr(undefined)
 
         return readParcelPriceResult.map((parcel) => ({
@@ -181,7 +191,7 @@ export const CadastralParcelPriceAPI = API.new()
                   method: "GET",
                   href: `/geographical-references/municipalities/${associatedMunicipality.id}`,
                 })
-              : undefined,
+              : Hypermedia.Text({ label: cxt.t("common_fields_city"), value: parcel.city }),
             "postal-code": Hypermedia.Text({
               label: cxt.t("geographical_references_cadastral_parcel_price_postal_code"),
               value: parcel.postal_code,

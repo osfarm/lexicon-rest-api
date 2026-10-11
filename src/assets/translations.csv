@@ -235,6 +235,39 @@ tools_owners_members_only,"Propriétaire : réservé aux adhérents, sur présen
 tools_reserved_tag,Réservé aux adhérents,Members only
 tools_reserved_rows,"%s lignes montrées sur %s, sans filtre ni tri.","%s rows shown out of %s, with no filter nor sort."
 tools_reserved_why,"Seuls les premiers caractères sont affichés. Les adhérents lisent ces données en entier avec leur clé d'accès.","Only the first characters are shown. Members read this data in full with their access key."
+tools_parcel_food_projects,Projet alimentaire territorial,Territorial food project
+tools_parcel_food_projects_none,Cette commune n'est couverte par aucun projet alimentaire territorial (PAT).,No territorial food project (PAT) covers this commune.
+tools_parcel_food_project_pending,labellisation en attente,recognition pending
+tools_parcel_food_project_level,labellisé niveau %s,recognised at level %s
+tools_parcel_food_project_level_in,labellisé niveau %s en %s,recognised at level %s in %s
+tools_parcel_food_project_holder,porté par %s,led by %s
+tools_parcel_food_project_co_holders,avec %s,with %s
+tools_parcel_food_project_through,"La fiche France PAT ne liste pas cette commune : elle est rattachée au projet par %s, qui le co-porte.","The France PAT sheet does not list this commune: it is tied to the project by %s, which co-leads it."
+tools_parcel_food_project_commune,une commune,one commune
+tools_parcel_food_project_communes,%s communes,%s communes
+tools_parcel_food_projects_why,"Un PAT réunit les acteurs d'un territoire pour rapprocher production et consommation alimentaires. Source : observatoire France PAT.","A PAT brings together the players of a territory to bring food production and consumption closer. Source: France PAT observatory."
+food_project_title,Projets alimentaires territoriaux (PAT),Territorial food projects (PAT)
+food_project_commune,Commune couverte (code INSEE),Commune covered (INSEE code)
+food_project_label_level,Niveau de labellisation,Recognition level
+food_project_labelled_in,Année de labellisation,Year of recognition
+food_project_holder,Porteur,Holder
+food_project_holder_kind,Type de porteur,Kind of holder
+food_project_regions,Régions,Regions
+food_project_communes,Communes,Communes
+food_project_farms,Exploitations agricoles,Farms
+food_project_organic_share,Part de la SAU en bio,Share of farmland under organic farming
+food_project_themes,Axes,Themes
+food_project_sheet,Fiche France PAT,France PAT sheet
+food_project_theme_food_economy,économie alimentaire et filières,food economy and supply chains
+food_project_theme_culture_and_gastronomy,patrimoine alimentaire et gastronomie,food heritage and gastronomy
+food_project_theme_food_education,éducation alimentaire,food education
+food_project_theme_nutrition_and_health,nutrition et santé,nutrition and health
+food_project_theme_social_justice,justice sociale et précarité alimentaire,social justice and food insecurity
+food_project_theme_environment,environnement et gaspillage alimentaire,environment and food waste
+food_project_theme_collective_catering,restauration collective,collective catering
+food_project_theme_town_planning,urbanisme et aménagement,town and country planning
+food_project_theme_governance,gouvernance alimentaire,food governance
+food_project_theme_other,autres,others
 tools_owners_none,"Propriétaire : aucune société ni organisme public. La parcelle appartient à des particuliers, que le Lexicon ne nomme pas.","Owner: no company nor public body. The parcel belongs to private persons, whom Lexicon does not name."
 tools_owner_denomination,Dénomination,Denomination
 tools_owner_legal_form,Forme juridique,Legal form

@@ -143,6 +143,11 @@ export function parcelSummaryOf(page: Page) {
     "water-near-the-parcel-metres": page.water,
     "around-the-parcel": surroundingsOf(page.surroundings),
     zonings: zones.length > 0 ? zones : "none at this point",
+    // PAT covering the commune; farms and organic share are those of the whole project
+    "territorial-food-projects":
+      Array.isArray(page["food-projects"]) && page["food-projects"].length === 0
+        ? "none covers this commune"
+        : page["food-projects"],
     "land-transactions": listOf(page.transactions),
     owners:
       page["owners-note"] === "members-only"

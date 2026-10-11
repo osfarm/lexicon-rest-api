@@ -1478,6 +1478,7 @@ body.admin .page .field input {
 
 /* What is read elsewhere about the crop, and the water around: plain lists */
 .crop-context ul,
+.food-projects ul,
 .water-nearby ul {
   margin: 0;
   padding-left: 1.1rem;
@@ -1489,6 +1490,7 @@ body.admin .page .field input {
 }
 
 .crop-context li,
+.food-projects li,
 .water-nearby li {
   margin: 0.3rem 0;
 }
@@ -1501,6 +1503,11 @@ body.admin .page .field input {
   padding-left: 0.8rem;
 }
 
+.food-projects {
+  margin: 1.25rem 0 1.5rem;
+}
+
+.food-projects p.quiet,
 .water-nearby .quiet {
   font-size: var(--step--1);
   max-width: 44rem;

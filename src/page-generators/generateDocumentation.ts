@@ -28,7 +28,7 @@ const Paths = (t: Translator) => ({
     get: ResourceEndpoint({
       description:
         t("tools_parcel_identifier") +
-        " (JSON). Everything Lexicon knows at a point: commune (the arrondissement in Paris, Lyon and Marseille), cadastral parcel, CAP parcel and the crops declared there campaign by campaign (rotation), what Lexicon holds about that crop (crop-context: selling price, gross product per hectare, authorised plant protection products, R&D documents, technical workflows), buildings on the parcel with their ground area, soil, water within about 500 m with its distance in metres and what the IGN says of it (water: permanent, ditch, water-police « Inscrit » for a watercourse listed by the water police, width), what stands around the cadastral parcel (surroundings: dwellings within 100 m and the closest one, schools, hospitals and homes for the elderly within 500 m, metres of hedge along it, woods, vines and orchards on it or within 100 m, high-voltage lines over it or within 100 m), zonings including protected areas and public forests, land transactions, the companies and public bodies that own the parcel (owners, with a member key; without a key, owners-preview gives the first two characters of each value and owners-note says members-only; no-legal-person when private persons own it), yields of the department, farms of the commune, and the 30 days before the latest report of the nearest weather station (distance and until). Example uses a point inside Saint-Porchaire (17250).",
+        " (JSON). Everything Lexicon knows at a point: commune (the arrondissement in Paris, Lyon and Marseille), cadastral parcel, CAP parcel and the crops declared there campaign by campaign (rotation), what Lexicon holds about that crop (crop-context: selling price, gross product per hectare, authorised plant protection products, R&D documents, technical workflows), buildings on the parcel with their ground area, soil, water within about 500 m with its distance in metres and what the IGN says of it (water: permanent, ditch, water-police « Inscrit » for a watercourse listed by the water police, width), what stands around the cadastral parcel (surroundings: dwellings within 100 m and the closest one, schools, hospitals and homes for the elderly within 500 m, metres of hedge along it, woods, vines and orchards on it or within 100 m, high-voltage lines over it or within 100 m), the territorial food projects covering the commune (food-projects, an empty list when none does), zonings including protected areas and public forests, land transactions, the companies and public bodies that own the parcel (owners, with a member key; without a key, owners-preview gives the first two characters of each value and owners-note says members-only; no-legal-person when private persons own it), yields of the department, farms of the commune, and the 30 days before the latest report of the nearest weather station (distance and until). Example uses a point inside Saint-Porchaire (17250).",
       category: t("tools"),
       query: {
         latitude: {
@@ -262,6 +262,24 @@ const Paths = (t: Translator) => ({
         },
       },
       query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/geographical-references/food-projects.json": {
+    get: TableEndpoint({
+      description:
+        t("food_project_title") +
+        ". The projects recognised by the ministry of agriculture, from the France PAT observatory: holder, recognition level (1 or 2, empty while pending), themes, number of communes, farms and share of organic farmland of the territory, link to the sheet on france-pat.fr. Example query: ?commune=35236 returns the projects covering that commune.",
+      category: t("geographical_references_title"),
+      query: {
+        commune: {
+          description: "INSEE code of a commune the project covers. Example: 35236.",
+          type: "string",
+        },
+        name: { description: "Searches for a project whose name holds this text.", type: "string" },
+        level: { description: "Recognition level.", type: "string", enum: ["1", "2"] },
+      },
       resourceSchema: {},
     }),
   },
