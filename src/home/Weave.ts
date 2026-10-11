@@ -240,8 +240,8 @@ export const JOURNEY: readonly WeaveStep[] = [
   },
   {
     text: {
-      fr: "La parcelle est dans une commune : ses entreprises agricoles, ses aides, ses chefs d'exploitation.",
-      en: "The parcel is in a commune: its farming companies, their subsidies, its farm chiefs.",
+      fr: "La parcelle est dans une commune : ses établissements, ses aides, ses chefs d'exploitation.",
+      en: "The parcel is in a commune: its establishments, their subsidies, its farm chiefs.",
     },
     link: {
       label: { fr: "Fiche d'une commune", en: "Record of a commune" },

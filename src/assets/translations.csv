@@ -221,6 +221,8 @@ documentation_cap_parcel_location,Emplacement d'une parcelle PAC,Location of a C
 documentation_municipality_cadastre,Cadastre d'une commune,Cadastre of a municipality
 documentation_municipality_cap,Parcelles d'une commune enregistrées à la PAC,Parcels of a municipality which are registered in the CAP
 documentation_weather_hourly_reports,Relevés horaires d'une station donnée,Hourly weather reports for a given weather station.
+documentation_links,Liens entre jeux de données,Links between datasets
+documentation_catalog,Catalogue,Catalog
 
 country_FR,France,France
 tools_soil,Sol,Soil
@@ -229,6 +231,44 @@ tools_soil_available_water,Réserve utile,Available water capacity
 tools_soil_available_water_min,Réserve utile (min),Available water (min)
 tools_soil_available_water_max,Réserve utile (max),Available water (max)
 tools_owners,Propriétaires,Owners
+tools_owners_members_only,"Propriétaire : réservé aux adhérents, sur présentation d'une clé d'accès.","Owner: reserved to members, with an access key."
+tools_reserved_tag,Réservé aux adhérents,Members only
+tools_reserved_rows,"%s lignes montrées sur %s, sans filtre ni tri.","%s rows shown out of %s, with no filter nor sort."
+tools_reserved_why,"Seuls les premiers caractères sont affichés. Les adhérents lisent ces données en entier avec leur clé d'accès.","Only the first characters are shown. Members read this data in full with their access key."
+tools_parcel_food_projects,Projet alimentaire territorial,Territorial food project
+tools_parcel_food_projects_none,Cette commune n'est couverte par aucun projet alimentaire territorial (PAT).,No territorial food project (PAT) covers this commune.
+tools_parcel_food_project_pending,labellisation en attente,recognition pending
+tools_parcel_food_project_level,labellisé niveau %s,recognised at level %s
+tools_parcel_food_project_level_in,labellisé niveau %s en %s,recognised at level %s in %s
+tools_parcel_food_project_holder,porté par %s,led by %s
+tools_parcel_food_project_co_holders,avec %s,with %s
+tools_parcel_food_project_through,"La fiche France PAT ne liste pas cette commune : elle est rattachée au projet par %s, qui le co-porte.","The France PAT sheet does not list this commune: it is tied to the project by %s, which co-leads it."
+tools_parcel_food_project_commune,une commune,one commune
+tools_parcel_food_project_communes,%s communes,%s communes
+tools_parcel_food_projects_why,"Un PAT réunit les acteurs d'un territoire pour rapprocher production et consommation alimentaires. Source : observatoire France PAT.","A PAT brings together the players of a territory to bring food production and consumption closer. Source: France PAT observatory."
+food_project_title,Projets alimentaires territoriaux (PAT),Territorial food projects (PAT)
+food_project_commune,Commune couverte (code INSEE),Commune covered (INSEE code)
+food_project_label_level,Niveau de labellisation,Recognition level
+food_project_labelled_in,Année de labellisation,Year of recognition
+food_project_holder,Porteur,Holder
+food_project_holder_kind,Type de porteur,Kind of holder
+food_project_regions,Régions,Regions
+food_project_communes,Communes,Communes
+food_project_farms,Exploitations agricoles,Farms
+food_project_organic_share,Part de la SAU en bio,Share of farmland under organic farming
+food_project_themes,Axes,Themes
+food_project_sheet,Fiche France PAT,France PAT sheet
+food_project_theme_food_economy,économie alimentaire et filières,food economy and supply chains
+food_project_theme_culture_and_gastronomy,patrimoine alimentaire et gastronomie,food heritage and gastronomy
+food_project_theme_food_education,éducation alimentaire,food education
+food_project_theme_nutrition_and_health,nutrition et santé,nutrition and health
+food_project_theme_social_justice,justice sociale et précarité alimentaire,social justice and food insecurity
+food_project_theme_environment,environnement et gaspillage alimentaire,environment and food waste
+food_project_theme_collective_catering,restauration collective,collective catering
+food_project_theme_town_planning,urbanisme et aménagement,town and country planning
+food_project_theme_governance,gouvernance alimentaire,food governance
+food_project_theme_other,autres,others
+tools_owners_none,"Propriétaire : aucune société ni organisme public. La parcelle appartient à des particuliers, que le Lexicon ne nomme pas.","Owner: no company nor public body. The parcel belongs to private persons, whom Lexicon does not name."
 tools_owner_denomination,Dénomination,Denomination
 tools_owner_legal_form,Forme juridique,Legal form
 tools_owner_siren,SIREN,SIREN
@@ -291,7 +331,7 @@ tools_agricultural_enterprises,Entreprises agricoles sur la commune,Agricultural
 tools_enterprise_siren,SIREN,SIREN
 tools_enterprise_activity_code,Code NAF,NAF code
 enterprises_title,Entreprises,Enterprises
-enterprises_agricultural_title,Entreprises agricoles,Agricultural enterprises
+enterprises_sirene_title,Établissements (SIRENE),Establishments (SIRENE)
 enterprises_siret,SIRET,SIRET
 enterprises_activity_code_prefix,Préfixe code NAF (01 = agriculture),NAF code prefix (01 = agriculture)
 enterprises_establishments,Établissements,Establishments
@@ -372,7 +412,7 @@ tools_assistant_failed,échec,failed
 tools_assistant_sources,Documents cités,Documents quoted
 tools_assistant_lexicon_record,fiche Lexicon,Lexicon record
 tools_assistant_remaining,Il vous reste %d question(s) aujourd'hui.,You have %d question(s) left today.
-tools_assistant_how,"Duke interroge le Lexicon par son serveur MCP, comme le ferait n'importe quel agent : chaque appel d'outil est affiché. Documents de R&D :","Duke queries Lexicon through its MCP server, as any agent would: each tool call is shown. R&D documents:"
+tools_assistant_how,"Duke interroge le Lexicon par son serveur MCP, comme le ferait n'importe quel agent : chaque appel est affiché au-dessus de la réponse, et se déplie. Documents de R&D :","Duke queries Lexicon through its MCP server, as any agent would: each call is shown above the answer, and unfolds. R&D documents:"
 tools_assistant_error_quota,Le modèle a atteint son quota. Réessayez dans quelques minutes : votre question n'a pas été décomptée.,The model has reached its quota. Try again in a few minutes: your question was not counted.
 tools_assistant_error_busy,Trop de questions sont en attente. Réessayez dans un instant : votre question n'a pas été décomptée.,Too many questions are waiting. Try again in a moment: your question was not counted.
 tools_assistant_error_down,Duke n'a pas pu répondre. Réessayez plus tard.,Duke could not answer. Try again later.
@@ -416,9 +456,12 @@ home_commons_title,Un commun d'OSFarm,A commons of OSFarm
 home_commons,"Le Lexicon est construit et maintenu par l'association OSFarm. Son code est libre, ses données gardent la licence de leur source. Les adhérents obtiennent une clé d'accès aux données réservées et des quotas plus larges.","Lexicon is built and maintained by the OSFarm association. Its code is free software, its data keeps the licence of its source. Members get a key to the reserved data and larger quotas."
 home_commons_join,Découvrir OSFarm,Discover OSFarm
 home_commons_contribute,Contribuer sur GitHub,Contribute on GitHub
+home_commons_propose,Proposer un jeu de données,Propose a dataset
+contribute_title,Proposer un jeu de données,Propose a dataset
+contribute_catalog_link,Proposer un jeu de données à partir d'un tableau,Propose a dataset from a spreadsheet
 explore_lead,"Les données du Lexicon, rangées par thème. Chaque page se consulte ici, ou se récupère en JSON et en CSV.","The data of Lexicon, by theme. Each page can be read here, or fetched as JSON and CSV."
 explore_geographical_references,"Communes, parcelles du cadastre et leurs prix, parcelles déclarées à la PAC et leurs cultures.","Communes, cadastral parcels and their prices, parcels declared to the CAP and their crops."
-explore_enterprises,"Entreprises agricoles, aides de la PAC, résultats économiques des exploitations.","Farming companies, CAP subsidies, economic results of farms."
+explore_enterprises,"Établissements de toutes activités, aides de la PAC, résultats économiques des exploitations.","Establishments of every activity, CAP subsidies, economic results of farms."
 explore_production,"Productions végétales et animales, leurs codes, rendements et prix.","Plant and animal productions, their codes, yields and prices."
 explore_phytosanitary,"Produits autorisés, usages, doses et mentions de risque.","Authorised products, uses, doses and risk statements."
 explore_seeds,Variétés de semences inscrites au catalogue.,Seed varieties of the official catalogue.
@@ -427,3 +470,207 @@ explore_rd_agri,"Rapports d'essais, guides et articles de la recherche agricole.
 explore_weather,Stations et relevés météorologiques.,Weather stations and records.
 explore_tools_parcel_identifier,"Un point sur la carte : sa parcelle, sa culture, sa commune, sa météo.","A point on the map: its parcel, its crop, its commune, its weather."
 explore_tools_assistant,Une question en langage naturel sur les données du Lexicon.,A question in plain language about the data of Lexicon.
+inputs_title,Intrants,Inputs
+explore_inputs,"Engrais, semences, produits phytosanitaires, carburant : composition et prix.","Fertilisers, seeds, plant protection products, fuel: composition and prices."
+inputs_article_prices_title,Prix de référence des articles,Reference prices of articles
+inputs_phytosanitary_prices_title,Prix de référence des produits phytosanitaires,Reference prices of plant protection products
+inputs_price_sources_title,Provenance des prix de référence,Where the reference prices come from
+inputs_fuel_prices_title,Prix mensuel du gazole non routier,Monthly price of non-road diesel
+inputs_phytosanitary_substances_title,Matières actives : EIQ et mode d'action HRAC,Active substances: EIQ and HRAC mode of action
+inputs_phytosanitary_product_substances_title,Composition des produits phytosanitaires,Composition of plant protection products
+inputs_fertilizers_title,Engrais et amendements,Fertilisers and amendments
+inputs_fertilizer_prices_title,Prix mensuel des engrais,Monthly prices of fertilisers
+inputs_fertilizer_unit_values_title,Valeur des unités fertilisantes,Value of fertilising units
+inputs_fertilizer_price_readings_title,Relevés de prix des engrais,Price readings of fertilisers
+inputs_seed_species_title,Espèces de semences,Seed species
+inputs_seed_prices_title,Prix mensuel des semences par espèce,Monthly prices of seeds by species
+inputs_seed_price_readings_title,Relevés de prix des semences,Price readings of seeds
+inputs_phytosanitary_price_readings_title,Relevés de prix des produits phytosanitaires,Price readings of plant protection products
+inputs_field_active_substances,Matières actives,Active substances
+inputs_field_approval_state,Approbation,Approval
+inputs_field_calcium,CaO,CaO
+inputs_field_cas_number,Numéro CAS,CAS number
+inputs_field_category,Catégorie,Category
+inputs_field_delivery_from,Livraison à partir du,Delivery from
+inputs_field_delivery_postal_code,Lieu de livraison,Place of delivery
+inputs_field_delivery_to,Livraison jusqu'au,Delivery until
+inputs_field_detail,Détail,Detail
+inputs_field_eiq,EIQ,EIQ
+inputs_field_eiq_consumer,EIQ consommateur,EIQ consumer
+inputs_field_eiq_ecological,EIQ écologique,EIQ ecological
+inputs_field_eiq_farm_worker,EIQ agriculteur,EIQ farm worker
+inputs_field_eiq_match,Rapprochement EIQ,EIQ match
+inputs_field_family,Famille,Family
+inputs_field_fertilizer_id,Engrais,Fertiliser
+inputs_field_french_name,Nom français,French name
+inputs_field_french_names,Noms français,French names
+inputs_field_highest_price_per_kilogram,Prix au kilo le plus haut,Highest price per kilogram
+inputs_field_hrac_group,Groupe HRAC,HRAC group
+inputs_field_hrac_match,Rapprochement HRAC,HRAC match
+inputs_field_hrac_mode_of_action,Mode d'action,Mode of action
+inputs_field_id,Identifiant,Identifier
+inputs_field_kind,Type,Kind
+inputs_field_label,Nom de l'offre,Name of the offer
+inputs_field_last_observed_on,Dernier relevé,Latest reading
+inputs_field_latin_name,Nom latin,Latin name
+inputs_field_lowest_price_per_kilogram,Prix au kilo le plus bas,Lowest price per kilogram
+inputs_field_magnesium,MgO,MgO
+inputs_field_merchant,Marchand,Merchant
+inputs_field_merchants,Marchands,Merchants
+inputs_field_method,Méthode,Method
+inputs_field_mixture,Mélange,Mixture
+inputs_field_month,Mois,Month
+inputs_field_name,Nom,Name
+inputs_field_negotiated,Prix négocié,Negotiated price
+inputs_field_nitrogen,N,N
+inputs_field_nutrient,Élément,Nutrient
+inputs_field_observations,Relevés,Readings
+inputs_field_observed_on,Date du relevé,Reading date
+inputs_field_offers,Offres,Offers
+inputs_field_organic,Bio,Organic
+inputs_field_packaging,Conditionnement,Packaging
+inputs_field_phosphorus,P2O5,P2O5
+inputs_field_potassium,K2O,K2O
+inputs_field_previous_amount,Prix remplacé,Replaced price
+inputs_field_previous_started_on,Date du prix remplacé,Date of the replaced price
+inputs_field_price,Prix hors taxes,Price before tax
+inputs_field_price_excluding_taxes,Prix hors toutes taxes,Price before all taxes
+inputs_field_price_excluding_vat,Prix hors TVA,Price before VAT
+inputs_field_price_including_taxes,Prix TTC,Price including taxes
+inputs_field_price_per_kilogram,Prix au kilo,Price per kilogram
+inputs_field_price_table,Table,Table
+inputs_field_product,Produit,Product
+inputs_field_product_id,Numéro d'AMM,Authorisation number
+inputs_field_quantity,Teneur,Content
+inputs_field_reference_article_name,Article,Article
+inputs_field_reference_name,Produit de référence,Reference product
+inputs_field_season,Saison de semis,Sowing season
+inputs_field_source,Jeu source,Source dataset
+inputs_field_source_label,Nom chez le marchand,Name at the merchant
+inputs_field_sowing_rate_max,Dose de semis maximale,Highest sowing rate
+inputs_field_sowing_rate_min,Dose de semis minimale,Lowest sowing rate
+inputs_field_species_id,Espèce,Species
+inputs_field_started_on,Date du prix,Price date
+inputs_field_substance_id,Matière active,Active substance
+inputs_field_sulfur,SO3,SO3
+inputs_field_taxon_reference_name,Taxon,Taxon
+inputs_field_unit_pretax_amount,Prix hors taxes,Price before tax
+inputs_field_value,Valeur,Value
+inputs_field_variant_reference_name,Article de référence,Reference article
+inputs_field_variety,Variété,Variety
+inputs_field_variety_id,Variété au catalogue officiel,Variety in the official catalogue
+tools_station_distance,Distance de la station,Distance to the station
+tools_station_until,Dernier relevé,Latest report
+tools_parcel_map,Carte : cliquez pour poser le point,Map: click to put the point
+tools_parcel_pick_title,Où est la parcelle ?,Where is the parcel?
+tools_parcel_pick_help,"Cliquez sur la carte ou déplacez le repère. Les coordonnées se saisissent aussi à la main.","Click on the map or drag the marker. The coordinates can also be typed."
+tools_parcel_identify,Identifier cette parcelle,Identify this parcel
+tools_parcel_searching,Recherche de la parcelle…,Looking for the parcel…
+tools_parcel_locate,Me localiser,Use my location
+tools_parcel_locating,Recherche de votre position…,Looking for your position…
+tools_parcel_locate_failed,Votre position n'a pas pu être trouvée : posez le point à la main.,Your position could not be found: put the point by hand.
+tools_parcel_empty,"Posez un point : le Lexicon dit quelle parcelle s'y trouve, ce qui y est cultivé, son sol, sa commune et la météo de la station la plus proche.","Put a point: Lexicon tells which parcel is there, what is grown on it, its soil, its commune and the weather of the nearest station."
+tools_parcel_example,Voir un exemple à Saint-Porchaire.,See an example in Saint-Porchaire.
+tools_parcel_nothing,"Le Lexicon ne connaît rien à cet endroit : ni parcelle cadastrale, ni commune, ni déclaration PAC. Il couvre la France métropolitaine.","Lexicon knows nothing at this point: no cadastral parcel, no commune, no CAP declaration. It covers metropolitan France."
+tools_parcel_parcel,Parcelle,Parcel
+tools_parcel_no_cadastre,Aucune parcelle cadastrale à cet endroit,No cadastral parcel at this point
+tools_parcel_commune,Commune,Commune
+tools_parcel_in,en,in
+tools_parcel_at,à,at
+tools_parcel_soil_of,sol de,soil of
+tools_parcel_contents,Dans cette fiche,In this record
+tools_parcel_section_crop,Cultures,Crops
+tools_parcel_section_place,Lieu,Place
+tools_parcel_section_environment,Sol et zonages,Soil and zoning
+tools_parcel_section_weather,Météo,Weather
+tools_parcel_section_farms,Exploitations de la commune,Farms of the commune
+tools_parcel_rotation_none,Aucune déclaration PAC à cet endroit.,No CAP declaration at this point.
+tools_parcel_no_zone,"Aucune zone naturelle, zone de protection des eaux ni zonage administratif à cet endroit.","No natural zone, protected water zone nor administrative zoning at this point."
+tools_parcel_weather_stale,Les relevés de cette station s'arrêtent le %s.,The reports of this station stop on %s.
+tools_parcel_weather_window,Les 30 jours avant le %s : température maximale et pluie de chaque jour,The 30 days before %s: maximum temperature and rain of each day
+tools_parcel_no_report,Cette station n'a pas de relevé.,This station has no report.
+tools_parcel_enterprises_summary,%d établissements agricoles dans la commune (code NAF 01) dont %d ont reçu des aides de la PAC.,"%d farming establishments in the commune (NAF code 01), %d of which received CAP subsidies."
+tools_parcel_json,Cette fiche en JSON,This record as JSON
+tools_assistant_question,Votre question,Your question
+tools_assistant_reset,Nouvelle conversation,New conversation
+tools_assistant_from,tirés de la,taken from the
+phytosanitary_purchase_title,Achats estimés par commune et par produit,Purchases estimated by commune and product
+phytosanitary_purchase_commune_title,Achats estimés par commune,Purchases estimated by commune
+phytosanitary_purchase_substance_title,Achats par substance en France,Purchases by substance in France
+phytosanitary_purchase_commune,Commune (code INSEE),Commune (INSEE code)
+phytosanitary_purchase_year,Année,Year
+phytosanitary_purchase_substance,Substance active,Active substance
+phytosanitary_purchase_cas,Numéro CAS,CAS number
+phytosanitary_purchase_function,Fonction,Function
+phytosanitary_purchase_function_herbicide,Herbicide,Herbicide
+phytosanitary_purchase_function_fungicide,"Fongicide, bactéricide","Fungicide, bactericide"
+phytosanitary_purchase_function_insecticide,"Insecticide, acaricide","Insecticide, acaricide"
+phytosanitary_purchase_function_other,"Autres (molluscicides, régulateurs de croissance…)","Others (molluscicides, growth regulators…)"
+phytosanitary_purchase_danger,Classe de danger,Hazard class
+phytosanitary_purchase_biocontrol,Biocontrôle,Biocontrol
+phytosanitary_purchase_organic,Utilisable en agriculture biologique,Usable in organic farming
+phytosanitary_purchase_quantity,Substance active achetée,Active substance bought
+phytosanitary_purchase_products,Produits,Products
+phytosanitary_purchase_substances,Substances,Substances
+phytosanitary_purchase_communes,Communes,Communes
+phytosanitary_purchase_masked,Achats masqués par le secret statistique,Purchases masked by statistical secrecy
+phytosanitary_usage_title,Usages autorisés,Authorised usages
+phytosanitary_usage_product,Produit,Product
+phytosanitary_usage_product_id,Numéro du produit,Product number
+phytosanitary_usage_crop,Culture,Crop
+phytosanitary_usage_target,Cible,Target
+phytosanitary_usage_dose,Dose,Dose
+phytosanitary_usage_pre_harvest_delay,Délai avant récolte,Pre-harvest interval
+phytosanitary_usage_aquatic_buffer,Zone non traitée (eau),Untreated buffer (water)
+phytosanitary_usage_applications,Applications,Applications
+common_days,j,d
+production_workflows_title,Itinéraires techniques,Technical workflows
+production_workflows_production,Production,Production
+production_workflows_system,Système de production,Production system
+production_workflows_start,Début (jour/mois),Start (day/month)
+production_workflows_life_cycle,Cycle,Life cycle
+production_workflows_reference,Référence,Reference
+tools_parcel_buildings,Bâtiments sur la parcelle,Buildings on the parcel
+tools_parcel_buildings_area,Emprise au sol des bâtiments,Ground area of the buildings
+tools_parcel_buildings_agricultural,dont bâtiments agricoles,of which agricultural buildings
+tools_parcel_around,Autour de la parcelle,Around the parcel
+tools_parcel_dwellings,"Habitations : %s à moins de %s m, la plus proche à %s m.","Dwellings: %s within %s m, the closest at %s m."
+tools_parcel_dwellings_on,"Habitations : %s à moins de %s m, dont une sur la parcelle.","Dwellings: %s within %s m, one of them on the parcel."
+tools_parcel_dwellings_none,Habitations : aucune à moins de 500 m.,Dwellings: none within 500 m.
+tools_parcel_hedges,Haies : %s m sur la parcelle ou en bordure.,Hedges: %s m on the parcel or along it.
+tools_parcel_hedges_none,Haies : aucune sur la parcelle ni en bordure.,Hedges: none on the parcel nor along it.
+tools_parcel_vegetation_on,%s m² sur la parcelle (%s %),%s m² on the parcel (%s%)
+tools_parcel_around_why,"Près des habitations, les traitements phytosanitaires respectent une distance de sécurité de 5 à 20 m selon le produit et la culture. Une habitation est un bâtiment résidentiel ou comptant au moins un logement. Écoles, hôpitaux et maisons de retraite sont recherchés jusqu'à 500 m environ : les traitements y sont restreints à proximité. Données de l'IGN (BD TOPO).","Near dwellings, plant protection treatments keep a safety distance of 5 to 20 m depending on the product and the crop. A dwelling is a residential building or one holding at least one home. Schools, hospitals and homes for the elderly are looked for up to about 500 m: treatments are restricted near them. Data from the IGN (BD TOPO)."
+tools_parcel_water,Eau à proximité,Water nearby
+tools_parcel_water_police,cours d'eau inscrit à l'inventaire de la police de l'eau,watercourse listed in the inventory of the water police
+tools_parcel_water_not_police,non inscrit à l'inventaire de la police de l'eau,not listed in the inventory of the water police
+tools_parcel_water_police_pending,expertise de la police de l'eau en cours,under review by the water police
+tools_parcel_water_ditch,fossé,ditch
+tools_parcel_water_permanent,permanent,permanent
+tools_parcel_water_intermittent,intermittent,intermittent
+tools_parcel_water_wide,de large,wide
+tools_parcel_power_line,Ligne électrique %s :,Power line %s:
+tools_parcel_power_line_over,au-dessus de la parcelle,over the parcel
+tools_area_green_zone,Végétation,Vegetation
+tools_area_protected_area,Espace protégé,Protected area
+tools_area_public_forest,Forêt publique,Public forest
+tools_area_sensitive_site,Site sensible,Sensitive site
+tools_area_edge,Haie,Hedge
+tools_area_electric_pole,Pylône,Pylon
+tools_area_power_line,Ligne électrique,Power line
+tools_parcel_water_on,sur la parcelle,on the parcel
+tools_parcel_water_why,"Les zones non traitées des produits phytosanitaires (5 à 100 m selon l'usage) se comptent depuis les points d'eau. L'inscription à l'inventaire de la police de l'eau est ce que l'IGN en sait : sans mention, l'écoulement peut tout de même être un cours d'eau. Recherche jusqu'à 500 m environ.","Untreated buffer zones of plant protection products (5 to 100 m depending on the usage) are counted from water. The listing in the inventory of the water police is what the IGN knows of it: without a mention, the stretch may still be a watercourse. Searched up to about 500 m."
+tools_parcel_crop_context,Pour le %s,About %s
+tools_parcel_crop_price,"Prix de vente : %s €/%s en %s (%s, %s).","Selling price: €%s per %s in %s (%s, %s)."
+tools_parcel_price_farmer_price,prix payé aux producteurs,price paid to farmers
+tools_parcel_price_matif_price,cotation MATIF,MATIF quotation
+tools_parcel_price_shipping_price,prix rendu,delivered price
+tools_parcel_price_national,France,France
+tools_parcel_price_local,département,department
+tools_parcel_crop_gross,"Soit environ %s €/ha au rendement du département (%s q/ha en %s).","That is about €%s per hectare at the yield of the department (%s q/ha in %s)."
+tools_parcel_crop_usages,%s produits phytosanitaires autorisés,%s authorised plant protection products
+tools_parcel_crop_usages_detail,sur « %s » (%s usages).,"on “%s” (%s usages)."
+tools_parcel_crop_workflows,%s itinéraires techniques de référence,%s reference technical workflows
+tools_parcel_crop_documents,%s documents de R&D,%s R&D documents
+tools_parcel_crop_documents_department,"sur cette culture dans le département. Les plus récents :","about this crop in the department. The latest:"
+tools_parcel_crop_documents_region,"sur cette culture dans la région. Les plus récents :","about this crop in the region. The latest:"

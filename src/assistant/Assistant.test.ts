@@ -49,6 +49,11 @@ const backend: McpBackend = {
   searchRdDocuments: async () => ({ total: 1, documents: [DOCUMENT] }),
   rdDocument: async () => DOCUMENT,
   cropHistory: async () => ({ campaigns: [] }),
+  inputPrices: async () => ({ prices: [] }),
+  parcel: async () => ({}),
+  cropFigures: async () => ({ yields: [] }),
+  phytosanitaryProducts: async () => ({ total: 0, products: [] }),
+  phytosanitaryPurchases: async () => ({ years: [] }),
 }
 
 const mcp = mcpClient((message) => handleMcpMessage(message, backend))

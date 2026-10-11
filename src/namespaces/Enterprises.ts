@@ -33,7 +33,7 @@ export const Enterprises = API.new()
         breadcrumbs: [Breadcrumbs(t)[0]],
         links: [
           Hypermedia.Link({
-            value: t("enterprises_agricultural_title"),
+            value: t("enterprises_sirene_title"),
             method: "GET",
             href: "/enterprises/enterprises",
           }),
@@ -49,7 +49,7 @@ export const Enterprises = API.new()
   )
   .path("/enterprises/enterprises", async (cxt: Context) =>
     generateTablePage(cxt, {
-      title: cxt.t("enterprises_agricultural_title"),
+      title: cxt.t("enterprises_sirene_title"),
       breadcrumbs: Breadcrumbs(cxt.t),
       form: {
         name: Field.Text({
@@ -145,7 +145,7 @@ export const Enterprises = API.new()
       breadcrumbs: [
         ...Breadcrumbs(cxt.t),
         Hypermedia.Link({
-          value: cxt.t("enterprises_agricultural_title"),
+          value: cxt.t("enterprises_sirene_title"),
           method: "GET",
           href: "/enterprises/enterprises",
         }),

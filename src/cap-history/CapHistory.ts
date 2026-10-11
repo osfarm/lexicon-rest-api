@@ -55,12 +55,15 @@ const parcelsAt = (table: string, current: boolean) =>
      FROM "${DB_SCHEMA}".${table}
     WHERE postgis.ST_Contains(shape, postgis.ST_SetSRID(postgis.ST_Point($1, $2), 4326))`
 
-// The label of a crop code changes with the years: the one of the campaign is taken
+// The label of a crop code changes with the years: the one of the campaign is taken.
+// A code may also stand for a crop and for its seed production (TRN: sunflower, seed
+// sunflower): the declaration does not tell which, so the crop itself is named.
 const labelled = (parcels: string) =>
   `SELECT parcel.campaign, parcel.id, parcel.cap_crop_code, parcel.current,
           (SELECT code.cap_label
              FROM "${DB_SCHEMA}".master_crop_production_cap_codes AS code
             WHERE code.cap_code = parcel.cap_crop_code AND code.year = parcel.campaign
+            ORDER BY code.is_seed
             LIMIT 1) AS cap_label
      FROM (${parcels}) AS parcel
     ORDER BY parcel.campaign DESC, parcel.id;`

@@ -1,4 +1,5 @@
 import { MEMBERS_SCOPE } from "../../access/Plan"
+import { foodProjectsOf, type FoodProject } from "../../food-projects/FoodProjects"
 import { Concurrently, Err, match, None, Ok, Some, type AsyncResult } from "shulk"
 import { Hypermedia, hypermedia2json, type HypermediaType } from "../../Hypermedia"
 import { Field } from "../../templates/components/Form"
@@ -37,7 +38,6 @@ import {
   ProtectedWaterZoneTable,
   type ProtectedWaterZone,
 } from "../GeographicalReferences/ProtectedWaterZone"
-import { AreaItemTable, type AreaItem } from "../GeographicalReferences/AreaItem"
 import { SoilDepthTable, type SoilDepth } from "../GeographicalReferences/SoilDepth"
 import {
   SoilAvailableWaterCapacityTable,
@@ -58,18 +58,48 @@ import {
   type Enterprise,
 } from "../Enterprise"
 import { MsaPopulationTable, type MsaPopulation } from "../MsaPopulation"
+import {
+  buildingsOn,
+  surroundingsOf,
+  zonesAt,
+  type ZoneAtPoint,
+  type BuildingsOnParcel,
+  type Surroundings,
+  cropContext,
+  grossProductOf,
+  waterNear,
+  type CropContext,
+  type WaterNearby,
+} from "../../parcel-context/ParcelContext"
 
-const RED = "#EE6666"
-const RED_FADED = "#B85C5C"
-const BLUE = "#5470C6"
-const BLUE_FADED = "#8FA3D9"
+// The colours of the site (public/style.css): ink for what is measured, water for
+// the rain, each with a lighter tint for the ten-year average
+const TEMPERATURE = "#0e3d48"
+const TEMPERATURE_AVERAGE = "#9db4b9"
+const RAIN = "#5b99c7"
+const RAIN_AVERAGE = "#c5dcec"
 const WEATHER_HISTORY_YEARS = 10
+const WEATHER_WINDOW_DAYS = 30
+const ONE_DAY_IN_MS = 24 * 3600 * 1000
+
+// Paris, Lyon and Marseille are in the reference twice: as whole communes and as
+// arrondissements. A point is told by its arrondissement, which the other datasets use.
+const WHOLE_COMMUNES = ["75056", "69123", "13055"]
 
 const DEFAULT_CAP_CODE_YEAR = 2025
 const CAP_CODE_YEAR_MIN = 2017
 const CAP_CODE_YEAR_MAX = 2025
 
-const EXPOSE_OWNERS = import.meta.env.EXPOSE_OWNERS === "true"
+// The owners file of the DGFiP lists legal persons only. Two of its groups can
+// still carry the name of someone: co-owners and partners known by no SIREN
+const GROUPS_NAMING_PEOPLE = ["7", "8"]
+
+// Whether the name of an owner can be shown: a company, a public body, never a person
+const isNameable = (owner: EnrichedParcelOwner) =>
+  Boolean(owner.siren) ||
+  (owner.person_group_code !== undefined &&
+    owner.person_group_code !== null &&
+    !GROUPS_NAMING_PEOPLE.includes(owner.person_group_code.charAt(0)))
 
 type EnrichedParcelOwner = CadastralParcelOwner & Partial<CadastralOwner>
 
@@ -85,16 +115,20 @@ interface ParcelData {
   cadastralParcel?: Parcel
   cadastralParcelPrices?: ParcelPrice[]
   cadastralParcelOwners?: EnrichedParcelOwner[]
+  // Whether the caller holds a key that reads owners
+  ownersReadable?: boolean
   capParcel?: CapParcel
   capCode?: MasterCapCode
   // What was declared here in the campaigns before the latest one
   capHistory?: CropOfCampaign[]
   naturalZones?: NaturalZone[]
   protectedWaterZones?: ProtectedWaterZone[]
-  areaItems?: AreaItem[]
+  areaItems?: ZoneAtPoint[]
   soilDepth?: SoilDepth
   soilWaterCapacity?: SoilAvailableWaterCapacity
   weatherStation?: Station
+  // The day of the latest report of the station: the reports shown end there
+  weatherUntil?: Date
   lastYearWeatherReports?: Array<{
     station_id: string
     started_at: Date
@@ -109,6 +143,16 @@ interface ParcelData {
   agriculturalEnterprises?: Enterprise[]
   subsidiesBySiren?: Map<string, CapSubsidy[]>
   msaPopulations?: MsaPopulation[]
+  // Water within reach of the parcel, the closest first
+  water?: WaterNearby[]
+  buildings?: BuildingsOnParcel
+  // Dwellings, hedges and vegetation around the cadastral parcel
+  surroundings?: Surroundings
+  // Territorial food projects covering the commune; empty when none does
+  foodProjects?: FoodProject[]
+  // What Lexicon holds about the crop declared here, in this department
+  crop?: CropContext
+  department?: string
 }
 
 export async function ParcelIdentifierController(
@@ -120,11 +164,14 @@ export async function ParcelIdentifierController(
   const latitude = cxt.query.latitude ? parseFloat(cxt.query.latitude) : undefined
   const longitude = cxt.query.longitude ? parseFloat(cxt.query.longitude) : undefined
 
-  const requestedYear = cxt.query.year ? parseInt(cxt.query.year) : DEFAULT_CAP_CODE_YEAR
+  // Without a year asked for, the crop is named as in the campaign of the declaration
+  const requestedYear = cxt.query.year ? parseInt(cxt.query.year) : undefined
   const capCodeYear =
-    requestedYear >= CAP_CODE_YEAR_MIN && requestedYear <= CAP_CODE_YEAR_MAX
+    requestedYear !== undefined &&
+    requestedYear >= CAP_CODE_YEAR_MIN &&
+    requestedYear <= CAP_CODE_YEAR_MAX
       ? requestedYear
-      : DEFAULT_CAP_CODE_YEAR
+      : undefined
 
   const form = {
     latitude: Field.Number({
@@ -151,28 +198,29 @@ export async function ParcelIdentifierController(
       label: cxt.t("weather_station_hourly_report_temperature_max"),
       unit: "°C",
       type: "line",
-      color: RED,
+      color: TEMPERATURE,
       side: "left",
     },
     "temperature-max-avg": {
       label: cxt.t("weather_station_hourly_report_temperature_max_10y_avg"),
       unit: "°C",
       type: "line",
-      color: RED_FADED,
+      color: TEMPERATURE_AVERAGE,
+      dashed: true,
       side: "left",
     },
     rain: {
       label: cxt.t("weather_station_hourly_report_rain"),
       unit: "mm",
       type: "bar",
-      color: BLUE,
+      color: RAIN,
       side: "right",
     },
     "rain-avg": {
       label: cxt.t("weather_station_hourly_report_rain_10y_avg"),
       unit: "mm",
       type: "bar",
-      color: BLUE_FADED,
+      color: RAIN_AVERAGE,
       side: "right",
     },
   }
@@ -237,6 +285,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
     title: p.title,
     breadcrumbs: p.breadcrumbs,
     form: p.form,
+    point: coordinates,
     information: data.municipality
       ? buildMunicipalitySection(data.municipality, cxt)
       : undefined,
@@ -244,12 +293,47 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
       ? buildLinksSection(data.municipality, cxt)
       : undefined,
     cadastre: data.cadastralParcel
-      ? buildCadastreSection(data.cadastralParcel, cxt)
+      ? {
+          ...buildCadastreSection(data.cadastralParcel, cxt),
+          ...(data.buildings !== undefined
+            ? {
+                buildings: Hypermedia.Number({
+                  label: t("tools_parcel_buildings"),
+                  value: data.buildings.count,
+                }),
+                ...(data.buildings.count > 0
+                  ? {
+                      "buildings-ground-area": Hypermedia.Number({
+                        label: t("tools_parcel_buildings_area"),
+                        value: data.buildings.area,
+                        unit: "m²",
+                      }),
+                    }
+                  : {}),
+                ...(data.buildings.agricultural > 0
+                  ? {
+                      "agricultural-buildings": Hypermedia.Number({
+                        label: t("tools_parcel_buildings_agricultural"),
+                        value: data.buildings.agricultural,
+                      }),
+                    }
+                  : {}),
+              }
+            : {}),
+        }
       : undefined,
     cap:
       data.capParcel || data.capHistory?.length
         ? buildCapSection(data.capParcel, data.capCode, cxt, data.capHistory ?? [])
         : undefined,
+    rotation: buildRotation(data.capParcel, data.capCode, data.capHistory ?? []),
+    "crop-context":
+      data.crop && data.capCode
+        ? buildCropContext(data.crop, data.capCode, data.historicalYields ?? [])
+        : undefined,
+    water: data.water && data.water.length > 0 ? data.water : undefined,
+    surroundings: data.surroundings,
+    "food-projects": data.foodProjects,
     soil:
       data.soilDepth || data.soilWaterCapacity
         ? buildSoilSection(data.soilDepth, data.soilWaterCapacity, cxt)
@@ -259,9 +343,22 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
         ? buildTransactionsSection(data.cadastralParcelPrices, cxt)
         : undefined,
     owners:
-      EXPOSE_OWNERS && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
+      data.ownersReadable && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
         ? buildOwnersSection(data.cadastralParcelOwners, cxt)
         : undefined,
+    // For a caller without a key: the first characters of what a member reads
+    "owners-preview":
+      !data.ownersReadable && data.cadastralParcelOwners && data.cadastralParcelOwners.length > 0
+        ? previewOf(buildOwnersSection(data.cadastralParcelOwners, cxt))
+        : undefined,
+    // Why no owner is listed: the caller holds no key, or no legal person owns the parcel
+    "owners-note": !data.cadastralParcel
+      ? undefined
+      : !data.ownersReadable
+        ? "members-only"
+        : data.cadastralParcelOwners?.length === 0
+          ? "no-legal-person"
+          : undefined,
     "natural-zones":
       data.naturalZones && data.naturalZones.length > 0
         ? buildNaturalZonesSection(data.naturalZones, cxt)
@@ -303,6 +400,7 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
             data.historicalDailyWeather,
             cxt,
             legend,
+            { until: data.weatherUntil, from: point },
           )
         : undefined,
     geolocation: data.cadastralParcel?.shape
@@ -318,12 +416,12 @@ function buildPage(p: BuildPageParams): ParcelIdentifierOkPage {
 async function retrieveParcelData(
   db: Pool,
   point: Point,
-  capCodeYear: number,
+  capCodeYear: number | undefined,
   // Owners of parcels are reserved to the holders of a key
   includeOwners: boolean,
 ): AsyncResult<Error, ParcelData> {
   const wave1 = await Concurrently.run(() =>
-    MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(1).run(),
+    MunicipalityTable(db).select().where("city_shape", "ST_CONTAINS", point).limit(5).run(),
   )
     .and(() =>
       ParcelTable(db).select().where("shape", "ST_CONTAINS", point).limit(1).run(),
@@ -340,7 +438,7 @@ async function retrieveParcelData(
     .and(() =>
       ProtectedWaterZoneTable(db).select().where("shape", "ST_CONTAINS", point).run(),
     )
-    .and(() => AreaItemTable(db).select().where("shape", "ST_CONTAINS", point).run())
+    .and(async () => Ok((await zonesAt(db, pointToCoordinates(point))) ?? []))
     .and(() => SoilDepthTable(db).select().where("shape", "ST_CONTAINS", point).limit(1).run())
     .and(() =>
       SoilAvailableWaterCapacityTable(db)
@@ -367,17 +465,22 @@ async function retrieveParcelData(
     soilWaterCapacities,
   ] = wave1.val
 
-  const municipality = municipalities[0]
+  const municipality =
+    municipalities.find((found) => !WHOLE_COMMUNES.includes(found.code)) ??
+    municipalities[0]
   const cadastralParcel = cadastralParcels[0]
   const capParcel = capParcels[0]
   const station = stations[0]
 
-  const WEATHER_WINDOW_DAYS = 30
-  const weatherStartDate = (() => {
-    const d = new Date()
-    d.setDate(d.getDate() - WEATHER_WINDOW_DAYS)
-    return d.toISOString()
-  })()
+  // The reports of a station may stop months ago: the window ends at its latest
+  // report, not today, which would show an empty chart
+  const weatherUntil = station
+    ? await latestReportOf(db, station.reference_name)
+    : undefined
+  const weatherEnd = weatherUntil ?? new Date()
+  const weatherStartDate = new Date(
+    weatherEnd.getTime() - WEATHER_WINDOW_DAYS * ONE_DAY_IN_MS,
+  ).toISOString()
 
   // Each wave-2 branch is independent: failure in one does not gate the others,
   // and absence of an upstream dependency falls back to `undefined`.
@@ -392,12 +495,11 @@ async function retrieveParcelData(
             .run(),
         )
           .and(() =>
-            includeOwners
-              ? CadastralParcelOwnerTable(db)
-                  .select()
-                  .where("cadastral_parcel_id", "=", cadastralParcel.id)
-                  .run()
-              : Promise.resolve(Ok([] as CadastralParcelOwner[])),
+            // Read for everyone: a caller without a key is shown the start of each value only
+            CadastralParcelOwnerTable(db)
+              .select()
+              .where("cadastral_parcel_id", "=", cadastralParcel.id)
+              .run(),
           )
           .done()
 
@@ -430,17 +532,21 @@ async function retrieveParcelData(
     : Ok(undefined)
 
   const historicalWeatherResult = station
-    ? await fetchHistoricalDailyWeather(db, station.reference_name)
+    ? await fetchHistoricalDailyWeather(db, station.reference_name, weatherEnd)
     : Ok(undefined)
 
   const capCodeResult = capParcel?.cap_crop_code
     ? await MasterCapCodeTable(db)
         .select()
         .where("cap_code", "=", capParcel.cap_crop_code)
-        .where("year", "=", capCodeYear)
+        .where("year", "=", capCodeYear ?? capParcel.campaign ?? DEFAULT_CAP_CODE_YEAR)
+        // A code that also stands for a seed production: the crop itself comes first
+        .orderBy("is_seed", "ASC")
         .limit(1)
         .run()
     : Ok([] as MasterCapCode[])
+
+  const capCode = capCodeResult.unwrapOr([])[0]
 
   const capHistory = ((await cropHistoryAt(db, pointToCoordinates(point))) ?? []).filter(
     (crop) => !crop.current,
@@ -502,6 +608,15 @@ async function retrieveParcelData(
     [[] as Enterprise[], [] as MsaPopulation[]],
   )
 
+  const coordinates = pointToCoordinates(point)
+  const [water, buildings, surroundings, foodProjects, crop] = await Promise.all([
+    waterNear(db, { ...coordinates, parcelId: cadastralParcel?.id }),
+    cadastralParcel ? buildingsOn(db, cadastralParcel.id) : undefined,
+    cadastralParcel ? surroundingsOf(db, cadastralParcel.id) : undefined,
+    municipality ? foodProjectsOf(db, municipality.code) : undefined,
+    capCode?.production ? cropContext(db, capCode.production, department) : undefined,
+  ])
+
   const subsidiesResult = await fetchSubsidiesBySiren(
     db,
     agriculturalEnterprises.flatMap((e) => (e.siren ? [e.siren] : [])),
@@ -512,7 +627,6 @@ async function retrieveParcelData(
     cadastreDependentResult.unwrapOr([undefined, undefined])
   const lastYearWeatherReports = weatherResult.unwrapOr(undefined)
   const historicalDailyWeather = historicalWeatherResult.unwrapOr(undefined)
-  const capCode = capCodeResult.unwrapOr([])[0]
   const [historicalYields, productionPrices] = productionDataResult.unwrapOr([
     undefined,
     undefined,
@@ -526,16 +640,24 @@ async function retrieveParcelData(
     capParcel,
     capCode,
     capHistory,
+    ownersReadable: includeOwners,
     naturalZones,
     protectedWaterZones,
     areaItems,
     soilDepth: soilDepths[0],
     soilWaterCapacity: soilWaterCapacities[0],
     weatherStation: station,
+    weatherUntil,
     lastYearWeatherReports,
     historicalDailyWeather,
     historicalYields,
     productionPrices,
+    water,
+    buildings,
+    surroundings,
+    foodProjects,
+    crop,
+    department,
     agriculturalEnterprises,
     subsidiesBySiren,
     msaPopulations,
@@ -691,6 +813,101 @@ function buildCapSection(
   return section
 }
 
+/**
+ * What was grown at the point, campaign after campaign, oldest first: the latest
+ * declaration, then the ones of the place in earlier campaigns.
+ */
+function buildRotation(
+  capParcel: CapParcel | undefined,
+  capCode: MasterCapCode | undefined,
+  history: CropOfCampaign[],
+): NonNullable<ParcelIdentifierOkPage["rotation"]> | undefined {
+  const past = history.map((crop) => ({
+    campaign: crop.campaign,
+    crop: crop.crop ?? crop["crop-code"] ?? "",
+    code: crop["crop-code"] ?? "",
+    current: false,
+  }))
+  const latest = Math.max(0, ...past.map((crop) => crop.campaign))
+  const current = capParcel
+    ? [
+        {
+          campaign: capParcel.campaign ?? capCode?.year ?? latest + 1,
+          crop: capCode?.cap_label ?? capParcel.cap_crop_code ?? "",
+          code: capParcel.cap_crop_code ?? "",
+          current: true,
+        },
+      ]
+    : []
+  const rotation = [...past, ...current].sort((a, b) => a.campaign - b.campaign)
+
+  return rotation.length > 0 ? rotation : undefined
+}
+
+// Where to read more about the crop of the parcel: each figure comes with the
+// page that lists what it counts
+function buildCropContext(
+  crop: CropContext,
+  capCode: MasterCapCode,
+  yields: ProductionYield[],
+): NonNullable<ParcelIdentifierOkPage["crop-context"]> {
+  const latestYield = yields
+    .filter((found) => found.production === crop.production)
+    .sort((a, b) => b.campaign - a.campaign)[0]
+  const harvest = latestYield
+    ? { value: parseFloat(latestYield.yield_value as any), unit: latestYield.yield_unit }
+    : undefined
+  const grossProduct = grossProductOf(harvest, crop.price)
+
+  return {
+    production: crop.production,
+    label: capCode.cap_label,
+    price: crop.price,
+    "gross-product":
+      grossProduct !== undefined && harvest && latestYield && crop.price
+        ? {
+            value: grossProduct,
+            unit: "EUR/ha",
+            yield: harvest.value,
+            "yield-campaign": latestYield.campaign,
+            "price-campaign": crop.price.campaign,
+          }
+        : undefined,
+    usages: crop.usages
+      ? {
+          ...crop.usages,
+          href:
+            "/phytosanitary/usages?state=authorized&crop=" +
+            encodeURIComponent(crop.usages.crop),
+        }
+      : undefined,
+    documents: crop.documents
+      ? {
+          area: crop.documents.area,
+          total: crop.documents.total,
+          href:
+            "/rd-agri/documents?production=" +
+            encodeURIComponent(crop.production) +
+            `&area-kind=${crop.documents.area.kind}&area-code=` +
+            encodeURIComponent(crop.documents.area.code),
+          latest: crop.documents.latest.map((document) => ({
+            ...document,
+            href: "/rd-agri/documents/" + encodeURIComponent(document.id),
+          })),
+        }
+      : undefined,
+    workflows:
+      crop.workflows.length > 0
+        ? {
+            count: crop.workflows.length,
+            href:
+              "/production/technical-workflows?production=" +
+              encodeURIComponent(crop.production),
+          }
+        : undefined,
+  }
+}
+
 function buildSoilSection(
   depth: SoilDepth | undefined,
   awc: SoilAvailableWaterCapacity | undefined,
@@ -761,6 +978,41 @@ function buildTransactionsSection(prices: ParcelPrice[], cxt: Context): TableSec
   }
 }
 
+// How much of a reserved value leaves the server for a caller without a key
+const PREVIEW_LENGTH = 2
+
+export type ReservedPreview = {
+  label: string
+  columns: Record<string, string>
+  // The first characters of each value; the rest never leaves the server
+  rows: Record<string, string>[]
+}
+
+function previewOf(section: TableSection): ReservedPreview {
+  return {
+    label: section.label,
+    columns: section.columns,
+    rows: section.rows.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).flatMap(([field, cell]) => {
+          const value = (cell as { value?: unknown } | undefined)?.value
+
+          return value === undefined || value === null
+            ? []
+            : [[field, String(value).slice(0, PREVIEW_LENGTH)]]
+        }),
+      ),
+    ),
+  }
+}
+
+// The file has one line per fiscal subdivision of the parcel: an owner is listed once
+const distinctOwners = (owners: EnrichedParcelOwner[]) => [
+  ...new Map(
+    owners.map((owner) => [owner.majic_number + "|" + owner.department_code, owner]),
+  ).values(),
+]
+
 function buildOwnersSection(
   owners: EnrichedParcelOwner[],
   cxt: Context,
@@ -772,13 +1024,19 @@ function buildOwnersSection(
       "legal-form": cxt.t("tools_owner_legal_form"),
       siren: cxt.t("tools_owner_siren"),
     },
-    rows: owners.map((owner) => ({
-      denomination: owner.denomination
-        ? Hypermedia.Text({
-            label: cxt.t("tools_owner_denomination"),
-            value: owner.denomination,
-          })
-        : undefined,
+    rows: distinctOwners(owners).map((owner) => ({
+      denomination:
+        owner.denomination && isNameable(owner)
+          ? Hypermedia.Text({
+              label: cxt.t("tools_owner_denomination"),
+              value: owner.denomination,
+            })
+          : owner.person_group_label
+            ? Hypermedia.Text({
+                label: cxt.t("tools_owner_denomination"),
+                value: owner.person_group_label,
+              })
+            : undefined,
       "legal-form": owner.legal_form_short
         ? Hypermedia.Text({
             label: cxt.t("tools_owner_legal_form"),
@@ -850,27 +1108,27 @@ function buildProtectedWaterZonesSection(
   }
 }
 
-function buildAreaItemsSection(items: AreaItem[], cxt: Context): TableSection {
+function buildAreaItemsSection(items: ZoneAtPoint[], cxt: Context): TableSection {
   return {
     label: cxt.t("tools_area_items"),
     columns: {
       name: cxt.t("common_fields_name"),
       nature: cxt.t("tools_zone_nature"),
     },
-    rows: items.map((item) => {
-      const name = resolveMultilingualName(item.name, cxt.language)
-      return {
-        name: name
-          ? Hypermedia.Text({ label: cxt.t("common_fields_name"), value: name })
-          : undefined,
-        nature: item.nature
-          ? Hypermedia.Text({ label: cxt.t("tools_zone_nature"), value: item.nature })
-          : undefined,
-      }
-    }),
+    rows: items.map((item) => ({
+      name: item.name
+        ? Hypermedia.Text({ label: cxt.t("common_fields_name"), value: item.name })
+        : undefined,
+      // What the IGN calls it, or the family it belongs to when it says no more
+      nature: Hypermedia.Text({
+        label: cxt.t("tools_zone_nature"),
+        value: item.kind ?? cxt.t("tools_area_" + item.nature),
+      }),
+    })),
   }
 }
 
+// The leaf of the logo, the colour of the crops
 const YIELD_CHART_COLOR = "#2f8f89"
 
 function buildHistoricalYieldsChart(
@@ -1063,9 +1321,34 @@ function buildMsaPopulationsSection(
   }
 }
 
+async function latestReportOf(db: Pool, stationId: string): Promise<Date | undefined> {
+  const schema = import.meta.env.DB_SCHEMA
+
+  return db
+    .query(
+      `SELECT max(started_at) AS latest FROM "${schema}".registered_hourly_weathers WHERE station_id = $1`,
+      [stationId],
+    )
+    .then((result) => (result.rows[0]?.latest ? new Date(result.rows[0].latest) : undefined))
+    .catch(() => undefined)
+}
+
+// Great-circle distance, enough to say how far a station is
+function kilometersBetween(a: Point, b: Point): number {
+  const radians = (degrees: number) => (degrees * Math.PI) / 180
+  const [lonA, latA] = a.coordinates
+  const [lonB, latB] = b.coordinates
+  const h =
+    Math.sin(radians(latB - latA) / 2) ** 2 +
+    Math.cos(radians(latA)) * Math.cos(radians(latB)) * Math.sin(radians(lonB - lonA) / 2) ** 2
+
+  return 2 * 6371 * Math.asin(Math.sqrt(h))
+}
+
 async function fetchHistoricalDailyWeather(
   db: Pool,
   stationId: string,
+  until: Date,
 ): AsyncResult<Error, HistoricalDailyAggregate[]> {
   const schema = import.meta.env.DB_SCHEMA
   const q = `
@@ -1081,14 +1364,14 @@ async function fetchHistoricalDailyWeather(
         SUM(COALESCE(rain, 0)) AS daily_rain
       FROM "${schema}".registered_hourly_weathers
       WHERE station_id = $1
-        AND started_at >= NOW() - INTERVAL '${WEATHER_HISTORY_YEARS} years'
-        AND started_at < NOW() - INTERVAL '30 days'
+        AND started_at >= $2::timestamptz - INTERVAL '${WEATHER_HISTORY_YEARS} years'
+        AND started_at < $2::timestamptz - INTERVAL '${WEATHER_WINDOW_DAYS} days'
       GROUP BY day
     ) daily
     GROUP BY month, day
   `
   try {
-    const result = await db.query(q, [stationId])
+    const result = await db.query(q, [stationId, until.toISOString()])
     return Ok(result.rows as HistoricalDailyAggregate[])
   } catch (e) {
     return Err(e as Error)
@@ -1101,6 +1384,7 @@ function buildWeatherReportsSection(
   historical: HistoricalDailyAggregate[] | undefined,
   cxt: Context,
   legend: any,
+  place: { until: Date | undefined; from: Point },
 ) {
   // Aggregate current 30-day window by day: daily max temp + daily rain sum.
   type DayAcc = {
@@ -1170,6 +1454,19 @@ function buildWeatherReportsSection(
       method: "GET",
       href: "/weather/stations/" + station.reference_name,
     }),
+    // How far the station is, and when its reports stop: they are not always of yesterday
+    distance: Hypermedia.Number({
+      label: cxt.t("tools_station_distance"),
+      value: Math.round(kilometersBetween(place.from, station.centroid)),
+      unit: "km",
+    }),
+    until: place.until
+      ? Hypermedia.Date({
+          label: cxt.t("tools_station_until"),
+          value: cxt.dateTimeFormatter.Date(place.until),
+          iso: place.until.toISOString(),
+        })
+      : undefined,
     legend,
     values,
   }

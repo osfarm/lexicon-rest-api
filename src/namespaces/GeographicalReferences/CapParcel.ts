@@ -3,6 +3,8 @@ import type { Point, Polygon } from "../../types/Geometry"
 
 export interface CapParcel {
   id: string
+  // The campaign of the declaration; absent from a database loaded before the history was kept
+  campaign?: number
   cap_crop_code: string
   city_name: string
   shape: Polygon

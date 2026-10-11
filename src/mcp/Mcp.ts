@@ -27,12 +27,21 @@ export type McpBackend = Readonly<{
   listDatasets: () => Promise<unknown>
   describeDataset: (name: string) => Promise<unknown>
   listResources: () => Promise<unknown>
-  readResource: (path: string, query: Record<string, string>) => Promise<unknown>
+  readResource: (
+    path: string,
+    query: Record<string, string>,
+    full: boolean,
+  ) => Promise<unknown>
+  parcel: (longitude: unknown, latitude: unknown) => Promise<unknown>
+  cropFigures: (args: Record<string, unknown>) => Promise<unknown>
+  phytosanitaryProducts: (args: Record<string, unknown>) => Promise<unknown>
+  phytosanitaryPurchases: (args: Record<string, unknown>) => Promise<unknown>
   commune: (inseeCode: string) => Promise<unknown>
   enterprise: (siren: string) => Promise<unknown>
   searchRdDocuments: (args: Record<string, unknown>) => Promise<unknown>
   rdDocument: (id: string) => Promise<unknown>
   cropHistory: (longitude: unknown, latitude: unknown) => Promise<unknown>
+  inputPrices: (args: Record<string, unknown>) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -68,7 +77,7 @@ export const TOOLS = [
   {
     name: "read_resource",
     description:
-      "Read one page (150 rows) of an API resource as JSON. Filters are passed in query; use page to get the following rows.",
+      "Read one page (150 rows) of an API resource. A table comes as rows-total, the names of its filters, its columns, then one array per row. Always filter rather than read page after page: pass the filters in query. A path holding a parameter, such as /weather/stations/:reference, is read with the value in its place.",
     inputSchema: text({
       properties: {
         path: {
@@ -80,14 +89,72 @@ export const TOOLS = [
           description: 'Filters and page number, for instance {"page": "2"}',
           additionalProperties: { type: "string" },
         },
+        full: {
+          type: "boolean",
+          description:
+            "true to get the page as the API serves it, with the label and type of every cell",
+        },
       },
       required: ["path"],
     }),
   },
   {
+    name: "get_parcel",
+    description:
+      "Everything the datasets know at a point of metropolitan France: commune, cadastral parcel and its area, crop declared to the CAP and the rotation of the last campaigns, yields of the department, selling price and what Lexicon holds about that crop, soil depth and available water, water nearby (distances in metres), zonings, land transactions, the weather of the last 30 days at the nearest station, farms of the commune. Use it for any question about a place given by coordinates.",
+    inputSchema: text({
+      properties: {
+        longitude: { type: "number", description: "Longitude, such as -0.78" },
+        latitude: { type: "number", description: "Latitude, such as 45.81" },
+      },
+      required: ["longitude", "latitude"],
+    }),
+  },
+  {
+    name: "get_crop_figures",
+    description:
+      'Yields (quintals per hectare, by campaign, 2021 onwards) and selling prices of a crop in France, by department. production takes a few French or English words such as "blé tendre", "tournesol" or "maize"; department is a code such as 17. Without a department, yields are averaged over the departments. Prices are few: many are national quotations (zone France).',
+    inputSchema: text({
+      properties: {
+        production: { type: "string", description: "Name of the crop" },
+        department: { type: "string", description: "Department code, such as 17 or 2A" },
+      },
+      required: ["production"],
+    }),
+  },
+  {
+    name: "search_phytosanitary_products",
+    description:
+      'The plant protection products authorised in France (E-Phy), found by what they hold or what they are for: substance ("prosulfocarbe", "glyphosate"), crop as E-Phy names it ("Blé", "Vigne", "Maïs"), target ("pucerons", "désherbage", "mildiou") or product name. Give at least one. Each product comes with its authorisation number, its firm and its substances; with a crop or a target, also the matching usages: dose, days before harvest, untreated buffer from water in metres. total counts every match.',
+    inputSchema: text({
+      properties: {
+        substance: { type: "string", description: "Active substance, French or English" },
+        crop: { type: "string", description: "Crop, by its French E-Phy label" },
+        target: { type: "string", description: "Pest, disease or purpose, in French" },
+        name: { type: "string", description: "Part of the product name" },
+        limit: {
+          type: "integer",
+          description: "Number of products, 10 by default, 20 at most",
+        },
+      },
+    }),
+  },
+  {
+    name: "get_phytosanitary_purchases",
+    description:
+      'What France bought of an active substance of plant protection products (BNV-D sales, SDES), in kilograms: the total of each of the last five years, and for one year the ten departments and communes that bought most. substance takes a few letters of its name, without accents ("glyphosate", "prosulfocarbe", "soufre"). For what one commune bought, use get_commune. These are purchases estimated at the postal code of the buyer, not uses: say so.',
+    inputSchema: text({
+      properties: {
+        substance: { type: "string", description: "Name of the active substance" },
+        year: { type: "integer", description: "Year of the ranking; the latest when absent" },
+      },
+      required: ["substance"],
+    }),
+  },
+  {
     name: "get_commune",
     description:
-      "Everything the datasets know about a French commune, joined in advance: cadastre totals, agricultural enterprises, MSA farm chiefs, nearest weather station.",
+      "Everything the datasets know about a French commune, joined in advance: cadastre totals, establishments of every activity, MSA farm chiefs, nearest weather station; and the plant protection products bought there over five years (kilograms of active substance, per hectare of farmland outside grassland, by function and hazard class, the ten substances bought most). These are purchases estimated from sales, not uses: say so.",
     inputSchema: text({
       properties: {
         insee_code: { type: "string", description: "INSEE code, such as 17387 or 2A004" },
@@ -98,7 +165,7 @@ export const TOOLS = [
   {
     name: "get_enterprise",
     description:
-      "Everything the datasets know about a company (legal entities only): parcels it owns, agricultural establishments, CAP payments. Reserved to members: needs an API key.",
+      "Everything the datasets know about a company (legal entities only): parcels it owns, its establishments, CAP payments. Reserved to members: needs an API key.",
     inputSchema: text({
       properties: { siren: { type: "string", description: "SIREN, nine digits" } },
       required: ["siren"],
@@ -156,6 +223,28 @@ export const TOOLS = [
       required: ["longitude", "latitude"],
     }),
   },
+  {
+    name: "get_input_price",
+    description:
+      'The latest price before tax, in euros, of farm inputs in France: plant protection products (by product name, active substance such as "glyphosate", or authorisation number), fertilisers ("ammonitrate", "urée", "18 46"), seeds ("blé tendre", "luzerne"), non-road diesel ("gazole non routier"). Each result gives the price, its unit (liter, kilogram, ton), the date of the price and how it was obtained (observed, estimated, or an older reference price). Give quantity, in the unit of the price, to get the cost: a dose per hectare gives a cost per hectare. Check price-date and stale: many prices are several years old.',
+    inputSchema: text({
+      properties: {
+        query: {
+          type: "string",
+          description: "A few French or English words naming the input",
+        },
+        quantity: {
+          type: "number",
+          description: "Quantity to cost, in the unit of the price, such as 3 for 3 L/ha",
+        },
+        limit: {
+          type: "integer",
+          description: "Number of prices, 10 by default, 20 at most",
+        },
+      },
+      required: ["query"],
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -181,12 +270,18 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     list_datasets: () => backend.listDatasets(),
     describe_dataset: () => backend.describeDataset(String(args.name ?? "")),
     list_resources: () => backend.listResources(),
-    read_resource: () => backend.readResource(String(args.path ?? ""), args.query ?? {}),
+    read_resource: () =>
+      backend.readResource(String(args.path ?? ""), args.query ?? {}, args.full === true),
+    get_parcel: () => backend.parcel(args.longitude, args.latitude),
+    get_crop_figures: () => backend.cropFigures(args),
+    search_phytosanitary_products: () => backend.phytosanitaryProducts(args),
+    get_phytosanitary_purchases: () => backend.phytosanitaryPurchases(args),
     get_commune: () => backend.commune(String(args.insee_code ?? "")),
     get_enterprise: () => backend.enterprise(String(args.siren ?? "")),
     search_rd_documents: () => backend.searchRdDocuments(args),
     get_rd_document: () => backend.rdDocument(String(args.id ?? "")),
     get_crop_history: () => backend.cropHistory(args.longitude, args.latitude),
+    get_input_price: () => backend.inputPrices(args),
   }
 
   return calls[name]
@@ -219,7 +314,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource, get a pre-joined record with get_commune, or search the R&D documents with search_rd_documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {

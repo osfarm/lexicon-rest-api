@@ -17,7 +17,7 @@ describe("communeLinkOf", () => {
     region_code: "75",
     cadastral_parcels_count: 4386,
     cadastral_area_m2: "16373913",
-    agricultural_owner_parcels_count: 16,
+    enterprise_owner_parcels_count: 16,
     enterprises_count: 41,
     msa_year: 2019,
     msa_farm_chiefs: 10,
@@ -31,9 +31,9 @@ describe("communeLinkOf", () => {
     expect(link.cadastre).toEqual({
       parcels: 4386,
       "area-m2": 16373913,
-      "parcels-with-agricultural-owner": 16,
+      "parcels-with-enterprise-owner": 16,
     })
-    expect(link["agricultural-enterprises"]).toBe(41)
+    expect(link.establishments).toBe(41)
     expect(link.msa).toEqual({ year: 2019, "farm-chiefs": 10 })
     expect(link.links["weather-station"]).toBe("/weather/stations/FR17415003")
   })
@@ -110,7 +110,7 @@ describe("enterpriseLinkOf", () => {
     expect(await readCapYears(db as any, "662043116")).toEqual([])
   })
 
-  test("a company without agricultural establishment nor CAP payment", () => {
+  test("a company without establishment nor CAP payment", () => {
     const link = enterpriseLinkOf({ ...row, establishments_count: 0, cap_year: null })
 
     expect(link.cap).toBeNull()

@@ -55,7 +55,8 @@ function ListPage(props: { cxt: Context; datasets: Dataset[] }) {
     >
       <p>
         {props.datasets.length} jeux de données en service. Formats :{" "}
-        <a href="/catalog.json">JSON</a>, <a href="/catalog.csv">CSV</a>.
+        <a href="/catalog.json">JSON</a>, <a href="/catalog.csv">CSV</a>.{" "}
+        <a href="/contribute">{props.cxt.t("contribute_catalog_link")}</a>.
       </p>
       <table style={{ width: "100%" }}>
         <thead>

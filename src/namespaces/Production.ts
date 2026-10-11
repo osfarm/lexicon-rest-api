@@ -95,6 +95,32 @@ export const ProductionPriceTable = Table<ProductionPrice>({
   primaryKey: "department_zone",
 })
 
+// A technical workflow is the sequence of operations of a production under a
+// production system: its name is read in the translations
+interface TechnicalWorkflow {
+  reference_name: string
+  family: string
+  production_reference_name: string
+  production_system: string | null
+  start_day: number | null
+  start_month: number | null
+  life_cycle: string | null
+  plant_density: number | null
+  translation_id: string
+  // Columns of the translation the workflow is read with
+  id?: string
+  fra?: string
+  eng?: string
+}
+
+const TechnicalWorkflowTable = Table<TechnicalWorkflow>({
+  table: "technical_workflows",
+  primaryKey: "reference_name",
+  oneToOne: {
+    translation_id: { table: "master_translations", primaryKey: "id" },
+  },
+})
+
 const Breadcrumbs = (t: Translator) => [
   Hypermedia.Link({
     value: t("home_title"),
@@ -130,9 +156,91 @@ export const Production = API.new()
             method: "GET",
             href: "/production/prices/map",
           }),
+          Hypermedia.Link({
+            value: t("production_workflows_title"),
+            method: "GET",
+            href: "/production/technical-workflows",
+          }),
         ],
       },
       t,
+    }),
+  )
+  .path("/production/technical-workflows", async (cxt) =>
+    generateTablePage(cxt, {
+      title: cxt.t("production_workflows_title"),
+      breadcrumbs: Breadcrumbs(cxt.t),
+      form: {
+        production: Field.Text({
+          label: cxt.t("production_workflows_production"),
+          required: false,
+        }),
+        system: Field.Text({
+          label: cxt.t("production_workflows_system"),
+          required: false,
+        }),
+      },
+      formHandler: (input, query) => {
+        if (input.production) {
+          query.where("production_reference_name", "=", input.production)
+        }
+        if (input.system) {
+          query.where("production_system", "=", input.system)
+        }
+      },
+      query: TechnicalWorkflowTable(cxt.db).select().orderBy("reference_name", "ASC"),
+      columns: {
+        name: cxt.t("common_fields_name"),
+        production: cxt.t("production_workflows_production"),
+        system: cxt.t("production_workflows_system"),
+        start: cxt.t("production_workflows_start"),
+        "life-cycle": cxt.t("production_workflows_life_cycle"),
+        reference: cxt.t("production_workflows_reference"),
+      },
+      handler: (workflow) => ({
+        name: Hypermedia.Text({
+          label: cxt.t("common_fields_name"),
+          value:
+            (cxt.language === "en" ? workflow.eng : workflow.fra) ??
+            workflow.fra ??
+            workflow.reference_name,
+        }),
+        production: Hypermedia.Text({
+          label: cxt.t("production_workflows_production"),
+          value: workflow.production_reference_name,
+        }),
+        system:
+          workflow.production_system === null
+            ? undefined
+            : Hypermedia.Text({
+                label: cxt.t("production_workflows_system"),
+                value: workflow.production_system,
+              }),
+        start:
+          workflow.start_day === null || workflow.start_month === null
+            ? undefined
+            : Hypermedia.Text({
+                label: cxt.t("production_workflows_start"),
+                value:
+                  String(workflow.start_day).padStart(2, "0") +
+                  "/" +
+                  String(workflow.start_month).padStart(2, "0"),
+              }),
+        "life-cycle":
+          workflow.life_cycle === null
+            ? undefined
+            : Hypermedia.Text({
+                label: cxt.t("production_workflows_life_cycle"),
+                value: workflow.life_cycle,
+              }),
+        reference: Hypermedia.Text({
+          label: cxt.t("production_workflows_reference"),
+          value: workflow.reference_name,
+        }),
+      }),
+      credits: CreditTable(cxt.db)
+        .select()
+        .where("datasource", "=", "technical_workflows"),
     }),
   )
   .path("/production/productions", async (cxt) =>

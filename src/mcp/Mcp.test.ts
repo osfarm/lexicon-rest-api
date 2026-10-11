@@ -15,6 +15,11 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   searchRdDocuments: async (args) => ({ total: 0, documents: [], asked: args }),
   rdDocument: async (id) => ({ id }),
   cropHistory: async (longitude, latitude) => ({ longitude, latitude, campaigns: [] }),
+  inputPrices: async (args) => ({ query: args.query, prices: [] }),
+  parcel: async (longitude, latitude) => ({ point: { longitude, latitude } }),
+  cropFigures: async (args) => ({ query: args.production, yields: [] }),
+  phytosanitaryProducts: async (args) => ({ total: 0, products: [], asked: args }),
+  phytosanitaryPurchases: async (args) => ({ substance: args.substance, years: [] }),
   ...overrides,
 })
 
@@ -76,13 +81,31 @@ describe("handleMcpMessage", () => {
       "describe_dataset",
       "list_resources",
       "read_resource",
+      "get_parcel",
+      "get_crop_figures",
+      "search_phytosanitary_products",
+      "get_phytosanitary_purchases",
       "get_commune",
       "get_enterprise",
       "search_rd_documents",
       "get_rd_document",
       "get_crop_history",
+      "get_input_price",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
+  })
+
+  test("the price of an input is asked with the arguments of the caller", async () => {
+    const response: any = await call("get_input_price", {
+      query: "glyphosate",
+      quantity: 3,
+    })
+
+    expect(response.result.isError).toBe(false)
+    expect(JSON.parse(response.result.content[0].text)).toEqual({
+      query: "glyphosate",
+      prices: [],
+    })
   })
 
   test("a tool call returns its data as text", async () => {
