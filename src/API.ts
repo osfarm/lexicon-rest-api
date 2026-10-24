@@ -1,5 +1,6 @@
 import { match } from "shulk"
 import type { Context } from "./types/Context"
+import type { OutputFormat } from "./types/OutputFormat"
 import { applyRequestConfiguration, pool } from "./applyRequestConfiguration"
 import { checkAccess, countRequest, startAccessControl } from "./access"
 import { OPEN_SCOPE, SELF_CHECKED_SCOPES } from "./access/Plan"
@@ -37,6 +38,25 @@ let servedPaths: string[] = []
  */
 export function readablePaths(): string[] {
   return servedPaths
+}
+
+/**
+ * A handler may answer a structured value instead of a page: the map sections of the
+ * .geojson addresses do. Handing it to a Response as is would send "[object Object]".
+ */
+export function responseOf(result: unknown, output: OutputFormat): Response {
+  if (result instanceof Response) {
+    return result
+  }
+  if (typeof result === "object" && result !== null) {
+    return new Response(JSON.stringify(result), {
+      headers: {
+        "Content-Type":
+          output === "geojson" ? "application/geo+json" : "application/json",
+      },
+    })
+  }
+  return new Response(result as any, { headers: { "Content-Type": "text/html" } })
 }
 
 /**
@@ -220,12 +240,7 @@ export class API {
 
             const result = await handler(context)
 
-            const response =
-              result instanceof Response
-                ? result
-                : new Response(result as any, {
-                    headers: { "Content-Type": "text/html" },
-                  })
+            const response = responseOf(result, context.output)
 
             if (access !== undefined) {
               Object.entries({ ...CROSS_ORIGIN_HEADERS, ...access.headers }).forEach(([name, value]) =>
