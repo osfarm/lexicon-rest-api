@@ -14,10 +14,7 @@ import {
   type CapParcelsMapStats,
 } from "../../templates/views/CapParcelsMapPage"
 import type { MapLayer } from "../../templates/components/Map"
-import {
-  checkUndefined,
-  normalizeCitySearchCandidates,
-} from "../../utils"
+import { checkUndefined, citySearchSteps } from "../../utils"
 import { resolveCapCodeColors } from "../../CropColors"
 
 const CAP_CODE_YEAR = 2025
@@ -140,6 +137,7 @@ export const CapParcelAPI = API.new()
   )
   .path("/geographical-references/cap-parcels/map", async (cxt: Context) => {
     const city = cxt.query.city
+    const municipalityId = cxt.query.municipality
     const category = cxt.query.category
 
     const form = {
@@ -191,15 +189,21 @@ export const CapParcelAPI = API.new()
             message,
           })
 
-    if (!city) {
+    if (!city && !municipalityId) {
       return renderMessage(cxt.t("geographical_references_cap_parcel_map_help"))
     }
 
     const findMunicipality = async () => {
-      for (const candidate of normalizeCitySearchCandidates(city)) {
+      // An identifier names one municipality; a name may name several.
+      if (municipalityId) {
+        const read = await MunicipalityTable(cxt.db).read(municipalityId)
+        const filtered = read.flatMap(MunicipalityFilters.hasGeolocation)
+        return filtered._state === "Ok" ? filtered.val : undefined
+      }
+      for (const step of citySearchSteps(city ?? "")) {
         const res = await MunicipalityTable(cxt.db)
           .select()
-          .where("city_name", "LIKE", `%${candidate}%`)
+          .where("city_name", step.operator, step.value)
           .limit(1)
           .run()
         const filtered = res

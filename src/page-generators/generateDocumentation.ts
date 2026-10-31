@@ -175,7 +175,12 @@ const Paths = (t: Translator) => ({
       query: {
         city: {
           description:
-            "Required. Municipality name; accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire, ST PORCHAIRE).",
+            "Required unless municipality is given. Municipality name; accepts hyphenated/abbreviated spellings (Saint-Porchaire, St-Porchaire, ST PORCHAIRE). An exact name is preferred to a partial one.",
+          type: "string",
+        },
+        municipality: {
+          description:
+            "Optional. Identifier of the municipality (as in /geographical-references/municipalities/{id}), which leaves its homonyms aside. Example: 17387_17250_STPORC_.",
           type: "string",
         },
         category: {
@@ -196,7 +201,11 @@ const Paths = (t: Translator) => ({
       category: t("geographical_references_title"),
       query: {
         city: {
-          description: "Required municipality name (see /cap-parcels/map.json).",
+          description: "Municipality name (see /cap-parcels/map.json).",
+          type: "string",
+        },
+        municipality: {
+          description: "Identifier of the municipality (see /cap-parcels/map.json).",
           type: "string",
         },
         category: {

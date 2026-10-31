@@ -1,5 +1,6 @@
 import { generateTablePage } from "../../page-generators/generateTablePage"
 import {
+  capParcelsMapHref,
   checkUndefined,
   isString,
   normalizeCityForLikeSearch,
@@ -170,9 +171,7 @@ export const MunicipalityAPI = API.new()
                 Hypermedia.Link({
                   value: cxt.t("geographical_references_municipality_cap"),
                   method: "GET",
-                  href: `/geographical-references/cap-parcels/map?city=${encodeURIComponent(
-                    municipality.city_name,
-                  )}`,
+                  href: capParcelsMapHref(municipality),
                 }),
               ])
               .unwrapOr([]),
@@ -260,10 +259,7 @@ export const MunicipalityAPI = API.new()
       return new Response("Not found", { status: 404 })
     }
     const ext = cxt.output === "html" ? "" : `.${cxt.output}`
-    const target =
-      `/geographical-references/cap-parcels/map${ext}?city=` +
-      encodeURIComponent(readResult.val.city_name)
-    return Response.redirect(target, 302)
+    return Response.redirect(capParcelsMapHref(readResult.val, ext), 302)
   })
   .path(
     "/geographical-references/municipalities/:id/last-year-weather-reports",

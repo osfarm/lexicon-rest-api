@@ -86,3 +86,27 @@ export function normalizeCitySearchCandidates(input: string): string[] {
   return Array.from(candidates)
 }
 
+// Exact names before partial ones, so that BEAUFOU is not taken for
+// BEAUFOUR DRUVAL, its homonym that a partial match may return first.
+export function citySearchSteps(
+  input: string,
+): Array<{ operator: "=" | "LIKE"; value: string }> {
+  const candidates = normalizeCitySearchCandidates(input)
+  return [
+    ...candidates.map((value) => ({ operator: "=" as const, value })),
+    ...candidates.map((value) => ({ operator: "LIKE" as const, value: `%${value}%` })),
+  ]
+}
+
+// The map of the CAP parcels of a municipality, named by its identifier so
+// that the homonyms of its name are left aside; the name fills in the form.
+export function capParcelsMapHref(
+  municipality: { id: string; city_name: string },
+  extension = "",
+): string {
+  const query = new URLSearchParams({
+    city: municipality.city_name,
+    municipality: municipality.id,
+  })
+  return `/geographical-references/cap-parcels/map${extension}?${query}`
+}
