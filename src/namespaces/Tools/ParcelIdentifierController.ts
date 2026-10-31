@@ -24,6 +24,7 @@ import { ParcelTable, type Parcel } from "../GeographicalReferences/CadastralPar
 import { ParcelPriceTable, type ParcelPrice } from "../GeographicalReferences/CadastralParcelPrice"
 import { CapParcelTable, type CapParcel } from "../GeographicalReferences/CapParcel"
 import { pointToCoordinates } from "../../types/Coordinates"
+import { capParcelsMapHref } from "../../utils"
 import { subsidiesByYear } from "../../cap-subsidies/CapSubsidies"
 import { cropHistoryAt, type CropOfCampaign } from "../../cap-history/CapHistory"
 import {
@@ -754,9 +755,7 @@ function buildLinksSection(
       label: cxt.t("tools_parcel_identifier_links_cap_parcels_map"),
       value: cxt.t("tools_parcel_identifier_links_cap_parcels_map"),
       method: "GET",
-      href:
-        "/geographical-references/cap-parcels/map?city=" +
-        encodeURIComponent(municipality.city_name),
+      href: capParcelsMapHref(municipality),
     }),
   }
 }
