@@ -68,6 +68,28 @@ export function resetMail(member: { name: string; email: string }, link: string)
   }
 }
 
+export function adminPasswordLink(baseUrl: string, token: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/admin/password?token=${token}`
+}
+
+export function adminResetMail(email: string, link: string): Mail {
+  return {
+    to: email,
+    subject: "Lexicon : nouveau mot de passe d'administration",
+    text: [
+      "Bonjour,",
+      "",
+      "Un nouveau mot de passe a été demandé pour votre compte d'administration du Lexicon.",
+      "Pour le choisir, ouvrez ce lien (valable une heure, une seule fois) :",
+      link,
+      "",
+      "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe ne change pas.",
+      "",
+      "L'association OSFarm",
+    ].join("\n"),
+  }
+}
+
 export function mailOf(
   purpose: TokenPurpose,
   member: { name: string; email: string },

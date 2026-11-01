@@ -8,16 +8,22 @@ import {
   sessionCookie,
   sessionTokenIn,
 } from "../../access/AdminSession"
+import { adminPasswordLink, adminResetMail, MAIL, sendMail } from "../../access/Mailer"
+import { isToken, MINIMUM_PASSWORD_LENGTH, passwordProblem } from "../../access/MemberSession"
 import {
   audit,
   auditLog,
   changeKeyPlan,
+  chooseAdminPassword,
   closeSession,
   createKey,
   datasources,
   extendKey,
+  findActiveAdmin,
   findAdminToLogIn,
   findKey,
+  findTokenAdmin,
+  issueAdminToken,
   listKeys,
   listPlans,
   openSession,
@@ -48,6 +54,7 @@ import {
   administered,
   isPost,
   isSecure,
+  linkRequests,
   loginAttempts,
   redirect,
   type AdminRequest,
@@ -130,6 +137,9 @@ function LoginPage(props: { error?: string }) {
           Se connecter
         </button>
       </form>
+      <p>
+        <a href="/admin/forgot">Mot de passe perdu ?</a>
+      </p>
     </AdminLayout>
   )
 }
@@ -167,6 +177,171 @@ async function login(cxt: Context) {
   forgetLoginAttempts(loginAttempts, address)
 
   return redirect("/admin", { "Set-Cookie": sessionCookie(token, isSecure(cxt)) })
+}
+
+// --- forgotten password
+
+function ForgotPage(props: { sent?: boolean; error?: string }) {
+  return (
+    <AdminLayout title="Mot de passe perdu">
+      {props.error ? <p class="card error">{e(props.error)}</p> : ""}
+      {props.sent ? (
+        <p class="card info">
+          Si cette adresse est celle d'un compte d'administration, un lien vient de lui
+          être envoyé. Il est valable une heure.
+        </p>
+      ) : (
+        ""
+      )}
+      {MAIL === undefined ? (
+        <p>
+          Ce site n'envoie pas d'e-mail. Sur le serveur, dans le conteneur de l'API :{" "}
+          <code>bun run bin/admin.ts create &lt;adresse&gt;</code> remplace le mot de passe.
+        </p>
+      ) : (
+        <form method="POST" action="/admin/forgot">
+          <p>
+            Indiquez l'adresse de votre compte : vous recevrez un lien pour choisir un
+            nouveau mot de passe.
+          </p>
+          <div class="field">
+            <label for="email">Adresse e-mail</label>
+            <br />
+            <input type="email" name="email" id="email" required autocomplete="username" />
+          </div>
+          <button class="button" type="submit">
+            Recevoir le lien
+          </button>
+        </form>
+      )}
+      <p>
+        <a href="/admin/login">Retour à la connexion</a>
+      </p>
+    </AdminLayout>
+  )
+}
+
+async function forgot(cxt: Context) {
+  if (!isPost(cxt) || MAIL === undefined) {
+    return html(ForgotPage({}))
+  }
+
+  if (!mayAttemptLogin(linkRequests, addressOf(cxt), Date.now())) {
+    return html(
+      ForgotPage({ error: "Trop de demandes. Réessayez dans un quart d'heure." }),
+    )
+  }
+
+  const admin = await findActiveAdmin(cxt.db, text(await cxt.request.formData(), "email"))
+  const { publicUrl } = MAIL
+
+  // Nothing waits for the mail to leave: the answer says the same, as fast, whether the account exists or not
+  if (admin !== undefined) {
+    issueAdminToken(cxt.db, admin.id, Date.now())
+      .then((token) =>
+        sendMail(adminResetMail(admin.email, adminPasswordLink(publicUrl, token))),
+      )
+      .catch((error: Error) => console.warn("Admin reset link not sent: " + error.message))
+  }
+
+  return html(ForgotPage({ sent: true }))
+}
+
+/**
+ * The page a link sent by e-mail opens: the administrator chooses a new
+ * password, and is logged in.
+ */
+async function password(cxt: Context) {
+  // The token of a link travels in the address, then in the form
+  const form = isPost(cxt) ? await cxt.request.formData() : undefined
+  const token = String(cxt.query.token ?? form?.get("token") ?? "")
+  const admin = isToken(token) ? await findTokenAdmin(cxt.db, token) : undefined
+
+  if (admin === undefined) {
+    return new Response(
+      (
+        <AdminLayout title="Lien expiré">
+          <p class="card error">
+            Ce lien n'est plus valable : il a déjà servi, ou il a expiré.
+          </p>
+          <p>
+            <a href="/admin/forgot">Recevoir un nouveau lien</a>
+          </p>
+        </AdminLayout>
+      ) as any,
+      {
+        status: 410,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+      },
+    )
+  }
+
+  const problem =
+    form === undefined
+      ? undefined
+      : passwordProblem(
+          String(form.get("password") ?? ""),
+          String(form.get("confirmation") ?? ""),
+        )
+
+  if (form !== undefined && problem === undefined) {
+    const chosen = await chooseAdminPassword(
+      cxt.db,
+      token,
+      await Bun.password.hash(String(form.get("password")), { algorithm: "argon2id" }),
+    )
+
+    if (chosen === undefined) {
+      return redirect("/admin/password?token=" + token)
+    }
+
+    const session = newSessionToken()
+    await openSession(cxt.db, chosen.id, session, Date.now())
+    await audit(cxt.db, chosen, "admin.login", null)
+
+    return redirect("/admin", { "Set-Cookie": sessionCookie(session, isSecure(cxt)) })
+  }
+
+  return html(
+    <AdminLayout title="Choisir un nouveau mot de passe">
+      {problem ? <p class="card error">{e(problem)}</p> : ""}
+      <p>
+        Compte d'administration <b>{e(admin.email)}</b>.
+      </p>
+      <form method="POST" action="/admin/password">
+        <input type="hidden" name="token" value={token} />
+        <div class="field">
+          <label for="password">
+            Nouveau mot de passe ({MINIMUM_PASSWORD_LENGTH} caractères au moins)
+          </label>
+          <br />
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            minlength={String(MINIMUM_PASSWORD_LENGTH)}
+            autocomplete="new-password"
+          />
+        </div>
+        <div class="field">
+          <label for="confirmation">Le même, une seconde fois</label>
+          <br />
+          <input
+            type="password"
+            name="confirmation"
+            id="confirmation"
+            required
+            autocomplete="new-password"
+          />
+        </div>
+        <button class="button" type="submit">
+          Enregistrer et me connecter
+        </button>
+      </form>
+      <p>Les sessions ouvertes avec l'ancien mot de passe seront fermées.</p>
+    </AdminLayout>,
+  )
 }
 
 const logout = administered(async ({ cxt, form }) => {
@@ -802,6 +977,8 @@ export const Admin = API.new()
   .restrictedTo(ADMIN_SCOPE)
   .path("/admin/login", login)
   .path("/admin/logout", logout)
+  .path("/admin/forgot", forgot)
+  .path("/admin/password", password)
   .path("/admin", dashboard)
   .path("/admin/members", members)
   .path("/admin/members/new", newMember)

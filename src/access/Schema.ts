@@ -164,6 +164,15 @@ export function setUpAccessSchema(db: Pick<Pool, "query">): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS collections_member ON "${ACCESS_SCHEMA}".collections (member_id);
 
+      -- Links sent by e-mail to an administrator who lost their password: only their hash is kept, each serves once
+      CREATE TABLE IF NOT EXISTS "${ACCESS_SCHEMA}".admin_tokens (
+        token_hash varchar PRIMARY KEY,
+        admin_id   bigint NOT NULL REFERENCES "${ACCESS_SCHEMA}".admins(id),
+        created_at timestamptz NOT NULL DEFAULT now(),
+        expires_at timestamptz NOT NULL,
+        used_at    timestamptz
+      );
+
       ALTER TABLE "${ACCESS_SCHEMA}".audit_log
         ADD COLUMN IF NOT EXISTS member_id bigint REFERENCES "${ACCESS_SCHEMA}".members(id);
 
