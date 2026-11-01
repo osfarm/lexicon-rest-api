@@ -1,6 +1,7 @@
 import type { Pool } from "pg"
 import { generateKey } from "./ApiKey"
-import { hashOfToken, SESSION_LIFETIME_IN_MS } from "./AdminSession"
+import { hashOfToken, newSessionToken, SESSION_LIFETIME_IN_MS } from "./AdminSession"
+import { RESET_LIFETIME_IN_MS } from "./MemberSession"
 import { ACCESS_SCHEMA } from "./Schema"
 
 const META_SCHEMA = import.meta.env.DB_META_SCHEMA ?? "lexicon_meta"
@@ -70,6 +71,85 @@ export async function disableAdmin(db: Db, email: string): Promise<boolean> {
   ])
 
   return result.rowCount === 1
+}
+
+// --- links sent by e-mail to an administrator who lost their password
+
+/**
+ * @returns the active administrator of this address, undefined otherwise
+ */
+export async function findActiveAdmin(db: Db, email: string): Promise<Admin | undefined> {
+  const result = await db.query(
+    `SELECT id, email FROM ${table("admins")} WHERE lower(email) = lower($1) AND disabled_at IS NULL;`,
+    [email],
+  )
+
+  return result.rows[0]
+}
+
+/**
+ * A new link to choose a password. The earlier links of the administrator stop working.
+ * @returns the token to put in the link: only its hash is stored
+ */
+export async function issueAdminToken(db: Db, adminId: string, now: number) {
+  const token = newSessionToken()
+
+  await db.query(
+    `DELETE FROM ${table("admin_tokens")} WHERE admin_id = $1 OR expires_at < now() - interval '30 days';`,
+    [adminId],
+  )
+  await db.query(
+    `INSERT INTO ${table("admin_tokens")} (token_hash, admin_id, expires_at) VALUES ($1, $2, $3);`,
+    [hashOfToken(token), adminId, new Date(now + RESET_LIFETIME_IN_MS)],
+  )
+
+  return token
+}
+
+export async function findTokenAdmin(db: Db, token: string): Promise<Admin | undefined> {
+  const result = await db.query(
+    `SELECT a.id, a.email
+       FROM ${table("admin_tokens")} AS t
+       JOIN ${table("admins")} AS a ON a.id = t.admin_id
+      WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > now() AND a.disabled_at IS NULL;`,
+    [hashOfToken(token)],
+  )
+
+  return result.rows[0]
+}
+
+/**
+ * Records the password chosen from a link. The link serves once, and the
+ * sessions opened with the former password are closed.
+ * @returns the administrator, undefined when the link no longer works
+ */
+export async function chooseAdminPassword(
+  db: Db,
+  token: string,
+  passwordHash: string,
+): Promise<Admin | undefined> {
+  const used = await db.query(
+    `UPDATE ${table("admin_tokens")} AS t SET used_at = now()
+       FROM ${table("admins")} AS a
+      WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > now()
+        AND a.id = t.admin_id AND a.disabled_at IS NULL
+      RETURNING a.id, a.email;`,
+    [hashOfToken(token)],
+  )
+  const admin = used.rows[0] as Admin | undefined
+
+  if (admin === undefined) {
+    return undefined
+  }
+
+  await db.query(`UPDATE ${table("admins")} SET password_hash = $2 WHERE id = $1;`, [
+    admin.id,
+    passwordHash,
+  ])
+  await db.query(`DELETE FROM ${table("sessions")} WHERE admin_id = $1;`, [admin.id])
+  await audit(db, admin, "admin.password", null, { from: "link" })
+
+  return admin
 }
 
 export async function openSession(db: Db, adminId: string, token: string, now: number) {

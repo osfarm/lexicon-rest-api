@@ -11,6 +11,8 @@ import { callerAddress } from "../../access/CallerAddress"
 const TRUSTED_PROXIES = parseInt(import.meta.env.TRUSTED_PROXIES ?? "1")
 
 export const loginAttempts: LoginAttempts = new Map()
+// Requests for a link by mail, counted apart from the attempts to log in
+export const linkRequests: LoginAttempts = new Map()
 
 export type AdminRequest = Readonly<{
   cxt: Context

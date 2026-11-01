@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test"
-import { invitationMail, mailSettingsOf, passwordLink, resetMail, sendMail } from "./Mailer"
+import {
+  adminPasswordLink,
+  adminResetMail,
+  invitationMail,
+  mailSettingsOf,
+  passwordLink,
+  resetMail,
+  sendMail,
+} from "./Mailer"
 import { isToken, lifetimeOf, memberCookie, memberTokenIn, newMemberToken, passwordProblem } from "./MemberSession"
 import { membershipRuns } from "./MemberStore"
 
@@ -87,5 +95,24 @@ describe("a membership", () => {
     expect(membershipRuns({ membership_until: null }, "2026-10-11")).toBe(true)
     expect(membershipRuns({ membership_until: "2026-10-11" }, "2026-10-11")).toBe(true)
     expect(membershipRuns({ membership_until: "2026-10-10" }, "2026-10-11")).toBe(false)
+  })
+})
+
+describe("a link for an administrator who lost their password", () => {
+  const token = newMemberToken()
+
+  test("leads to the administration, not to the member area", () => {
+    expect(adminPasswordLink("https://lexicon.osfarm.org/", token)).toBe(
+      `https://lexicon.osfarm.org/admin/password?token=${token}`,
+    )
+  })
+
+  test("is mailed to the administrator, with nothing but the link to act on", () => {
+    const link = adminPasswordLink("https://lexicon.osfarm.org", token)
+    const mail = adminResetMail("admin@osfarm.example", link)
+
+    expect(mail.to).toBe("admin@osfarm.example")
+    expect(mail.text).toContain(link)
+    expect(mail.text).toContain("une heure")
   })
 })
