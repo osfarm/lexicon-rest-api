@@ -167,6 +167,13 @@ export const DATASETS: readonly WeaveDataset[] = [
     href: "/rd-agri/documents",
   },
   {
+    name: "bsv",
+    label: { fr: "Santé du végé\u00adtal", en: "Plant health" },
+    family: "crops",
+    source: "DRAAF",
+    href: "/bsv",
+  },
+  {
     name: "weather",
     label: { fr: "Météo", en: "Weather" },
     family: "environment",
@@ -258,7 +265,7 @@ export const KEYS: readonly WeaveKey[] = [
       fr: "Une production agricole du référentiel, végétale ou animale.",
       en: "A plant or animal production of the reference list.",
     },
-    carriedBy: ["productions", "rd_agri"],
+    carriedBy: ["productions", "rd_agri", "bsv"],
   },
   {
     id: "amm",
@@ -339,14 +346,14 @@ export const JOURNEY: readonly WeaveStep[] = [
   },
   {
     text: {
-      fr: "La culture renvoie à sa production, puis aux travaux de recherche qui en parlent.",
-      en: "The crop leads to its production, then to the research that deals with it.",
+      fr: "La culture renvoie à sa production, aux travaux de recherche qui en parlent et aux bulletins de santé du végétal qui annoncent ses risques cette semaine.",
+      en: "The crop leads to its production, to the research that deals with it and to the plant health bulletins announcing its risks this week.",
     },
     link: {
       label: { fr: "Docu\u00adments de R&D", en: "R&D docu\u00adments" },
       href: "/rd-agri/documents",
     },
-    datasets: ["graphic_parcels", "productions", "rd_agri"],
+    datasets: ["graphic_parcels", "productions", "rd_agri", "bsv"],
     keys: ["cap_crop_code", "production"],
   },
 ]
