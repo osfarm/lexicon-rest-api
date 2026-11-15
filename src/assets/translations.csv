@@ -435,7 +435,7 @@ footer_version,Version,Version
 footer_licence,Code sous licence MIT,Code under the MIT licence
 home_headline,"Les référentiels agricoles français, reliés entre eux.","French agricultural reference data, linked together."
 home_headline_count,"%count de données agricoles françaises, reliées entre elles.","%count French agricultural records, linked together."
-home_lead,"Cadastre, parcelles déclarées à la PAC, entreprises, produits phytosanitaires, météo, travaux de recherche : le Lexicon rassemble ces données publiques et les relie par des clés communes.","Cadastre, parcels declared to the CAP, companies, plant protection products, weather, research: Lexicon gathers this public data and links it through shared keys."
+home_lead,"Cadastre, parcelles déclarées à la PAC, entreprises, produits phytosanitaires, météo, travaux de recherche, bulletins de santé du végétal : le Lexicon rassemble ces données publiques et les relie par des clés communes.","Cadastre, parcels declared to the CAP, companies, plant protection products, weather, research, plant health bulletins: Lexicon gathers this public data and links it through shared keys."
 home_action_identify,Identifier une parcelle,Identify a parcel
 home_action_ask,Poser une question à Duke,Ask Duke a question
 home_weave_caption,"Les jeux de données du Lexicon en colonnes, les clés qui les relient en lignes : un point marque chaque jeu qui porte la clé.","The datasets of Lexicon as columns, the keys linking them as rows: a dot marks each dataset carrying the key."
