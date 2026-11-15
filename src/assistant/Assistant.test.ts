@@ -238,7 +238,50 @@ describe("historyOf", () => {
 })
 
 describe("sources", () => {
-  test("only the R&D tools name sources, and only from valid JSON", () => {
+  test("the plant health bulletins are sources: a bulletin of today by its PDF, the archive by its record", () => {
+    const risks = {
+      bulletins: [
+        {
+          id: "f7aace8a",
+          citation: "BSV Nouvelle-Aquitaine grandes cultures n° 31 du 05/11/2026",
+          "published-on": "2026-11-05",
+          "pdf-url": "https://draaf.example/bsv31.pdf",
+        },
+      ],
+    }
+    expect(sourcesOf("get_crop_health_risks", JSON.stringify(risks))).toEqual([
+      {
+        id: "f7aace8a",
+        title: "BSV Nouvelle-Aquitaine grandes cultures n° 31 du 05/11/2026",
+        year: 2026,
+        url: "https://draaf.example/bsv31.pdf",
+        href: "/bsv/bulletins/f7aace8a",
+      },
+    ])
+
+    const found = {
+      items: [
+        {
+          corpus: "archive",
+          id: "AA_GC_Bretagne_1984_001",
+          title: "Avertissements agricoles",
+          year: 1984,
+        },
+        { corpus: "current", id: "", title: "no id" },
+      ],
+    }
+    expect(sourcesOf("search_plant_health_bulletins", JSON.stringify(found))).toEqual([
+      {
+        id: "AA_GC_Bretagne_1984_001",
+        title: "Avertissements agricoles",
+        year: 1984,
+        url: "",
+        href: "/bsv/archive/AA_GC_Bretagne_1984_001",
+      },
+    ])
+  })
+
+  test("only the document tools name sources, and only from valid JSON", () => {
     expect(sourcesOf("read_resource", JSON.stringify(DOCUMENT))).toEqual([])
     expect(sourcesOf("search_rd_documents", '{"documents":[{"id":"x"')).toEqual([])
     expect(sourcesOf("get_rd_document", JSON.stringify(DOCUMENT))).toHaveLength(1)

@@ -682,3 +682,55 @@ tools_trainings,Trouver une formation agricole,Find an agricultural training
 explore_tools_trainings,"Les établissements de l'enseignement agricole par lieu, diplôme, spécialité et voie.","Schools of agricultural education by place, diploma, speciality and route."
 productions_documentation,Documentation,Documentation
 productions_reference,Référence,Reference
+bsv_title,Bulletins de santé du végétal,Plant health bulletins
+bsv_introduction,"Les bulletins de santé du végétal (BSV) des DRAAF et de leurs réseaux d'épidémiosurveillance : les risques par culture et bioagresseur lus dans les derniers bulletins couvrant une commune, la recherche dans le texte des bulletins et dans l'archive des Avertissements agricoles (1955–2016).","The plant health bulletins (BSV) of the DRAAF and their epidemiological networks: the risks by crop and pest read in the latest bulletins covering a commune, and a search in the text of the bulletins and in the archive of the Avertissements agricoles (1955–2016)."
+bsv_risks_title,Risques sanitaires des cultures,Crop health risks
+bsv_search_title,Recherche dans les bulletins,Search the bulletins
+bsv_caveat,Ces risques ont été extraits automatiquement par un modèle d'IA du bulletin cité : ce ne sont pas des observations officielles. Lisez le bulletin (lien) avant d'agir. Le niveau « non précisé » signifie que le bulletin ne donne pas d'évaluation pour cette ligne.,These risks were extracted automatically by an AI model from the cited bulletin: they are not an official observation. Read the bulletin (link) before acting. The level “not specified” means the bulletin gives no evaluation for that line.
+bsv_credit,"Source : Bulletins de santé du végétal — réseaux d'épidémiosurveillance (DRAAF, chambres d'agriculture, FREDON). Reproduction autorisée avec mention de la source.","Source: Bulletins de santé du végétal — epidemiological surveillance networks (DRAAF, chambers of agriculture, FREDON). Reproduction allowed with mention of the source."
+bsv_archive_credit,"Archive : Avertissements agricoles et BSV de 1955 à 2016, projet PestObserver, texte lu par reconnaissance de caractères, de qualité moyenne avant 2000.","Archive: Avertissements agricoles and BSV from 1955 to 2016, project PestObserver, text read by character recognition, of medium quality before 2000."
+bsv_archive_not_in_service,L'archive n'est pas en service.,The archive is not in service.
+bsv_field_commune,"Commune (code INSEE, code postal ou nom)","Commune (INSEE code, postal code or name)"
+bsv_field_department,Département,Department
+bsv_field_crop,Culture,Crop
+bsv_field_production,Production (nom de référence),Production (reference name)
+bsv_field_date,Date,Date
+bsv_field_words,Mots,Words
+bsv_field_from,Depuis (année ou date),From (year or date)
+bsv_field_to,Jusqu'à (année ou date),To (year or date)
+bsv_field_corpus,Bulletins,Bulletins
+bsv_corpus_all,Tous,All
+bsv_corpus_current,Bulletins actuels,Current bulletins
+bsv_corpus_archive,Archive 1955–2016,Archive 1955–2016
+bsv_search,Chercher,Search
+bsv_search_help,"Quelques mots, par exemple « mildiou vigne » ou « méligèthes colza ». Les accents sont ignorés.","A few French words, for instance “mildiou vigne” or “méligèthes colza”. Accents are ignored."
+bsv_results_count,bulletins,bulletins
+bsv_relaxed,aucun bulletin n'a tous les mots : voici ceux qui en ont au moins un,no bulletin has every word: here are those with at least one
+bsv_level_tres_fort,Très fort,Very high
+bsv_level_fort,Fort,High
+bsv_level_moyen,Moyen,Moderate
+bsv_level_faible,Faible,Low
+bsv_level_nul,Nul,None
+bsv_level_non_precise,Non précisé,Not specified
+bsv_col_level,Risque,Risk
+bsv_col_crop,Culture et stade,Crop and stage
+bsv_col_pest,Bioagresseur,Pest or disease
+bsv_col_assessment,Évaluation,Assessment
+bsv_col_period,Période de risque,Risk period
+bsv_col_threshold,Seuil,Threshold
+bsv_col_observations,Observations,Observations
+bsv_col_source,Ce que dit le bulletin,What the bulletin says
+bsv_conditional,si,if
+bsv_stages_title,Stades des cultures,Crop stages
+bsv_bulletins_read,Bulletins lus,Bulletins read
+bsv_department,Département,Department
+bsv_stale,Aucun bulletin de moins de 21 jours ne couvre ce département pour cette culture : voici le plus récent.,No bulletin of the last 21 days covers this department for this crop: here is the latest one.
+bsv_none,Aucun bulletin ne couvre ce département pour cette culture à cette date.,No bulletin covers this department for this crop at this date.
+bsv_no_place,"Indiquez une commune (code INSEE, code postal ou nom) ou un département.","Give a commune (INSEE code, postal code or name) or a department."
+bsv_unknown_place,Aucune commune ni aucun département ne correspond.,No commune or department matches.
+bsv_see_pdf,Lire le bulletin (PDF),Read the bulletin (PDF)
+bsv_see_article,Page du bulletin sur le site de la DRAAF,Page of the bulletin on the site of the DRAAF
+bsv_page,page,page
+bsv_pages_title,Texte du bulletin,Text of the bulletin
+bsv_risks_of_bulletin,Risques lus dans ce bulletin,Risks read in this bulletin
+explore_bsv,"Les risques par culture des bulletins de santé du végétal, et leur texte depuis 1955.","Risks by crop of the plant health bulletins, and their text since 1955."

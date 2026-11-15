@@ -92,35 +92,63 @@ export function historyOf(input: unknown, limits: Limits): Turn[] {
 }
 
 /**
- * The documents a tool result speaks of, when it is one of the R&D tools.
+ * The documents a tool result speaks of: R&D documents, plant health bulletins.
  */
 export function sourcesOf(toolName: string, text: string): Source[] {
-  if (toolName !== "search_rd_documents" && toolName !== "get_rd_document") {
+  const read = SOURCE_READERS[toolName]
+  if (read === undefined) {
     return []
   }
 
   try {
-    const data = JSON.parse(text)
-    const documents: any[] = Array.isArray(data.documents) ? data.documents : [data]
-
-    return documents
-      .filter(
-        (document) =>
-          typeof document?.id === "string" &&
-          typeof document?.title === "string" &&
-          typeof document?.url === "string",
-      )
-      .map((document) => ({
-        id: document.id,
-        title: document.title,
-        year: typeof document.year === "number" ? document.year : null,
-        url: document.url,
-        href: `/rd-agri/documents/${encodeURIComponent(document.id)}`,
-      }))
+    return read(JSON.parse(text)).filter(
+      (source) => source.id !== "" && source.title !== "" && source.href !== "",
+    )
   } catch {
     // A result cut short is not JSON any more: it names no source
     return []
   }
+}
+
+const textOf = (value: unknown) => (typeof value === "string" ? value : "")
+const yearOf = (date: unknown) =>
+  typeof date === "string" && /^\d{4}/.test(date) ? Number(date.slice(0, 4)) : null
+
+const rdDocuments = (data: any): Source[] =>
+  (Array.isArray(data.documents) ? data.documents : [data])
+    .filter((document: any) => typeof document?.url === "string")
+    .map((document: any) => ({
+      id: textOf(document.id),
+      title: textOf(document.title),
+      year: typeof document.year === "number" ? document.year : null,
+      url: document.url,
+      href: `/rd-agri/documents/${encodeURIComponent(textOf(document.id))}`,
+    }))
+
+// A bulletin of today links to its PDF; a document of the archive has only its record
+const bulletin = (item: any): Source => {
+  const archived = item?.corpus === "archive"
+  const id = textOf(item?.id)
+
+  return {
+    id,
+    title: textOf(item?.citation) || textOf(item?.title),
+    year: typeof item?.year === "number" ? item.year : yearOf(item?.["published-on"]),
+    url: textOf(item?.["pdf-url"]),
+    href:
+      id === ""
+        ? ""
+        : `/bsv/${archived ? "archive" : "bulletins"}/${encodeURIComponent(id)}`,
+  }
+}
+
+const SOURCE_READERS: Record<string, (data: any) => Source[]> = {
+  search_rd_documents: rdDocuments,
+  get_rd_document: rdDocuments,
+  get_crop_health_risks: (data) =>
+    Array.isArray(data.bulletins) ? data.bulletins.map(bulletin) : [],
+  search_plant_health_bulletins: (data) =>
+    Array.isArray(data.items) ? data.items.map(bulletin) : [],
 }
 
 /**
