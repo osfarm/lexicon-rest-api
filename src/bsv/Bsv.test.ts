@@ -335,12 +335,32 @@ const item = (
 })
 
 describe("mergedSearch", () => {
+  test("the bulletins of today come first, whatever the rank of the archive", () => {
+    const answers = {
+      current: {
+        total: 2,
+        items: [item("current", "a", 0.2, "2026-01-01"), item("current", "b", 0.1)],
+      },
+      archive: {
+        total: 2,
+        items: [item("archive", "c", 0.9, "1980-05-01"), item("archive", "d", 0.8)],
+      },
+    }
+
+    expect(
+      mergedSearch(answers, { limit: 3, offset: 0 }).items.map((one) => one.id),
+    ).toEqual(["a", "b", "c"])
+    expect(
+      mergedSearch(answers, { limit: 2, offset: 2 }).items.map((one) => one.id),
+    ).toEqual(["c", "d"])
+  })
+
   test("one list by rank then date; a corpus not in service is null", () => {
     const merged = mergedSearch(
       {
         current: {
           total: 2,
-          items: [item("current", "a", 0.5, "2026-01-01"), item("current", "b", 0.1)],
+          items: [item("current", "b", 0.1), item("current", "a", 0.5, "2026-01-01")],
         },
         archive: { total: 1, items: [item("archive", "c", 0.5, "1980-05-01")] },
       },
@@ -349,7 +369,7 @@ describe("mergedSearch", () => {
 
     expect(merged.total).toBe(3)
     expect(merged.corpora).toEqual({ current: 2, archive: 1 })
-    expect(merged.items.map((one) => one.id)).toEqual(["a", "c"])
+    expect(merged.items.map((one) => one.id)).toEqual(["a", "b"])
     expect(mergedSearch({ archive: undefined }, { limit: 5, offset: 0 }).corpora).toEqual(
       {
         archive: null,

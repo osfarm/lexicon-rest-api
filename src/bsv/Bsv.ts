@@ -600,14 +600,18 @@ export const archiveItemOf = (row: Record<string, any>): SearchItem => ({
   links: { self: archivePath(row.id) },
 })
 
-// The most relevant first, then the most recent
-const byRankThenDate = (a: SearchItem, b: SearchItem) =>
+// The bulletins of today before the archive, whatever their rank: someone who
+// searches wants what is announced now. Then the most relevant, the most recent
+const CORPUS_ORDER: Corpus[] = ["current", "archive"]
+
+const byCorpusRankThenDate = (a: SearchItem, b: SearchItem) =>
+  CORPUS_ORDER.indexOf(a.corpus) - CORPUS_ORDER.indexOf(b.corpus) ||
   b.rank - a.rank ||
   String(b.date ?? b.year ?? "").localeCompare(String(a.date ?? a.year ?? "")) ||
   a.id.localeCompare(b.id)
 
 /**
- * The results of both corpora in one list.
+ * The results of both corpora in one list, the bulletins of today first.
  */
 export function mergedSearch(
   answers: Partial<Record<Corpus, { total: number; items: SearchItem[] } | undefined>>,
@@ -618,7 +622,7 @@ export function mergedSearch(
   )
   const items = Object.values(answers)
     .flatMap((answer) => answer?.items ?? [])
-    .sort(byRankThenDate)
+    .sort(byCorpusRankThenDate)
 
   return {
     total: Object.values(answers).reduce((sum, answer) => sum + (answer?.total ?? 0), 0),
