@@ -21,6 +21,7 @@ import { Catalog } from "./namespaces/Catalog"
 import { Links } from "./namespaces/Links"
 import { Mcp } from "./namespaces/Mcp"
 import { RdAgri } from "./namespaces/RdAgri"
+import { Bsv } from "./namespaces/Bsv"
 import { Inputs } from "./namespaces/Inputs"
 import { Contribute } from "./namespaces/Contribute"
 
@@ -49,6 +50,7 @@ API.new()
   .use(Links)
   .use(Mcp)
   .use(RdAgri)
+  .use(Bsv)
   .use(Inputs)
   .use(Contribute)
   .listen(PORT)

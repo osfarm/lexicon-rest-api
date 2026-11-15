@@ -43,6 +43,8 @@ export type McpBackend = Readonly<{
   cropHistory: (longitude: unknown, latitude: unknown) => Promise<unknown>
   inputPrices: (args: Record<string, unknown>) => Promise<unknown>
   trainings: (args: Record<string, unknown>) => Promise<unknown>
+  cropHealthRisks: (args: Record<string, unknown>) => Promise<unknown>
+  searchPlantHealthBulletins: (args: Record<string, unknown>) => Promise<unknown>
 }>
 
 const text = (schema: object) => ({
@@ -268,6 +270,56 @@ export const TOOLS = [
       },
     }),
   },
+  {
+    name: "get_crop_health_risks",
+    description:
+      'The health risks of crops near a French commune this week, from the latest plant health bulletins (bulletins de santé du végétal, BSV) of the DRAAF covering its department: for each pest or disease, its level (tres_fort, fort, moyen, faible, nul, or non_precise when the bulletin gives no evaluation), the stage concerned, the condition, the risk period, the threshold, what the networks observed, the quote of the bulletin and its page; and, apart, the stages the crops have reached. One bulletin per edition, the latest of the last 21 days; stale is true when none is that recent and the latest is given instead. crop is a French word as bulletins write it ("colza", "blé tendre", "vigne", "pommier"). The risks were extracted by an AI model: repeat the caveat and cite the bulletin (citation and pdf-url).',
+    inputSchema: text({
+      properties: {
+        place: {
+          type: "string",
+          description:
+            "A commune: INSEE code, postal code or name, such as 47001, 47000 or Agen",
+        },
+        crop: { type: "string", description: "French name of the crop, such as colza" },
+        production: {
+          type: "string",
+          description:
+            "Reference name of a production, as found in /production/productions, such as winter_rape",
+        },
+        date: {
+          type: "string",
+          description: "Day the risks are asked for, YYYY-MM-DD; today when absent",
+        },
+      },
+      required: ["place"],
+    }),
+  },
+  {
+    name: "search_plant_health_bulletins",
+    description:
+      'Search the text of the French plant health bulletins: those the DRAAF publish today, mostly from 2025 on (current) and the archive of the Avertissements agricoles and BSV from 1955 to 2016 (archive, PestObserver, OCR of medium quality). Put a few French keywords in query, such as "mildiou vigne" or "pucerons blé". Each result says its corpus, its title or citation, its date or year, its regions, an excerpt and its address. For the risks of this week near a commune, use get_crop_health_risks instead.',
+    inputSchema: text({
+      properties: {
+        query: { type: "string", description: "French keywords" },
+        department: {
+          type: "string",
+          description: "Code of a department, such as 47 or 2A",
+        },
+        year_from: { type: "integer", description: "Published this year or later" },
+        year_to: { type: "integer", description: "Published this year or earlier" },
+        include_archive: {
+          type: "boolean",
+          description: "false to search the bulletins of today only; true by default",
+        },
+        limit: {
+          type: "integer",
+          description: "Number of results, 10 by default, 20 at most",
+        },
+      },
+      required: ["query"],
+    }),
+  },
 ] as const
 
 function result(id: JsonRpcId, value: unknown): JsonRpcResponse {
@@ -306,6 +358,8 @@ function callTool(backend: McpBackend, name: string, args: Record<string, any>) 
     get_crop_history: () => backend.cropHistory(args.longitude, args.latitude),
     get_input_price: () => backend.inputPrices(args),
     find_agricultural_trainings: () => backend.trainings(args),
+    get_crop_health_risks: () => backend.cropHealthRisks(args),
+    search_plant_health_bulletins: () => backend.searchPlantHealthBulletins(args),
   }
 
   return calls[name]
@@ -338,7 +392,7 @@ export async function handleMcpMessage(
       capabilities: { tools: {} },
       serverInfo: { name: "lexicon", title: "Lexicon", version: backend.version },
       instructions:
-        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents, find_agricultural_trainings for where a diploma is prepared. get_commune and get_parcel also give the quality signs (AOC/AOP, IGP), the organic farming, the farms certified HVE and the canteens of a commune: each of these parts carries a caveat, repeat it with the figures. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
+        "Lexicon serves French agricultural reference data. Start with list_datasets, then read rows with read_resource. Dedicated tools answer the common questions in one call: get_parcel for a point, get_commune for a commune, get_crop_history for the crops grown at a point, get_crop_figures for yields and selling prices, search_phytosanitary_products for plant protection products, get_phytosanitary_purchases for what is bought of a substance, get_input_price for the price of an input, search_rd_documents for the R&D documents, find_agricultural_trainings for where a diploma is prepared, get_crop_health_risks for the pests and diseases the latest plant health bulletins announce near a commune, search_plant_health_bulletins for the text of the plant health bulletins since 1955. get_commune and get_parcel also give the quality signs (AOC/AOP, IGP), the organic farming, the farms certified HVE and the canteens of a commune: each of these parts carries a caveat, repeat it with the figures. The risks of get_crop_health_risks were extracted from the bulletins by an AI model: repeat its caveat and cite the bulletin. Every dataset has a licence, given by list_datasets: cite the provider when you use its data.",
     })
   }
   if (message.method === "ping") {

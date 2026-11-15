@@ -30,6 +30,17 @@ import {
   unpricedProducts,
 } from "../input-prices/InputPrices"
 import { filtersOf, readDocument, searchDocuments } from "../rd-agri/RdAgri"
+import {
+  BSV_ARCHIVE_CREDIT,
+  BSV_CAVEAT,
+  BSV_CREDIT,
+  departmentOf,
+  riskQueryOf,
+  risksForAgents,
+  risksOf,
+  searchBulletins,
+  searchQueryOf,
+} from "../bsv/Bsv"
 import { addressOf } from "./Admin/session"
 import { foodProjectsOf } from "../food-projects/FoodProjects"
 import { SCHOOLS_CAVEAT, territoryOf } from "../territory/Territory"
@@ -434,6 +445,100 @@ export function backendFor(cxt: Context): McpBackend {
           ? { diplomas: choices.diplomas, specialities: choices.specialities }
           : {}),
         note: SCHOOLS_CAVEAT,
+      }
+    },
+
+    cropHealthRisks: async (args) => {
+      const typed = typeof args.place === "string" ? args.place.trim() : ""
+
+      if (typed === "") {
+        throw new Error(
+          "A place is needed: the INSEE code, postal code or name of a commune",
+        )
+      }
+
+      const place = await placeOf(cxt.db, typed)
+      const department = await required(
+        departmentOf(typed) ?? (place ? departmentOf(place["insee-code"]) : undefined),
+        `No commune matches ${typed}. Give an INSEE code, a postal code or the name of a commune.`,
+      )
+      const query = await required(
+        riskQueryOf({
+          department,
+          crop: args.crop,
+          production: args.production,
+          date: args.date,
+        }),
+        `No department ${department}`,
+      )
+      const risks = await required(
+        await risksOf(cxt.db, query),
+        "The plant health bulletins are not in service",
+      )
+      // Nothing for the crop asked: which crops the recent bulletins speak of, so
+      // that an empty answer is not read as "no risk"
+      const others =
+        risks.bulletins.length === 0 && (query.crop || query.production)
+          ? await risksOf(cxt.db, { department: query.department, date: query.date })
+          : undefined
+      const crops = others
+        ? [
+            ...new Set([...others.risks, ...others.stages].map((line) => line.crop)),
+          ].sort()
+        : undefined
+
+      // The caveat comes first: a long answer may be cut before its end
+      return {
+        caveat: BSV_CAVEAT,
+        place,
+        ...(query.crop ? { crop: query.crop } : {}),
+        ...(query.production ? { production: query.production } : {}),
+        ...risksForAgents(risks),
+        ...(risks.stale
+          ? {
+              "stale-note":
+                "No bulletin of the last 21 days speaks of it: the latest one is given. Say how old it is.",
+            }
+          : {}),
+        ...(crops && crops.length > 0
+          ? {
+              "crops-in-recent-bulletins": crops,
+              meaning:
+                "No recent bulletin of the department names the crop asked; these crops are named. Try one of them.",
+            }
+          : {}),
+        note: BSV_CREDIT,
+      }
+    },
+
+    searchPlantHealthBulletins: async (args) => {
+      const query = await required(
+        searchQueryOf({
+          q: args.query,
+          department: args.department,
+          from: args.year_from,
+          to: args.year_to,
+          corpus: args.include_archive === false ? "current" : undefined,
+        }),
+        "A search needs a query: a few French keywords",
+      )
+      const asked = Number(args.limit)
+      const limit = Number.isInteger(asked) && asked > 0 ? Math.min(asked, 20) : 10
+      const found = await required(
+        await searchBulletins(cxt.db, query, { limit, offset: 0 }),
+        "The plant health bulletins are not in service",
+      )
+
+      return {
+        ...found,
+        items: found.items.map(({ rank, ...item }) => item),
+        ...(found.corpora.archive === null
+          ? {
+              "archive-note":
+                "The archive (1955–2016) is not in service: only current bulletins were searched",
+            }
+          : {}),
+        note: `${BSV_CREDIT} ${BSV_ARCHIVE_CREDIT}`,
       }
     },
   }

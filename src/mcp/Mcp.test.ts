@@ -21,6 +21,8 @@ const backend = (overrides: Partial<McpBackend> = {}): McpBackend => ({
   cropFigures: async (args) => ({ query: args.production, yields: [] }),
   phytosanitaryProducts: async (args) => ({ total: 0, products: [], asked: args }),
   phytosanitaryPurchases: async (args) => ({ substance: args.substance, years: [] }),
+  cropHealthRisks: async (args) => ({ asked: args, risks: [] }),
+  searchPlantHealthBulletins: async (args) => ({ asked: args, items: [] }),
   ...overrides,
 })
 
@@ -93,6 +95,8 @@ describe("handleMcpMessage", () => {
       "get_crop_history",
       "get_input_price",
       "find_agricultural_trainings",
+      "get_crop_health_risks",
+      "search_plant_health_bulletins",
     ])
     expect(TOOLS.every((tool) => tool.inputSchema.type === "object")).toBe(true)
   })
@@ -139,6 +143,45 @@ describe("handleMcpMessage", () => {
       query: "mildiou vigne",
       year_from: 2020,
     })
+  })
+
+  test("the risks of crops are asked with the place, the crop and the date of the caller", async () => {
+    const response: any = await call("get_crop_health_risks", {
+      place: "Agen",
+      crop: "colza",
+      date: "2026-11-10",
+    })
+
+    expect(response.result.isError).toBe(false)
+    expect(JSON.parse(response.result.content[0].text).asked).toEqual({
+      place: "Agen",
+      crop: "colza",
+      date: "2026-11-10",
+    })
+  })
+
+  test("the search of plant health bulletins gets every argument of the call", async () => {
+    const response: any = await call("search_plant_health_bulletins", {
+      query: "mildiou vigne",
+      year_to: 1990,
+      include_archive: true,
+    })
+
+    expect(JSON.parse(response.result.content[0].text).asked).toEqual({
+      query: "mildiou vigne",
+      year_to: 1990,
+      include_archive: true,
+    })
+  })
+
+  test("the server tells when to use the tools of the plant health bulletins", async () => {
+    const response: any = await handleMcpMessage(
+      { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
+      backend(),
+    )
+
+    expect(response.result.instructions).toContain("get_crop_health_risks")
+    expect(response.result.instructions).toContain("search_plant_health_bulletins")
   })
 
   test("a failing tool is a readable result, not a protocol error", async () => {

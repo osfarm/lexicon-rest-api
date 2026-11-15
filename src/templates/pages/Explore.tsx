@@ -18,6 +18,7 @@ const SECTIONS: [string, string, Family][] = [
   ["/inputs", "inputs", "crops"],
   ["/viticulture", "viticulture", "crops"],
   ["/rd-agri", "rd_agri", "crops"],
+  ["/bsv", "bsv", "crops"],
   ["/weather", "weather", "environment"],
 ]
 

@@ -912,6 +912,67 @@ const Paths = (t: Translator) => ({
     }),
   },
 
+  "/bsv/risks.json": {
+    get: ResourceEndpoint({
+      description:
+        "Crop health risks of the latest plant health bulletins (BSV) covering the department of a commune: the latest bulletin of each edition within 21 days of the date (the latest one, with stale true, when none is that recent), its risks by crop and pest from the most severe, and the stages of the crops apart. The risks are extracted by an AI model from the cited bulletin, not an official observation: every answer carries a caveat. Also as CSV.",
+      category: t("bsv_title"),
+      query: {
+        commune: {
+          description: "Commune: INSEE code, postal code or name. Example: 47001.",
+          type: "string",
+        },
+        department: { description: "Department code, instead of a commune.", type: "string" },
+        crop: { description: "Crop as bulletins write it. Example: colza.", type: "string" },
+        production: {
+          description: "Reference name of a production. Example: winter_rape.",
+          type: "string",
+        },
+        date: { description: "Day asked, YYYY-MM-DD; today by default.", type: "string" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/bsv/search.json": {
+    get: ResourceEndpoint({
+      description:
+        "Full-text search (accents ignored) in the plant health bulletins of today (best page and excerpt per bulletin) and in the archive of 1955–2016 (PestObserver, CC-BY), in one list by rank then date. Each corpus says how many matched, null when it is not in service; 'relaxed' is true when no bulletin held every word. Also as CSV.",
+      category: t("bsv_title"),
+      query: {
+        q: { description: "Words to search for.", type: "string" },
+        department: { description: "Department code.", type: "string" },
+        from: { description: "From this year or date (YYYY-MM-DD).", type: "string" },
+        to: { description: "Up to this year or date (YYYY-MM-DD).", type: "string" },
+        corpus: { description: "current or archive; both by default.", type: "string" },
+        page: { description: "Page number, 20 results a page.", type: "number" },
+      },
+      resourceSchema: {},
+    }),
+  },
+
+  "/bsv/bulletins/{id}.json": {
+    get: ResourceEndpoint({
+      description:
+        "A plant health bulletin: its edition, links to the PDF and to the page of the DRAAF, the risks read in it (with the caveat) and the text of its pages.",
+      category: t("bsv_title"),
+      params: { id: { description: "Identifier of the bulletin.", type: "string" } },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
+  "/bsv/archive/{id}.json": {
+    get: ResourceEndpoint({
+      description:
+        "A document of the archive of the plant health bulletins (1955–2016, PestObserver, CC-BY): kind, regions, sectors, date or year, and its text (OCR of medium quality).",
+      category: t("bsv_title"),
+      params: { id: { description: "Identifier of the document.", type: "string" } },
+      query: {},
+      resourceSchema: {},
+    }),
+  },
+
   "/catalog.json": {
     get: ResourceEndpoint({
       description:
@@ -961,7 +1022,7 @@ const Paths = (t: Translator) => ({
   "/mcp": {
     post: {
       summary:
-        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_phytosanitary_purchases, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price, find_agricultural_trainings. get_commune and get_parcel carry the quality signs, the organic farming, the farms certified HVE, the canteens and the agricultural schools of a commune. A key is only needed for what is reserved.",
+        "MCP server (Model Context Protocol, JSON-RPC 2.0 over HTTP) for agents. Tools: list_datasets, describe_dataset, list_resources, read_resource (tables come compact: columns once, one array per row), get_parcel, get_crop_figures, search_phytosanitary_products, get_phytosanitary_purchases, get_commune, get_enterprise, search_rd_documents, get_rd_document, get_crop_history, get_input_price, find_agricultural_trainings, get_crop_health_risks, search_plant_health_bulletins. get_commune and get_parcel carry the quality signs, the organic farming, the farms certified HVE, the canteens and the agricultural schools of a commune. A key is only needed for what is reserved.",
       tags: [t("tools")],
       requestBody: {
         content: {
